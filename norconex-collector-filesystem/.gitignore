@@ -1,0 +1,10 @@
+/target
+/.settings
+/mytests
+/work
+/progress
+/logs
+/minimunCrawlFiles
+/.classpath
+/.project
+/.myeclipse
