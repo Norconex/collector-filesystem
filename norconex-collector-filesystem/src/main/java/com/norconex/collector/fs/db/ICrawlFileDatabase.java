@@ -21,6 +21,8 @@ package com.norconex.collector.fs.db;
 import java.io.File;
 import java.util.Iterator;
 
+import com.norconex.collector.fs.crawler.CrawlFile;
+
 
 /**
  * <p>Database implementation holding necessary information about all URL 
@@ -45,7 +47,7 @@ public interface ICrawlFileDatabase {
      * Queues a File for future processing. 
      * @param file the file to eventually be processed
      */
-    void queue(File file);
+    void queue(CrawlFile file);
 
     /**
      * Whether there are any URLs to process in the queue.
@@ -72,7 +74,7 @@ public interface ICrawlFileDatabase {
      * is effectively removed from the queue.
      * @return next URL
      */
-    File nextQueued();
+    CrawlFile nextQueued();
     
     /**
      * Whether the given URL is currently being processed (i.e. active).
@@ -107,7 +109,7 @@ public interface ICrawlFileDatabase {
      * in the same crawl run.
      * @param crawlURL
      */
-    void processed(File file);
+    void processed(CrawlFile file);
 
     /**
      * Whether the given URL has been processed.
@@ -126,7 +128,7 @@ public interface ICrawlFileDatabase {
      * Gets the cache iterator.
      * @return cache iterator
      */
-    Iterator<File> getCacheIterator();
+    Iterator<CrawlFile> getCacheIterator();
 
     /**
      * Closes a database connection. This method gets called a the end

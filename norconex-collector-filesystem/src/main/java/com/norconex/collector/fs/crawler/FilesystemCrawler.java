@@ -19,6 +19,8 @@
 package com.norconex.collector.fs.crawler;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Date;
 import java.util.concurrent.CountDownLatch;
@@ -26,8 +28,14 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.commons.lang3.time.DateUtils;
+import org.apache.commons.vfs2.FileContent;
+import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.FileSystemException;
+import org.apache.commons.vfs2.FileSystemManager;
+import org.apache.commons.vfs2.VFS;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
@@ -56,6 +64,8 @@ public class FilesystemCrawler extends AbstractResumableJob {
 
     private static final int FILE_DELETE_COUNT_MAX = 100;
 
+    private final FileSystemManager managerVfs;
+
     private final FilesystemCrawlerConfig crawlerConfig;
     private boolean stopped;
 
@@ -69,6 +79,11 @@ public class FilesystemCrawler extends AbstractResumableJob {
      */
     public FilesystemCrawler(FilesystemCrawlerConfig crawlerConfig) {
         super();
+        try {
+            this.managerVfs = VFS.getManager();
+        } catch (FileSystemException e) {
+            throw new FilesystemCollectorException(e);
+        }
         this.crawlerConfig = crawlerConfig;
         crawlerConfig.getWorkDir().mkdirs();
     }
@@ -130,7 +145,7 @@ public class FilesystemCrawler extends AbstractResumableJob {
         String[] startPaths = crawlerConfig.getStartPaths();
         for (int i = 0; i < startPaths.length; i++) {
             String startPath = startPaths[i];
-            database.queue(new File(startPath));
+            database.queue(new CrawlFile(getFileObject(startPath)));
         }
 
         try {
@@ -191,7 +206,7 @@ public class FilesystemCrawler extends AbstractResumableJob {
     private boolean processNextFile(final ICrawlFileDatabase database,
             final JobProgress progress) {
 
-        File queuedFile = database.nextQueued();
+        CrawlFile queuedFile = database.nextQueued();
         if (queuedFile != null) {
             processNextQueuedFile(queuedFile, database);
             return true;
@@ -201,32 +216,54 @@ public class FilesystemCrawler extends AbstractResumableJob {
         }
     }
 
-    private void processNextQueuedFile(File file, ICrawlFileDatabase database) {
+    private void processNextQueuedFile(CrawlFile file,
+            ICrawlFileDatabase database) {
         if (file.isFile()) {
             importAndCommitFile(file);
         } else {
-            for (File fileToQueue : file.listFiles()) {
-                database.queue(fileToQueue);
+            for (FileObject fileToQueue : file.listFiles()) {
+                database.queue(new CrawlFile(fileToQueue));
             }
         }
     }
 
     /**
-     * This is a temporary method to import and commit a file
+     * This is a temporary method to import and commit a file.
+     * 
+     * TODO use a list of steps.
      * 
      * @param file
      */
-    private void importAndCommitFile(File file) {
+    private void importAndCommitFile(CrawlFile file) {
         LOG.info("IMPORT & COMMIT: " + file);
 
-        Importer importer = new Importer(crawlerConfig.getImporterConfig());
-        File outputFile = createLocalFile(file, ".txt");
-        outputFile.getParentFile().mkdirs();
-        Properties metadata = new Properties();
+        // Download
+        File localFile;
+        Properties metadata;
+        try {
+            localFile = createLocalFile(file, ".raw");
+            FileUtil.createDirsForFile(localFile);
+            FileContent content = file.getContent();
+            FileOutputStream fos = new FileOutputStream(localFile);
+            IOUtils.copy(content.getInputStream(), fos);
+            fos.close();
+
+            metadata = new Properties();
+            metadata.addLong("collector.fs.filesize", content.getSize());
+            metadata.addLong("collector.fs.lastmodified",
+                    content.getLastModifiedTime());
+        
+        } catch (IOException e) {
+            throw new FilesystemCollectorException("Cannot download file: "
+                    + file, e);
+        }
 
         // Import
+        File outputFile = createLocalFile(file, ".txt");
+        Importer importer = new Importer(crawlerConfig.getImporterConfig());
         try {
-            importer.importDocument(file, outputFile, metadata);
+            importer.importDocument(
+                    localFile, null, outputFile, metadata, file.getURL().toString());
         } catch (IOException e) {
             throw new FilesystemCollectorException("Cannot import file: "
                     + file, e);
@@ -239,8 +276,8 @@ public class FilesystemCrawler extends AbstractResumableJob {
         }
 
         if (!crawlerConfig.isKeepDownloads()) {
-            LOG.debug("Deleting " + outputFile);
-            FileUtils.deleteQuietly(outputFile);
+            LOG.debug("Deleting " + localFile);
+            FileUtils.deleteQuietly(localFile);
             deleteDownloadDirIfReady();
         }
     }
@@ -254,10 +291,11 @@ public class FilesystemCrawler extends AbstractResumableJob {
         return new File(getBaseDownloadDir() + "/" + crawlerConfig.getId());
     }
 
-    private File createLocalFile(File file, String extension) {
-        return new File(getCrawlerDownloadDir().getAbsolutePath()
-                + SystemUtils.FILE_SEPARATOR
-                + PathUtils.urlToPath(file.toString()) + extension);
+    private File createLocalFile(CrawlFile file, String extension) {
+        return new File(getCrawlerDownloadDir().getAbsolutePath() 
+                + SystemUtils.FILE_SEPARATOR 
+                + PathUtils.urlToPath(file.getURL().toString())
+                + extension);
     }
 
     private void deleteDownloadDirIfReady() {
@@ -289,6 +327,14 @@ public class FilesystemCrawler extends AbstractResumableJob {
                                 + ": Could not delete the crawler downloads directory: "
                                 + getCrawlerDownloadDir(), e);
             }
+        }
+    }
+
+    private FileObject getFileObject(String path) {
+        try {
+            return managerVfs.resolveFile(path);
+        } catch (FileSystemException e) {
+            throw new FilesystemCollectorException(e);
         }
     }
 

@@ -5,19 +5,20 @@ import java.util.Iterator;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import com.norconex.collector.fs.crawler.CrawlFile;
 import com.norconex.collector.fs.crawler.FilesystemCrawlerConfig;
 import com.norconex.collector.fs.db.ICrawlFileDatabase;
 
 public class DefaultCrawlFileDatabase implements ICrawlFileDatabase {
 
-    private static Queue<File> queue = new ConcurrentLinkedQueue<>();
+    private final Queue<CrawlFile> queue = new ConcurrentLinkedQueue<>();
 
     public DefaultCrawlFileDatabase(FilesystemCrawlerConfig config,
             boolean resume) {
     }
 
     @Override
-    public void queue(File file) {
+    public void queue(CrawlFile file) {
         queue.add(file);
     }
 
@@ -37,7 +38,7 @@ public class DefaultCrawlFileDatabase implements ICrawlFileDatabase {
     }
 
     @Override
-    public File nextQueued() {
+    public CrawlFile nextQueued() {
         return queue.poll();
     }
 
@@ -65,7 +66,7 @@ public class DefaultCrawlFileDatabase implements ICrawlFileDatabase {
     }
 
     @Override
-    public void processed(File file) {
+    public void processed(CrawlFile file) {
     }
 
     @Override
@@ -81,7 +82,7 @@ public class DefaultCrawlFileDatabase implements ICrawlFileDatabase {
     }
 
     @Override
-    public Iterator<File> getCacheIterator() {
+    public Iterator<CrawlFile> getCacheIterator() {
         // TODO Auto-generated method stub
         return null;
     }
