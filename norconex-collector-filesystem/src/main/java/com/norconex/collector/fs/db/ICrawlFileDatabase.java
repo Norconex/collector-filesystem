@@ -23,20 +23,7 @@ import java.util.Iterator;
 
 import com.norconex.collector.fs.crawler.CrawlFile;
 
-
 /**
- * <p>Database implementation holding necessary information about all URL 
- * crawling activities, what crawling stages URLs are in.  
- * The few stages a URL can have are:</p>
- * <ul>
- *   <li><b>Queued:</b> URLs extracted from documents are first queued for 
- *       future processing.</li>
- *   <li><b>Active:</b> A URL is being processed.</li>
- *   <li><b>Processed:</b> A URL has been processed.  If the same URL is 
- *       encountered again during the same run, it will be ignored.</li>
- *   <li><b>Cached:</b> When crawling is over, processed URLs will be cached on 
- *       the next run.</li>
- * </ul>
  *    
  * @author Pascal Dimassimo
  */
@@ -50,42 +37,42 @@ public interface ICrawlFileDatabase {
     void queue(CrawlFile file);
 
     /**
-     * Whether there are any URLs to process in the queue.
+     * Whether there are any files to process in the queue.
      * @return <code>true</code> if the queue is empty
      */
     boolean isQueueEmpty();
     
     /**
-     * Gets the size of the URL queue (number of URLs left to process).
+     * Gets the size of the file queue (number of files left to process).
      * @return queue size
      */
     int getQueueSize();
 
     /**
-     * Whether the given URL is in the queue or not (waiting to be processed).
-     * @param url url
-     * @return <code>true</code> if the URL is in the queue
+     * Whether the given filename is in the queue or not (waiting to be processed).
+     * @param filename the filename
+     * @return <code>true</code> if the filename is in the queue
      */
     boolean isQueued(String filename);
     
     /**
-     * Returns the next URL to be processed from the queue and marks it as 
-     * being "active" (i.e. currently being processed).  The returned URL
+     * Returns the next filename to be processed from the queue and marks it as 
+     * being "active" (i.e. currently being processed).  The returned file
      * is effectively removed from the queue.
-     * @return next URL
+     * @return next CrawlFile
      */
     CrawlFile nextQueued();
     
     /**
-     * Whether the given URL is currently being processed (i.e. active).
-     * @param url the url
+     * Whether the given filename is currently being processed (i.e. active).
+     * @param filename the filename
      * @return <code>true</code> if active
      */
     boolean isActive(String filename);
 
     /**
-     * Gets the number of active URLs (currently being processed).
-     * @return number of active URLs.
+     * Gets the number of active files (currently being processed).
+     * @return number of active files.
      */
     int getActiveCount();
     
@@ -93,7 +80,7 @@ public interface ICrawlFileDatabase {
      * Gets the cached URL from previous time crawler was run
      * (e.g. for comparison purposes).
      * @param cacheURL URL cached from previous run
-     * @return url
+     * @return file
      */
     File getCached(String cacheURL);
     
@@ -107,13 +94,13 @@ public interface ICrawlFileDatabase {
     /**
      * Marks this URL as processed.  Processed URLs will not be processed again
      * in the same crawl run.
-     * @param crawlURL
+     * @param file the CrawlFile
      */
     void processed(CrawlFile file);
 
     /**
      * Whether the given URL has been processed.
-     * @param url url
+     * @param filename the filename
      * @return <code>true</code> if processed
      */
     boolean isProcessed(String filename);
