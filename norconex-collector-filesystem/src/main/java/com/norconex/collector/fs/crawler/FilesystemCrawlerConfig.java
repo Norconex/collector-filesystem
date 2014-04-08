@@ -42,6 +42,8 @@ public class FilesystemCrawlerConfig implements Cloneable, Serializable {
     private File workDir = new File("./work");
     private String[] startPaths;
     private int numThreads = 2;
+    private int maxFiles = -1;
+    
     private boolean keepDownloads;
 
     private ICrawlFileDatabaseFactory crawlFileDatabaseFactory = new DefaultCrawlFileDatabaseFactory();
@@ -78,6 +80,14 @@ public class FilesystemCrawlerConfig implements Cloneable, Serializable {
 
     public void setNumThreads(int numThreads) {
         this.numThreads = numThreads;
+    }
+
+    public int getMaxFiles() {
+        return maxFiles;
+    }
+
+    public void setMaxFiles(int maxFiles) {
+        this.maxFiles = maxFiles;
     }
 
     public boolean isKeepDownloads() {

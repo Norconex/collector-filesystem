@@ -141,6 +141,7 @@ public final class FilesystemCrawlerConfigLoader {
 
         config.setWorkDir(new File(node.getString("workDir", config
                 .getWorkDir().toString())));
+        config.setMaxFiles(node.getInt("maxFiles", config.getMaxFiles()));
         config.setKeepDownloads(node.getBoolean(
                 "keepDownloads", config.isKeepDownloads()));
 

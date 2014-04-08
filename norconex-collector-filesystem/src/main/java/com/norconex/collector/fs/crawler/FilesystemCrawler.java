@@ -19,7 +19,6 @@
 package com.norconex.collector.fs.crawler;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Date;
@@ -30,6 +29,7 @@ import java.util.concurrent.Executors;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.SystemUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.commons.vfs2.FileContent;
 import org.apache.commons.vfs2.FileObject;
@@ -68,7 +68,7 @@ public class FilesystemCrawler extends AbstractResumableJob {
 
     private final FilesystemCrawlerConfig crawlerConfig;
     private boolean stopped;
-
+    private int okFilesCount;
     private int deletedDownloadCount;
 
     /**
@@ -129,6 +129,7 @@ public class FilesystemCrawler extends AbstractResumableJob {
         ICrawlFileDatabase database = crawlerConfig
                 .getCrawlFileDatabaseFactory().createCrawlURLDatabase(
                         crawlerConfig, true);
+        okFilesCount = NumberUtils.toInt(progress.getMetadata());
         try {
             execute(database, progress, suite);
         } finally {
@@ -208,6 +209,11 @@ public class FilesystemCrawler extends AbstractResumableJob {
 
         CrawlFile queuedFile = database.nextQueued();
         if (queuedFile != null) {
+            if (isMaxFiles()) {
+                LOG.info(getId() + ": Maximum Files reached: " 
+                        + crawlerConfig.getMaxFiles());
+                return false;
+            }
             processNextQueuedFile(queuedFile, database);
             return true;
         } else {
@@ -252,6 +258,8 @@ public class FilesystemCrawler extends AbstractResumableJob {
             metadata.addLong("collector.fs.filesize", content.getSize());
             metadata.addLong("collector.fs.lastmodified",
                     content.getLastModifiedTime());
+            
+            okFilesCount++;
         
         } catch (IOException e) {
             throw new FilesystemCollectorException("Cannot download file: "
@@ -336,6 +344,11 @@ public class FilesystemCrawler extends AbstractResumableJob {
         } catch (FileSystemException e) {
             throw new FilesystemCollectorException(e);
         }
+    }
+    
+    private boolean isMaxFiles() {
+        return crawlerConfig.getMaxFiles() > -1 
+                && okFilesCount >= crawlerConfig.getMaxFiles();
     }
 
     private final class ProcessFilesRunnable implements Runnable {
