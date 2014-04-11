@@ -19,6 +19,7 @@
 package com.norconex.collector.fs.crawler;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Date;
@@ -26,6 +27,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.SystemUtils;
@@ -264,6 +266,17 @@ public class FilesystemCrawler extends AbstractResumableJob {
         } catch (IOException e) {
             throw new FilesystemCollectorException("Cannot download file: "
                     + file, e);
+        }
+        
+        // Checksum
+        try {
+            FileInputStream is = new FileInputStream(localFile);
+            String checksum = DigestUtils.md5Hex(is);
+            is.close();
+            metadata.addString("collector.fs.checksum", checksum);
+        } catch (IOException e) {
+            throw new FilesystemCollectorException("Cannot compute checksum for file: "
+                    + localFile, e);
         }
 
         // Import
