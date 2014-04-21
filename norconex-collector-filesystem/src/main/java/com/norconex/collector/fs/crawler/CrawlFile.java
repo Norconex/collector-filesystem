@@ -35,12 +35,18 @@ public class CrawlFile implements Serializable {
 
     public boolean isFile() {
         try {
-            return getFileObjectVFS().getType().equals(FileType.FILE);
+            return getFileObjectVFS().getType() == FileType.FILE;
         } catch (FileSystemException e) {
             throw new FilesystemCollectorException(e);
         }
     }
-
+    public boolean isFolder() {
+        try {
+            return getFileObjectVFS().getType() == FileType.FOLDER;
+        } catch (FileSystemException e) {
+            throw new FilesystemCollectorException(e);
+        }
+    }
     public FileObject[] listFiles() {
         try {
             return getFileObjectVFS().getChildren();

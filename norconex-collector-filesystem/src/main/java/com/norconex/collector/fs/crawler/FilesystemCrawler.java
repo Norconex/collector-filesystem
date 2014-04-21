@@ -224,15 +224,24 @@ public class FilesystemCrawler extends AbstractResumableJob {
         }
     }
 
-    private void processNextQueuedFile(CrawlFile file,
-            ICrawlFileDatabase database) {
+    private void processNextQueuedFile(
+            CrawlFile file, ICrawlFileDatabase database) {
         if (file.isFile()) {
             importAndCommitFile(file);
-        } else {
-            for (FileObject fileToQueue : file.listFiles()) {
-                database.queue(new CrawlFile(fileToQueue));
+        } else if (file.isFolder()) {
+            try {
+                for (FileObject fileToQueue : file.listFiles()) {
+                    database.queue(new CrawlFile(fileToQueue));
+                }
+            } catch (FilesystemCollectorException e) {
+                LOG.warn("Skipping: could not list files under folder: \""
+                        + file.toString() + "\". " + e.getMessage());
             }
+        } else {
+            LOG.warn("Skipping: object not a file or folder: "
+                    + file.toString());
         }
+        
     }
 
     /**

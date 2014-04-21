@@ -13,8 +13,8 @@ public class DefaultCrawlFileDatabase implements ICrawlFileDatabase {
 
     private final Queue<CrawlFile> queue = new ConcurrentLinkedQueue<>();
 
-    public DefaultCrawlFileDatabase(FilesystemCrawlerConfig config,
-            boolean resume) {
+    public DefaultCrawlFileDatabase(
+            FilesystemCrawlerConfig config, boolean resume) {
     }
 
     @Override
