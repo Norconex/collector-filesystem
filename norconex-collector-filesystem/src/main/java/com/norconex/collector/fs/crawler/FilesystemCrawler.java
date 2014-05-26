@@ -43,7 +43,6 @@ import org.apache.log4j.Logger;
 
 import com.norconex.collector.fs.FilesystemCollectorException;
 import com.norconex.collector.fs.db.ICrawlFileDatabase;
-import com.norconex.collector.fs.db.util.PathUtils;
 import com.norconex.committer.ICommitter;
 import com.norconex.commons.lang.io.FileUtil;
 import com.norconex.commons.lang.map.Properties;
@@ -293,7 +292,7 @@ public class FilesystemCrawler extends AbstractResumableJob {
         Importer importer = new Importer(crawlerConfig.getImporterConfig());
         try {
             importer.importDocument(
-                    localFile, null, outputFile, metadata, file.getURL().toString());
+                    localFile, null, outputFile, metadata, file.getName().toString());
         } catch (IOException e) {
             throw new FilesystemCollectorException("Cannot import file: "
                     + file, e);
@@ -324,7 +323,7 @@ public class FilesystemCrawler extends AbstractResumableJob {
     private File createLocalFile(CrawlFile file, String extension) {
         return new File(getCrawlerDownloadDir().getAbsolutePath() 
                 + SystemUtils.FILE_SEPARATOR 
-                + PathUtils.urlToPath(file.getURL().toString())
+                + file.getName().getPath()
                 + extension);
     }
 
