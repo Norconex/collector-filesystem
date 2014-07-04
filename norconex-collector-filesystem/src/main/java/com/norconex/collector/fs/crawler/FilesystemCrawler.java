@@ -446,7 +446,7 @@ public class FilesystemCrawler extends AbstractResumableJob {
             LOG.error(getId() + ": Could not mark URL as processed: " + url
                     + " (" + e.getMessage() + ")", e);
         }
-
+ 
         try {
             //--- Delete Local File Download -----------------------------------
             if (!crawlerConfig.isKeepDownloads()) {
