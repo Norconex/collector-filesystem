@@ -222,6 +222,13 @@ import com.norconex.importer.Importer;
                                 + doc.getReference(), e);
             }
             
+            
+            //TODO this is a temporary fix for the Content Analytics
+            //Committer until we move content checksum logic in the importer
+            //or provide an options to configure checksum target field
+            doc.getMetadata().setString("checksum", newDocChecksum);
+            
+            
             doc.getMetadata().setString(
                     FileMetadata.CHECKSUM_DOC, newDocChecksum);
             crawlFile.setDocChecksum(newDocChecksum);
