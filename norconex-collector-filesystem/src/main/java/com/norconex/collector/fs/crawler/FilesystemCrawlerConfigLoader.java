@@ -31,6 +31,7 @@ import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
 import com.norconex.collector.fs.FilesystemCollectorException;
+import com.norconex.collector.fs.filter.IFileFilter;
 import com.norconex.commons.lang.config.ConfigurationLoader;
 import com.norconex.commons.lang.config.ConfigurationUtil;
 import com.norconex.importer.ImporterConfig;
@@ -119,6 +120,12 @@ public final class FilesystemCrawlerConfigLoader {
 
         loadSimpleSettings(config, node);
 
+        //--- Reference Filters ------------------------------------------------
+        IFileFilter[] refFilters = loadReferenceFilters(
+                node, "fileFilters.filter");
+        config.setFileFilters(
+                defaultIfEmpty(refFilters, config.getFileFilters()));
+        
         config.setCrawlFileDatabaseFactory(ConfigurationUtil.newInstance(node,
                 "crawlFileDatabaseFactory",
                 config.getCrawlFileDatabaseFactory()));
@@ -151,6 +158,26 @@ public final class FilesystemCrawlerConfigLoader {
         config.setNumThreads(node.getInt("numThreads", config.getNumThreads()));
     }
 
+    private static IFileFilter[] loadReferenceFilters(
+            XMLConfiguration node, String xmlPath) {
+        List<IFileFilter> urlFilters = new ArrayList<IFileFilter>();
+        List<HierarchicalConfiguration> filterNodes = 
+                node.configurationsAt(xmlPath);
+        
+        for (HierarchicalConfiguration filterNode : filterNodes) {
+            IFileFilter urlFilter = 
+                    ConfigurationUtil.newInstance(filterNode);
+            if (urlFilter != null) {
+                urlFilters.add(urlFilter);
+                LOG.info("Reference filter loaded: " + urlFilter);
+            } else {
+                LOG.error("Problem loading filter, "
+                        + "please check for other log messages.");
+            }
+        }
+        return urlFilters.toArray(new IFileFilter[]{});
+    }
+    
     // TODO consider moving to Norconex Commons Lang
     private static <T> T[] defaultIfEmpty(T[] array, T[] defaultArray) {
         if (ArrayUtils.isEmpty(array)) {

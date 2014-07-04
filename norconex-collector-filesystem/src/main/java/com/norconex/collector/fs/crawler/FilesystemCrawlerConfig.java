@@ -26,6 +26,7 @@ import org.apache.commons.beanutils.BeanUtils;
 import com.norconex.collector.fs.FilesystemCollectorException;
 import com.norconex.collector.fs.db.ICrawlFileDatabaseFactory;
 import com.norconex.collector.fs.db.impl.DefaultCrawlFileDatabaseFactory;
+import com.norconex.collector.fs.filter.IFileFilter;
 import com.norconex.committer.ICommitter;
 import com.norconex.importer.ImporterConfig;
 
@@ -43,6 +44,7 @@ public class FilesystemCrawlerConfig implements Cloneable, Serializable {
     private String[] startPaths;
     private int numThreads = 2;
     private int maxFiles = -1;
+    private boolean deleteOrphans;
     
     private boolean keepDownloads;
 
@@ -50,6 +52,8 @@ public class FilesystemCrawlerConfig implements Cloneable, Serializable {
     private ImporterConfig importerConfig = new ImporterConfig();
     private ICommitter committer;
 
+    private IFileFilter[] fileFilters;    
+    
     public String getId() {
         return id;
     }
@@ -121,6 +125,20 @@ public class FilesystemCrawlerConfig implements Cloneable, Serializable {
 
     public void setCommitter(ICommitter committer) {
         this.committer = committer;
+    }
+    
+    public boolean isDeleteOrphans() {
+        return deleteOrphans;
+    }
+    public void setDeleteOrphans(boolean deleteOrphans) {
+        this.deleteOrphans = deleteOrphans;
+    }
+
+    public IFileFilter[] getFileFilters() {
+        return fileFilters;
+    }
+    public void setFileFilters(IFileFilter[] referenceFilters) {
+        this.fileFilters = referenceFilters;
     }
 
     @Override

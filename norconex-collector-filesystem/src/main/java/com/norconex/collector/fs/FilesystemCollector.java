@@ -46,8 +46,10 @@ import com.norconex.jef.suite.JobSuite;
  
 /**
  * Main application class. In order to use it properly, you must first configure
- * it, either by providing a populated instance of {@link FilesystemCollectorConfig},
- * or by XML configuration, loaded using {@link FilesystemCollectorConfigLoader}.
+ * it, either by providing a populated instance of 
+ * {@link FilesystemCollectorConfig},
+ * or by XML configuration, loaded using 
+ * {@link FilesystemCollectorConfigLoader}.
  * Instances of this class can hold several crawler, running at once.
  * This is convenient when there are configuration setting to be shared amongst
  * crawlers.  When you have many crawler jobs defined that have nothing

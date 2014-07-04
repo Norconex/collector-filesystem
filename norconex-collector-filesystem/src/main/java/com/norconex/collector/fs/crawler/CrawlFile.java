@@ -1,6 +1,5 @@
 package com.norconex.collector.fs.crawler;
 
-import java.io.Serializable;
 import java.net.URL;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -13,43 +12,47 @@ import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileType;
 
+import com.norconex.collector.core.ref.IReference;
 import com.norconex.collector.fs.FilesystemCollectorException;
 
-public class CrawlFile implements Serializable {
+public class CrawlFile implements IReference {
 
     private static final long serialVersionUID = -5253640985191107355L;
 
-    private FileObject fileObjectVFS;
+    private transient FileObject fileObject;
+    private CrawlStatus status;
+    private String metadataChecksum;
+    private String docChecksum;
 
     public CrawlFile(FileObject fileObjectVFS) {
-        this.fileObjectVFS = fileObjectVFS;
+        this.fileObject = fileObjectVFS;
     }
 
-    public FileObject getFileObjectVFS() {
-        return fileObjectVFS;
+    public FileObject getFileObject() {
+        return fileObject;
     }
 
-    public void setFileObjectVFS(FileObject fileObjectVFS) {
-        this.fileObjectVFS = fileObjectVFS;
+    public void setFileObject(FileObject fileObject) {
+        this.fileObject = fileObject;
     }
 
     public boolean isFile() {
         try {
-            return getFileObjectVFS().getType() == FileType.FILE;
+            return getFileObject().getType() == FileType.FILE;
         } catch (FileSystemException e) {
             throw new FilesystemCollectorException(e);
         }
     }
     public boolean isFolder() {
         try {
-            return getFileObjectVFS().getType() == FileType.FOLDER;
+            return getFileObject().getType() == FileType.FOLDER;
         } catch (FileSystemException e) {
             throw new FilesystemCollectorException(e);
         }
     }
     public FileObject[] listFiles() {
         try {
-            return getFileObjectVFS().getChildren();
+            return getFileObject().getChildren();
         } catch (FileSystemException e) {
             throw new FilesystemCollectorException(e);
         }
@@ -57,19 +60,24 @@ public class CrawlFile implements Serializable {
 
     public URL getURL() {
         try {
-            return getFileObjectVFS().getURL();
+            return getFileObject().getURL();
         } catch (FileSystemException e) {
             throw new FilesystemCollectorException(e);
         }
     }
 
+    @Override
+    public String getReference() {
+        return getURL().toString();
+    }
+    
     public FileName getName() {
-        return getFileObjectVFS().getName();
+        return getFileObject().getName();
     }
     
     public FileContent getContent() {
         try {
-            return getFileObjectVFS().getContent();
+            return getFileObject().getContent();
         } catch (FileSystemException e) {
             throw new FilesystemCollectorException(e);
         }
@@ -81,18 +89,55 @@ public class CrawlFile implements Serializable {
             return false;
         }
         CrawlFile castOther = (CrawlFile) other;
-        return new EqualsBuilder().append(fileObjectVFS,
-                castOther.fileObjectVFS).isEquals();
+        return new EqualsBuilder().append(fileObject,
+                castOther.fileObject).isEquals();
     }
 
     @Override
     public int hashCode() {
-        return new HashCodeBuilder().append(fileObjectVFS).toHashCode();
+        return new HashCodeBuilder().append(fileObject).toHashCode();
     }
 
     @Override
     public String toString() {
         return new ToStringBuilder(this, ToStringStyle.SIMPLE_STYLE).append(
-                "fileObjectVFS", fileObjectVFS).toString();
+                "fileObject", fileObject).toString();
+    }
+    
+    @Override
+    public CrawlFile clone() {
+        CrawlFile crawlFile = new CrawlFile(fileObject);
+        return crawlFile;
+    }
+    
+    /**
+     * Gets the current crawl status.
+     * @return crawl status
+     */
+    public CrawlStatus getStatus() {
+        return status;
+    }
+    /**
+     * Sets the current crawl status.
+     * @param status crawl status
+     */
+    public void setStatus(CrawlStatus status) {
+        this.status = status;
+    }
+
+    public String getMetadataChecksum() {
+        return metadataChecksum;
+    }
+
+    public void setMetadataChecksum(String metadataChecksum) {
+        this.metadataChecksum = metadataChecksum;
+    }
+
+    public String getDocChecksum() {
+        return docChecksum;
+    }
+
+    public void setDocChecksum(String docChecksum) {
+        this.docChecksum = docChecksum;
     }
 }

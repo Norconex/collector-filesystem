@@ -20,11 +20,13 @@ package com.norconex.collector.fs.db;
 
 import java.io.Serializable;
 
+import com.norconex.collector.core.ref.store.IReferenceStore;
+import com.norconex.collector.fs.crawler.CrawlFile;
 import com.norconex.collector.fs.crawler.FilesystemCrawlerConfig;
 
 public interface ICrawlFileDatabaseFactory extends Serializable {
 
-    ICrawlFileDatabase createCrawlURLDatabase(
+    IReferenceStore<CrawlFile> createCrawlURLDatabase(
             FilesystemCrawlerConfig config, boolean resume);
     
 }

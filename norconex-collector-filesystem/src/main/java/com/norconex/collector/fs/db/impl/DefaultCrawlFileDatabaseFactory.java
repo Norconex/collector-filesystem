@@ -18,14 +18,16 @@
  */
 package com.norconex.collector.fs.db.impl;
 
+import com.norconex.collector.core.ref.store.IReferenceStore;
+import com.norconex.collector.fs.crawler.CrawlFile;
 import com.norconex.collector.fs.crawler.FilesystemCrawlerConfig;
-import com.norconex.collector.fs.db.ICrawlFileDatabase;
 import com.norconex.collector.fs.db.ICrawlFileDatabaseFactory;
 
 /**
  * Default File database factory.
  * 
  * @author Pascal Dimassimo
+ * @author Pascal Essiembre
  */
 public class DefaultCrawlFileDatabaseFactory implements
         ICrawlFileDatabaseFactory {
@@ -33,9 +35,12 @@ public class DefaultCrawlFileDatabaseFactory implements
     private static final long serialVersionUID = 197714845943448133L;
 
     @Override
-    public ICrawlFileDatabase createCrawlURLDatabase(
+    public IReferenceStore<CrawlFile> createCrawlURLDatabase(
             FilesystemCrawlerConfig config, boolean resume) {
-        return new DefaultCrawlFileDatabase(config, resume);
+        
+        String storeDir = config.getWorkDir().getPath()
+                + "/refstore/" + config.getId() + "/";
+        return new DefaultCrawlFileDatabase(storeDir, resume);
     }
 
 }

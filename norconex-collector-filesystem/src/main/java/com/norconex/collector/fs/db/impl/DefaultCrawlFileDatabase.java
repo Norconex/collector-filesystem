@@ -1,96 +1,65 @@
 package com.norconex.collector.fs.db.impl;
 
-import java.io.File;
-import java.util.Iterator;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.IOException;
+import java.io.Serializable;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.FileSystemManager;
+import org.apache.commons.vfs2.VFS;
+import org.mapdb.Serializer;
+
+import com.norconex.collector.core.ref.store.impl.mapdb.MapDBReferenceStore;
 import com.norconex.collector.fs.crawler.CrawlFile;
-import com.norconex.collector.fs.crawler.FilesystemCrawlerConfig;
-import com.norconex.collector.fs.db.ICrawlFileDatabase;
 
-public class DefaultCrawlFileDatabase implements ICrawlFileDatabase {
+public class DefaultCrawlFileDatabase extends MapDBReferenceStore<CrawlFile> {
 
-    private final Queue<CrawlFile> queue = new ConcurrentLinkedQueue<>();
-
-    public DefaultCrawlFileDatabase(
-            FilesystemCrawlerConfig config, boolean resume) {
+    
+    public DefaultCrawlFileDatabase(String path, boolean resume) {
+        super(path, resume, new CrawlFileSerializer());
     }
 
     @Override
-    public void queue(CrawlFile file) {
-        queue.add(file);
-    }
-
-    @Override
-    public boolean isQueueEmpty() {
-        return queue.isEmpty();
-    }
-
-    @Override
-    public int getQueueSize() {
-        return queue.size();
-    }
-
-    @Override
-    public boolean isQueued(String filename) {
-        return queue.contains(new File(filename));
-    }
-
-    @Override
-    public CrawlFile nextQueued() {
-        return queue.poll();
-    }
-
-    @Override
-    public boolean isActive(String filename) {
+    protected boolean isVanished(CrawlFile currentReference,
+            CrawlFile cachedReference) {
         return false;
     }
 
     @Override
-    public int getActiveCount() {
-        // TODO Auto-generated method stub
-        return 0;
-    }
-
-    @Override
-    public File getCached(String cacheURL) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public boolean isCacheEmpty() {
-        // TODO Auto-generated method stub
+    protected boolean isValid(CrawlFile reference) {
         return false;
     }
 
-    @Override
-    public void processed(CrawlFile file) {
+
+
+    static class CrawlFileSerializer 
+            implements Serializer<CrawlFile>, Serializable {
+        private static final long serialVersionUID = 5344110551013165128L;
+        @Override
+        public void serialize(DataOutput out, CrawlFile value)
+                throws IOException {
+            out.writeUTF(StringUtils.defaultString(value.getReference()));
+            out.writeUTF(StringUtils.defaultString(value.getDocChecksum()));
+            out.writeUTF(
+                    StringUtils.defaultString(value.getMetadataChecksum()));
+        }
+        @Override
+        public CrawlFile deserialize(DataInput in, int available)
+                throws IOException {
+            FileSystemManager manager = VFS.getManager();
+            String reference = in.readUTF();
+            FileObject fileObject = manager.resolveFile(reference);
+            CrawlFile file = new CrawlFile(fileObject);
+            file.setDocChecksum(StringUtils.defaultString(in.readUTF(), null));
+            file.setMetadataChecksum(
+                    StringUtils.defaultString(in.readUTF(), null));
+            return file;
+        }
+        @Override
+        public int fixedSize() {
+            return -1;
+        }
     }
-
-    @Override
-    public boolean isProcessed(String filename) {
-        // TODO Auto-generated method stub
-        return false;
-    }
-
-    @Override
-    public int getProcessedCount() {
-        // TODO Auto-generated method stub
-        return 0;
-    }
-
-    @Override
-    public Iterator<CrawlFile> getCacheIterator() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public void close() {
-        // TODO Auto-generated method stub
-
-    }
-
 }
