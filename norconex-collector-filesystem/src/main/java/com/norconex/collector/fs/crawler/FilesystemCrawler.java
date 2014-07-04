@@ -180,15 +180,12 @@ public class FilesystemCrawler extends AbstractResumableJob {
             committer.commit();
         }
 
-        deleteDownloadDirectory();
-
         watch.stop();
         LOG.info(getId() + ": "
                 + database.getProcessedCount() + " URLs processed "
                 + "in " + watch.toString() + " for \"" + getId() + "\".");
 
-        LOG.debug(getId() + ": Removing empty directories");
-        FileUtil.deleteEmptyDirs(getCrawlerDownloadDir());
+        deleteDownloadDirectory();
         
 //        if (!stopped) {
 //            HttpCrawlerEventFirer.fireCrawlerFinished(this);
@@ -210,6 +207,9 @@ public class FilesystemCrawler extends AbstractResumableJob {
                         + ": Could not delete the crawler downloads directory: "
                                 + getCrawlerDownloadDir(), e);
             }
+        } else {
+            LOG.debug(getId() + ": Removing empty directories");
+            FileUtil.deleteEmptyDirs(getCrawlerDownloadDir());
         }
     }
     
