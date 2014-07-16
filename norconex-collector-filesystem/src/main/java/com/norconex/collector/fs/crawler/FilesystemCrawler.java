@@ -47,7 +47,7 @@ import com.norconex.collector.fs.db.util.PathUtils;
 import com.norconex.collector.fs.doc.FileDocument;
 import com.norconex.collector.fs.doc.FileMetadata;
 import com.norconex.committer.ICommitter;
-import com.norconex.commons.lang.io.FileUtil;
+import com.norconex.commons.lang.file.FileUtil;
 import com.norconex.jef.AbstractResumableJob;
 import com.norconex.jef.IJobContext;
 import com.norconex.jef.progress.IJobStatus;
@@ -201,7 +201,7 @@ public class FilesystemCrawler extends AbstractResumableJob {
                         + getCrawlerDownloadDir());
             }
             try {
-                FileUtil.deleteFile(getCrawlerDownloadDir());
+                FileUtil.delete(getCrawlerDownloadDir());
             } catch (IOException e) {
                 LOG.error(getId() 
                         + ": Could not delete the crawler downloads directory: "

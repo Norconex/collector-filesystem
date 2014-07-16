@@ -40,7 +40,7 @@ import com.norconex.collector.fs.FilesystemCollectorException;
 import com.norconex.collector.fs.doc.FileDocument;
 import com.norconex.collector.fs.doc.FileMetadata;
 import com.norconex.committer.ICommitter;
-import com.norconex.commons.lang.io.FileUtil;
+import com.norconex.commons.lang.file.FileUtil;
 import com.norconex.importer.Importer;
 
 /**
