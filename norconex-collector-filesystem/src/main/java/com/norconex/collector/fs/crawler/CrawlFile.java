@@ -10,7 +10,9 @@ import org.apache.commons.vfs2.FileContent;
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
+import org.apache.commons.vfs2.FileSystemManager;
 import org.apache.commons.vfs2.FileType;
+import org.apache.commons.vfs2.VFS;
 
 import com.norconex.collector.core.ref.IReference;
 import com.norconex.collector.fs.FilesystemCollectorException;
@@ -19,21 +21,34 @@ public class CrawlFile implements IReference {
 
     private static final long serialVersionUID = -5253640985191107355L;
 
+    //TODO with JEF 4.0, no need to make this field transient anymore
     private transient FileObject fileObject;
     private CrawlStatus status;
     private String metadataChecksum;
     private String docChecksum;
+    private String reference;
 
-    public CrawlFile(FileObject fileObjectVFS) {
-        this.fileObject = fileObjectVFS;
+    public CrawlFile(FileObject fileObject) {
+        if (fileObject == null) {
+            throw new FilesystemCollectorException(
+                    "CrawlFile was initialized with a null value.");
+        }
+        this.fileObject = fileObject;
+        this.reference = getURL().toString();
     }
 
     public FileObject getFileObject() {
+        if (fileObject == null) {
+            // resolve the path again if the transient object went null
+            try {
+                FileSystemManager manager = VFS.getManager();
+                fileObject = manager.resolveFile(reference);
+            } catch (FileSystemException e) {
+                throw new FilesystemCollectorException(
+                        "Cannot resolve: " + reference, e);
+            }
+        }
         return fileObject;
-    }
-
-    public void setFileObject(FileObject fileObject) {
-        this.fileObject = fileObject;
     }
 
     public boolean isFile() {
@@ -68,7 +83,7 @@ public class CrawlFile implements IReference {
 
     @Override
     public String getReference() {
-        return getURL().toString();
+        return reference;
     }
     
     public FileName getName() {
@@ -107,6 +122,9 @@ public class CrawlFile implements IReference {
     @Override
     public CrawlFile clone() {
         CrawlFile crawlFile = new CrawlFile(fileObject);
+        crawlFile.setDocChecksum(docChecksum);
+        crawlFile.setMetadataChecksum(metadataChecksum);
+        crawlFile.setStatus(status);
         return crawlFile;
     }
     
