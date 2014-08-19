@@ -506,7 +506,17 @@ public class FilesystemCrawler extends AbstractResumableJob {
         try {
             return managerVfs.resolveFile(path);
         } catch (FileSystemException e) {
-            throw new FilesystemCollectorException(e);
+            Exception exception = e;
+            //Attempt to resolve as relative path using local filesystem
+            if (!path.contains(":")) {
+                try {
+                    return managerVfs.resolveFile(
+                            new File(".").getCanonicalFile(), path);
+                } catch (IOException e1) {
+                    // let original exception be thrown
+                }
+            }
+            throw new FilesystemCollectorException(exception);
         }
     }
     

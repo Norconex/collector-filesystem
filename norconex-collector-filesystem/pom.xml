@@ -22,12 +22,13 @@ along with Norconex Filesystem Collector. If not, see <http://www.gnu.org/licens
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.norconex.collectors</groupId>
   <artifactId>norconex-collector-filesystem</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
+  <version>1.0.0-SNAPSHOT</version>
   <name>Norconex Filesystem Collector</name>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <site.baseurl/>  
+    <site.baseurl/>
+    <currentStableVersion>1.0.0</currentStableVersion>
   </properties>
   <inceptionYear>2014</inceptionYear>
 
@@ -92,7 +93,7 @@ along with Norconex Filesystem Collector. If not, see <http://www.gnu.org/licens
     <dependency>
         <groupId>com.norconex.collectors</groupId>
         <artifactId>norconex-importer</artifactId>
-        <version>1.3.0-SNAPSHOT</version>
+        <version>1.3.0</version>
     </dependency>
     <dependency>
         <groupId>commons-beanutils</groupId>

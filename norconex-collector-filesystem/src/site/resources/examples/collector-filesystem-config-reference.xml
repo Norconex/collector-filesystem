@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+Copyright 2014 Norconex Inc.
+
+This file is part of Norconex Filesystem Collector.
+
+Norconex Filesystem Collector is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+Norconex Filesystem Collector is distributed in the hope that it will be useful, 
+but WITHOUT ANY WARRANTY; without even the implied warranty of 
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Norconex Filesystem Collector. If not, see <http://www.gnu.org/licenses/>.
+-->
+
+<!-- This self-documented configuration file is meant to be used as a reference
+     or starting point for a new configuration. 
+     It contains all core features offered in this release.  Sometimes
+     multiple implementations are available for a given feature. Refer 
+     to site documentation for more options and complete description of 
+     each features.
+     -->
+<fscollector id="filesystemcollector-template">
+
+  <!-- Variables: Optionally define variables in this configuration file
+       using the "set" directive, or by using a file of the same name
+       but with the extension ".variables" or ".properties".  Refer 
+       to site documentation to find out what each extension does.
+       Finally, once can pass an optional properties file when starting the
+       crawler.  The following is good practice to reference frequently 
+       used classes in a shorter way.
+       -->
+  #set($workdir = "c:\path\to\your\workdir")
+
+
+  <!-- Location where internal progress files are stored. -->
+  <progressDir>$workdir\progress</progressDir>
+
+  <!-- Location where logs are stored. -->
+  <logsDir>$workdir\logs</logsDir>
+
+  <!-- All crawler configuration options can be specified as default 
+       (including start paths).  Settings defined here will be inherited by 
+       all individual crawlers defined further down, unless overwritten.
+       -->
+  <crawlerDefaults>
+
+    <!-- === Step 0: General Configuration ================================  -->
+
+    <!-- Crawler "work" directory.  This is where files dowloaded or created as
+         part of crawling activities (besides logs and progress) get stored.
+         It should be unique to each crawlers.
+         -->
+    <workDir>$workdir</workDir>
+
+    
+    <!-- Mandatory starting path(s) where crawling begins.  If you put more 
+         than one path, they will be processed together.  -->    
+    <startPaths>
+      <path>c:\path\to\files\to\crawl</path>
+    </startPaths>
+
+    <!-- How many threads you want a crawler to use. Default is 2 threads.
+      -->
+    <numThreads>2</numThreads>
+
+    <!-- Stop crawling after how many successfully processed files.  
+         A successful file is one that is either new or modified, that was 
+         not rejected, not deleted, or did not generate any error.  As an
+         example, this is a file that will end up in your target data 
+         repository (e.g,. search engine). 
+         Default is -1 (unlimited)
+          -->
+    <maxFiles>-1</maxFiles>
+
+    <!-- Keep downloaded files. Default is false (deletes them after they have
+         been processed).
+         -->
+    <keepDownloads>false</keepDownloads>
+
+    <!-- Whether to mark orphan pages for deletion.  Orphans are files, 
+         which on subsequent crawls can no longer be reached (e.g. no longer
+         part of your start paths).
+         Default behavior is false to keep them as they still exist.
+         -->
+    <deleteOrphans>false</deleteOrphans>
+
+
+
+
+
+    <!-- Factory class creating a database for storing crawl status and
+         other information.  Classes must implement 
+         *.db.ICrawlFileDatabaseFactory.  Default implementation is the 
+         following.
+         -->
+    <crawlFileDatabaseFactory 
+         class="com.norconex.collector.fs.db.impl.DefaultCrawlFileDatabaseFactory" />
+
+    <!-- === Step 1 (Loop): Process a File/Document ======================== -->
+
+      <!-- Optionally filter files BEFORE any download. Classes must
+           implement *.filter.IFileFilter, like the following examples.
+           -->
+      <fileFilters>
+        <filter class="you.own.FilterImplementation" />
+      </fileFilters>
+
+
+      <!-- Import a document.  This step calls the Importer module.  The
+           importer is a different module with its own set of XML configuration
+           options.  Please refer to importer for complete documentation.
+           Below gives you an overview of the main importer tags.
+           -->
+      <importer>
+          <preParseHandlers>
+              <tagger class="..."/>
+              <transformer class="..." />
+              <filter class="..." />
+          </preParseHandlers>
+          <documentParserFactory class="..." />
+          <postParseHandlers>
+              <tagger class="..."/>
+              <transformer class="..." />
+              <filter class="..." />
+          </postParseHandlers>
+      </importer>           
+
+      <!-- Commits a document to a data source of your choice.
+           This step calls the Committer module.  The
+           committer is a different module with its own set of XML configuration
+           options.  Please refer to committer for complete documentation.
+           Below is an example using the FileSystemCommitter.
+           -->
+      <committer class="com.norconex.committer.impl.FileSystemCommitter">
+        <directory>$workdir\crawledFiles</directory>
+      </committer>
+
+  </crawlerDefaults>
+
+
+  <!-- Individual crawlers can be defined here.  All crawler default
+       configuration settings will apply to all crawlers created unless 
+       explicitly overwritten in crawler configuration.
+       For configuration options where multiple items can be present 
+       (e.g. filters), the whole list will in crawler defaults would be
+       overwritten.
+       Since the options are the same as the defaults above, the documentation 
+       is not repeated here.
+       The only difference from "crawlerDefaults" is the addition of the "id"
+       attribute on the crawler tag.  The "id" attribute uniquelly identifies
+       each of your crawlers.  
+       -->
+  <crawlers>
+    <crawler id="Test Filesystem">
+       <!-- Overwrite any defaults here. -->
+    </crawler>
+  </crawlers>
+
+</fscollector>
