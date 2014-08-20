@@ -479,7 +479,7 @@ public class FilesystemCrawler extends AbstractResumableJob {
     private File createLocalFile(CrawlFile file, String extension) {
         return new File(getCrawlerDownloadDir().getAbsolutePath() 
                 + SystemUtils.FILE_SEPARATOR 
-                + PathUtils.urlToPath(file.getURL().toString())
+                + PathUtils.urlToPath(file.getReference())
                 + extension);
     }
 
