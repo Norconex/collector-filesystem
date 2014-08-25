@@ -5,7 +5,7 @@ For any inquiries about Norconex Filesystem Collector, please contact Norconex I
 info@norconex.com.
 
 This product website and documentation is located at:
-http://www.norconex.com/product/collector-http/
+http://www.norconex.com/product/collector-filesystem/
 
 Source code can be obtained at:
 https://github.com/Norconex/collector-filesystem
