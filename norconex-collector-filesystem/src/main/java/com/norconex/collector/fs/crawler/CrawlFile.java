@@ -34,7 +34,7 @@ public class CrawlFile implements IReference {
                     "CrawlFile was initialized with a null value.");
         }
         this.fileObject = fileObject;
-        this.reference = getURL().toString();
+        this.reference = fileObject.toString();
     }
 
     public FileObject getFileObject() {

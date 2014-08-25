@@ -49,7 +49,7 @@ public enum CrawlStatus implements Serializable {
         if (log.isInfoEnabled()) {
             log.info(StringUtils.leftPad(
                     crawlFile.getStatus().toString(), LOGGING_STATUS_PADDING)
-                  + " > " + crawlFile.getURL());
+                  + " > " + crawlFile.getReference());
         }
     }
 
