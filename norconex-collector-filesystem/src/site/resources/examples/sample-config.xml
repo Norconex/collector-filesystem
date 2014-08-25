@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+Copyright 2014 Norconex Inc.
+
+This file is part of Norconex Filesystem Collector.
+
+Norconex Filesystem Collector is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+Norconex Filesystem Collector is distributed in the hope that it will be useful, 
+but WITHOUT ANY WARRANTY; without even the implied warranty of 
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Norconex Filesystem Collector. If not, see <http://www.gnu.org/licenses/>.
+-->
+
+<fscollector id="Text Files">
+
+## Either uncomment or set the following variables or create yourself a 
+## sample-config.variables (or properties) with the same variables set.
+
+##set($path = "/path/to/content/to/index")
+##set($workdir = "/temp/content-analytics/workdir")
+
+#set($tagger = "com.norconex.importer.tagger.impl")
+#set($transformer = "com.norconex.importer.transformer.impl")
+
+  <logsDir>${workdir}/logs</logsDir>
+  <progressDir>${workdir}/progress</progressDir>
+
+
+  <crawlers>
+    <crawler id="Sample Crawler">
+
+      <workDir>${workdir}</workDir>
+
+      <startPaths>
+        <path>${path}</path>
+      </startPaths>
+      
+      <numThreads>2</numThreads>
+
+      <keepDownloads>false</keepDownloads>
+
+      <importer>
+        <postParseHandlers>
+          <tagger class="${tagger}.ReplaceTagger">
+            <replace fromName="samplefield" regex="true">
+              <fromValue>ping</fromValue><toValue>pong</toValue>
+            </replace>
+            <replace fromName="Subject" regex="true">
+				<fromValue>Sample to crawl</fromValue><toValue>Sample crawled</toValue>
+			</replace>            
+          </tagger>
+        </postParseHandlers>
+      </importer>
+      
+      <committer class="com.norconex.committer.impl.FileSystemCommitter">
+        <directory>${workdir}/crawledFiles</directory>
+      </committer>
+    </crawler>
+  </crawlers>
+
+</fscollector>
