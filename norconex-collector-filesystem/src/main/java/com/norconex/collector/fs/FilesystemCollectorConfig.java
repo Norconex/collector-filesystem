@@ -1,4 +1,4 @@
-/* Copyright 2010-2014 Norconex Inc.
+/* Copyright 2013-2014 Norconex Inc.
  * 
  * This file is part of Norconex Filesystem Collector.
  * 
@@ -18,100 +18,33 @@
  */
 package com.norconex.collector.fs;
 
-import java.io.Serializable;
+import java.io.Writer;
 
-import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.configuration.XMLConfiguration;
 
+import com.norconex.collector.core.AbstractCollectorConfig;
 import com.norconex.collector.fs.crawler.FilesystemCrawlerConfig;
 
 /**
  * Filesystem Collector configuration.
  * @author Pascal Dimassimo
+ * @author Pascal Essiembre
  */
-public class FilesystemCollectorConfig implements Cloneable, Serializable {
+public class FilesystemCollectorConfig extends AbstractCollectorConfig {
 
-    /** Default relative directory where logs from Log4j are stored. */
-    public static final String DEFAULT_LOGS_DIR = "./logs";
-    /** Default relative directory where progress files are stored. */
-    public static final String DEFAULT_PROGRESS_DIR = "./progress";
-    
     private static final long serialVersionUID = -3350877963428801802L;
-    private String id;
-    private FilesystemCrawlerConfig[] crawlerConfigs;
-    private String progressDir = DEFAULT_PROGRESS_DIR;
-    private String logsDir = DEFAULT_LOGS_DIR;
     
-    /**
-     * Creates a new collector with the given unique id.  It is important
-     * the id of the collector is unique amongst your collectors.  This
-     * facilitates integration with different systems and facilitates
-     * tracking.
-     * @param id unique identifier
-     */
-	public FilesystemCollectorConfig(String id) {
-        super();
-        this.id = id;
+	public FilesystemCollectorConfig() {
+        super(FilesystemCrawlerConfig.class);
     }
 
-	/**
-	 * Gets this collector unique identifier.
-	 * @return unique identifier
-	 */
-	public String getId() {
-        return id;
-    }
-    /**
-     * Sets this collector unique identifier.
-     * @param id unique identifier
-     */
-    public void setId(String id) {
-        this.id = id;
+    @Override
+    protected void saveCollectorConfigToXML(Writer out) {
+        // Nothing more than what the super class already saves.
     }
 
-    /**
-     * Gets all crawler configurations.
-     * @return crawler configurations
-     */
-    public FilesystemCrawlerConfig[] getCrawlerConfigs() {
-        return crawlerConfigs;
-    }
-    /**
-     * Sets crawler configurations.
-     * @param crawlerConfigs crawler configurations
-     */
-    public void setCrawlerConfigs(FilesystemCrawlerConfig[] crawlerConfigs) {
-        this.crawlerConfigs = ArrayUtils.clone(crawlerConfigs);
-    }
-
-    /**
-     * Gets the directory location where progress files (from JEF API)
-     * are stored.
-     * @return progress directory path
-     */
-    public String getProgressDir() {
-        return progressDir;
-    }
-    /**
-     * Sets the directory location where progress files (from JEF API)
-     * are stored.
-     * @param progressDir progress directory path
-     */
-    public void setProgressDir(String progressDir) {
-        this.progressDir = progressDir;
-    }
-
-    /**
-     * Gets the directory location of generated log files.
-     * @return logs directory path
-     */
-    public String getLogsDir() {
-        return logsDir;
-    }
-    /**
-     * Sets the directory location of generated log files.
-     * @param logsDir logs directory path
-     */
-    public void setLogsDir(String logsDir) {
-        this.logsDir = logsDir;
+    @Override
+    protected void loadCollectorConfigFromXML(XMLConfiguration xml) {
+        // Nothing more than what the super class already loads.
     }
 }

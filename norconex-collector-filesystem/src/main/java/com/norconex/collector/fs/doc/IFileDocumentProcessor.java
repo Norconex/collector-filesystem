@@ -1,4 +1,4 @@
-/* Copyright 2010-2014 Norconex Inc.
+/* Copyright 2014 Norconex Inc.
  * 
  * This file is part of Norconex Filesystem Collector.
  * 
@@ -16,27 +16,23 @@
  * along with Norconex Filesystem Collector. If not, 
  * see <http://www.gnu.org/licenses/>.
  */
-package com.norconex.collector.fs.db;
+package com.norconex.collector.fs.doc;
 
-public class CrawlFileDatabaseException extends RuntimeException {
+import java.io.Serializable;
 
-    
-    private static final long serialVersionUID = 5416591514078326431L;
+import org.apache.commons.vfs2.FileSystemManager;
 
-    public CrawlFileDatabaseException() {
-        super();
-    }
+/**
+ * Custom processing (optional) performed on a document.  Can be used 
+ * just before of after a document has been imported.  
+ * @author Pascal Essiembre
+ */
+public interface IFileDocumentProcessor extends Serializable {
 
-    public CrawlFileDatabaseException(String message) {
-        super(message);
-    }
-
-    public CrawlFileDatabaseException(Throwable cause) {
-        super(cause);
-    }
-
-    public CrawlFileDatabaseException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
+	/**
+	 * Processes a document.
+	 * @param fileManager file system manager
+	 * @param doc the document
+	 */
+    void processDocument(FileSystemManager fileManager,  FileDocument doc);
 }

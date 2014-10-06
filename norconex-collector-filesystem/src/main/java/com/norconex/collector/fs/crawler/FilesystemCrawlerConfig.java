@@ -1,4 +1,4 @@
-/* Copyright 2010-2014 Norconex Inc.
+/* Copyright 2013-2014 Norconex Inc.
  * 
  * This file is part of Norconex Filesystem Collector.
  * 
@@ -18,136 +18,165 @@
  */
 package com.norconex.collector.fs.crawler;
 
-import java.io.File;
-import java.io.Serializable;
+import java.io.IOException;
+import java.io.Writer;
+import java.util.ArrayList;
+import java.util.List;
 
-import org.apache.commons.beanutils.BeanUtils;
+import javax.xml.stream.XMLStreamException;
 
-import com.norconex.collector.fs.FilesystemCollectorException;
-import com.norconex.collector.fs.db.ICrawlFileDatabaseFactory;
-import com.norconex.collector.fs.db.impl.DefaultCrawlFileDatabaseFactory;
-import com.norconex.collector.fs.filter.IFileFilter;
-import com.norconex.committer.ICommitter;
-import com.norconex.importer.ImporterConfig;
+import org.apache.commons.configuration.HierarchicalConfiguration;
+import org.apache.commons.configuration.XMLConfiguration;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
+
+import com.norconex.collector.core.checksum.IMetadataChecksummer;
+import com.norconex.collector.core.crawler.AbstractCrawlerConfig;
+import com.norconex.collector.core.data.store.impl.mapdb.MapDBCrawlDataStoreFactory;
+import com.norconex.collector.fs.checksum.impl.FileMetadataChecksummer;
+import com.norconex.collector.fs.doc.IFileDocumentProcessor;
+import com.norconex.commons.lang.config.ConfigurationUtil;
+import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
 
 /**
  * Filesystem Crawler configuration.
  * 
  * @author Pascal Dimassimo
+ * @author Pascal Essiembre
  */
-public class FilesystemCrawlerConfig implements Cloneable, Serializable {
+public class FilesystemCrawlerConfig extends AbstractCrawlerConfig {
 
     private static final long serialVersionUID = 1395707385333823138L;
-
-    private String id;
-    private File workDir = new File("./work");
+    private static final Logger LOG = 
+            LogManager.getLogger(FilesystemCrawlerConfig.class);
+    
     private String[] startPaths;
-    private int numThreads = 2;
-    private int maxFiles = -1;
-    private boolean deleteOrphans;
     
     private boolean keepDownloads;
 
-    private ICrawlFileDatabaseFactory crawlFileDatabaseFactory = new DefaultCrawlFileDatabaseFactory();
-    private ImporterConfig importerConfig = new ImporterConfig();
-    private ICommitter committer;
-
-    private IFileFilter[] fileFilters;    
+    private IMetadataChecksummer metadataChecksummer = 
+            new FileMetadataChecksummer();
     
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public File getWorkDir() {
-        return workDir;
-    }
-
-    public void setWorkDir(File workDir) {
-        this.workDir = workDir;
+    private IFileDocumentProcessor[] preImportProcessors;
+    private IFileDocumentProcessor[] postImportProcessors;
+//    private IFileFilter[] fileFilters;    
+    
+    public FilesystemCrawlerConfig() {
+        super();
+        setCrawlDataStoreFactory(new MapDBCrawlDataStoreFactory());
     }
 
     public String[] getStartPaths() {
         return startPaths;
     }
-
     public void setStartPaths(String[] startPaths) {
         this.startPaths = startPaths;
     }
-
-    public int getNumThreads() {
-        return numThreads;
-    }
-
-    public void setNumThreads(int numThreads) {
-        this.numThreads = numThreads;
-    }
-
-    public int getMaxFiles() {
-        return maxFiles;
-    }
-
-    public void setMaxFiles(int maxFiles) {
-        this.maxFiles = maxFiles;
-    }
-
     public boolean isKeepDownloads() {
         return keepDownloads;
     }
-
     public void setKeepDownloads(boolean keepDownloads) {
         this.keepDownloads = keepDownloads;
     }
 
-    public ICrawlFileDatabaseFactory getCrawlFileDatabaseFactory() {
-        return crawlFileDatabaseFactory;
+    public IMetadataChecksummer getMetadataChecksummer() {
+        return metadataChecksummer;
     }
-
-    public void setCrawlFileDatabaseFactory(
-            ICrawlFileDatabaseFactory crawlFileDatabaseFactory) {
-        this.crawlFileDatabaseFactory = crawlFileDatabaseFactory;
-    }
-
-    public ImporterConfig getImporterConfig() {
-        return importerConfig;
-    }
-
-    public void setImporterConfig(ImporterConfig importerConfig) {
-        this.importerConfig = importerConfig;
-    }
-
-    public ICommitter getCommitter() {
-        return committer;
-    }
-
-    public void setCommitter(ICommitter committer) {
-        this.committer = committer;
+    public void setMetadataChecksummer(
+            IMetadataChecksummer metadataChecksummer) {
+        this.metadataChecksummer = metadataChecksummer;
     }
     
-    public boolean isDeleteOrphans() {
-        return deleteOrphans;
-    }
-    public void setDeleteOrphans(boolean deleteOrphans) {
-        this.deleteOrphans = deleteOrphans;
-    }
 
-    public IFileFilter[] getFileFilters() {
-        return fileFilters;
+//    public IFileFilter[] getFileFilters() {
+//        return fileFilters;
+//    }
+//    public void setFileFilters(IFileFilter[] referenceFilters) {
+//        this.fileFilters = referenceFilters;
+//    }
+    public IFileDocumentProcessor[] getPreImportProcessors() {
+        return preImportProcessors;
     }
-    public void setFileFilters(IFileFilter[] referenceFilters) {
-        this.fileFilters = referenceFilters;
+    public void setPreImportProcessors(
+            IFileDocumentProcessor[] filePostProcessors) {
+        this.preImportProcessors = ArrayUtils.clone(filePostProcessors);
+    }
+    public IFileDocumentProcessor[] getPostImportProcessors() {
+        return postImportProcessors;
+    }
+    public void setPostImportProcessors(
+            IFileDocumentProcessor[] filePostProcessors) {
+        this.postImportProcessors = ArrayUtils.clone(filePostProcessors);
     }
 
     @Override
-    protected Object clone() throws CloneNotSupportedException {
+    protected void saveCrawlerConfigToXML(Writer out) throws IOException {
         try {
-            return (FilesystemCrawlerConfig) BeanUtils.cloneBean(this);
-        } catch (Exception e) {
-            throw new FilesystemCollectorException(
-                    "Cannot clone crawler configuration.", e);
+            EnhancedXMLStreamWriter writer = new EnhancedXMLStreamWriter(out);
+    
+            writer.writeElementBoolean("keepDownloads", isKeepDownloads());
+            writer.writeStartElement("startPaths");
+            for (String path : getStartPaths()) {
+                writer.writeStartElement("path");
+                writer.writeCharacters(path);
+                writer.writeEndElement();
+            }
+            writer.writeEndElement();
+            writeObject(out, "metadataChecksummer", getMetadataChecksummer());
+            writeArray(out, "preImportProcessors", 
+                    "processor", getPreImportProcessors());
+            writeArray(out, "postImportProcessors", 
+                    "processor", getPostImportProcessors());
+        } catch (XMLStreamException e) {
+            throw new IOException(
+                    "Could not write to XML config: " + getId(), e);
         }
     }
+
+    @Override
+    protected void loadCrawlerConfigFromXML(XMLConfiguration xml)
+            throws IOException {
+        //--- Simple Settings --------------------------------------------------
+        loadSimpleSettings(xml);
+        
+        //--- Metadata Checksummer -----------------------------------------
+        setMetadataChecksummer(ConfigurationUtil.newInstance(xml,
+                "metadataChecksummer", getMetadataChecksummer()));
+        
+        //--- HTTP Pre-Processors ----------------------------------------------
+        IFileDocumentProcessor[] preProcFilters = loadProcessors(xml,
+                "preImportProcessors.processor");
+        setPreImportProcessors(defaultIfEmpty(preProcFilters,
+                getPreImportProcessors()));
+
+        //--- HTTP Post-Processors ---------------------------------------------
+        IFileDocumentProcessor[] postProcFilters = loadProcessors(xml,
+                "postImportProcessors.processor");
+        setPostImportProcessors(defaultIfEmpty(postProcFilters,
+                getPostImportProcessors()));
+    }
+    
+    private void loadSimpleSettings(XMLConfiguration xml) {
+        setKeepDownloads(xml.getBoolean("keepDownloads", isKeepDownloads()));
+
+        String[] startPaths = xml.getStringArray("startPaths.path");
+        setStartPaths(defaultIfEmpty(startPaths, getStartPaths()));
+    }
+    
+    private IFileDocumentProcessor[] loadProcessors(XMLConfiguration xml,
+            String xmlPath) {
+        List<IFileDocumentProcessor> filters = new ArrayList<>();
+        List<HierarchicalConfiguration> filterNodes = xml
+                .configurationsAt(xmlPath);
+        for (HierarchicalConfiguration filterNode : filterNodes) {
+            IFileDocumentProcessor filter = ConfigurationUtil
+                    .newInstance(filterNode);
+            filters.add(filter);
+            LOG.info("HTTP document processor loaded: " + filter);
+        }
+        return filters.toArray(new IFileDocumentProcessor[] {});
+    }
+    
+
 }

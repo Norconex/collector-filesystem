@@ -1,4 +1,4 @@
-/* Copyright 2010-2014 Norconex Inc.
+/* Copyright 2013-2014 Norconex Inc.
  * 
  * This file is part of Norconex Filesystem Collector.
  * 

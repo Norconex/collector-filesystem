@@ -18,33 +18,28 @@
  */
 package com.norconex.collector.fs.doc;
 
-import java.io.File;
-import java.io.Serializable;
+import com.norconex.commons.lang.io.CachedInputStream;
+import com.norconex.importer.doc.ImporterDocument;
 
-public class FileDocument implements Serializable {
+//TODO consider dropping since it just brings FileMetadata cast.
+public class FileDocument extends ImporterDocument {
 
     private static final long serialVersionUID = -6020931145385049064L;
 
-    private final String referenceId;
-	private final File localFile;
-	private final FileMetadata metadata;
+    public FileDocument(String reference, CachedInputStream content) {
+        super(reference, content, new FileMetadata(reference));
+    }
 
-	public FileDocument(String referenceId, File localFile) {
-		super();
-		this.referenceId = referenceId;
-		this.localFile = localFile;
-		this.metadata = new FileMetadata(referenceId);
-	}
+    public FileDocument(ImporterDocument importerDocument) {
+        super(importerDocument.getReference(), 
+                importerDocument.getContent(),
+                new FileMetadata(importerDocument.getMetadata()));
+        setReference(importerDocument.getReference());
+        setContentType(importerDocument.getContentType());
+        setContentEncoding(importerDocument.getContentEncoding());
+    }
 
-	public String getReference() {
-		return referenceId;
-	}
-
-	public File getLocalFile() {
-		return localFile;
-	}
-
-	public FileMetadata getMetadata() {
-		return metadata;
-	}
+    public FileMetadata getMetadata() {
+        return (FileMetadata) super.getMetadata();
+    }
 }

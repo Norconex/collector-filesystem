@@ -1,4 +1,4 @@
-/* Copyright 2010-2014 Norconex Inc.
+/* Copyright 2013-2014 Norconex Inc.
  * 
  * This file is part of Norconex Filesystem Collector.
  * 
@@ -16,41 +16,28 @@
  * along with Norconex Filesystem Collector. If not, 
  * see <http://www.gnu.org/licenses/>.
  */
-package com.norconex.collector.fs.crawler;
+package com.norconex.collector.fs.data;
 
-import java.io.Serializable;
+import com.norconex.collector.core.data.CrawlState;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
 
 /**
  * Represents a URL crawling status.
  * @author Pascal Essiembre
  */
-public enum CrawlStatus implements Serializable { 
-    OK, 
-    REJECTED, 
-    ERROR, 
-    UNMODIFIED, 
-    DELETED,
-    NOT_FOUND, 
-    BAD_STATUS;
+public class FileCrawlState extends CrawlState { 
+
+    private static final long serialVersionUID = 7360283251973474053L;
+
+    public static final FileCrawlState DELETED = 
+            new FileCrawlState("DELETED");
+    public static final FileCrawlState NOT_FOUND =
+            new FileCrawlState("NOT_FOUND");
+    public static final FileCrawlState BAD_STATUS = 
+            new FileCrawlState("BAD_STATUS");
     
-    private static final int LOGGING_STATUS_PADDING = 10;
-    
-    private final Logger log;
-    CrawlStatus() {
-        log = LogManager.getLogger(
-                this.getClass().getCanonicalName() + "." + toString());
-    }
-    
-    void logInfo(CrawlFile crawlFile){
-        if (log.isInfoEnabled()) {
-            log.info(StringUtils.leftPad(
-                    crawlFile.getStatus().toString(), LOGGING_STATUS_PADDING)
-                  + " > " + crawlFile.getURL());
-        }
+    protected FileCrawlState(String state) {
+        super(state);
     }
 
 }
