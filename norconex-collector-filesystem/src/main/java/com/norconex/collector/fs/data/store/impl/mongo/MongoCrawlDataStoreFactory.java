@@ -20,7 +20,7 @@ package com.norconex.collector.fs.data.store.impl.mongo;
 
 import com.norconex.collector.core.data.store.ICrawlDataStoreFactory;
 import com.norconex.collector.core.data.store.impl.mongo.AbstractMongoCrawlDataStoreFactory;
-import com.norconex.collector.core.data.store.impl.mongo.BasicMongoSerializer;
+import com.norconex.collector.core.data.store.impl.mongo.BaseMongoSerializer;
 import com.norconex.collector.core.data.store.impl.mongo.IMongoSerializer;
 
 /**
@@ -52,7 +52,7 @@ public class MongoCrawlDataStoreFactory
 
     @Override
     protected IMongoSerializer createMongoSerializer() {
-        return new BasicMongoSerializer();
+        return new BaseMongoSerializer();
     }
     
 }

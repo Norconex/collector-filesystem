@@ -157,7 +157,7 @@ public class FileImporterPipeline
                         "Cannot fetch file metadata: " 
                                 + ctx.getCrawlData().getReference(), e);
             }
-            ctx.fireCrawlerEvent(CrawlerEvent.DOCUMENT_META_FETCHED, 
+            ctx.fireCrawlerEvent(CrawlerEvent.DOCUMENT_METADATA_FETCHED, 
                     ctx.getCrawlData(), this);
             return true;
         }
