@@ -48,8 +48,6 @@ import com.norconex.collector.core.data.store.impl.mongo.IMongoSerializer;
 public class MongoCrawlDataStoreFactory 
         extends AbstractMongoCrawlDataStoreFactory {
 
-    private static final long serialVersionUID = 5891401071310622315L;
-
     @Override
     protected IMongoSerializer createMongoSerializer() {
         return new BaseMongoSerializer();

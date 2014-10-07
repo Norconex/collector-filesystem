@@ -24,8 +24,6 @@ import com.norconex.importer.doc.ImporterDocument;
 //TODO consider dropping since it just brings FileMetadata cast.
 public class FileDocument extends ImporterDocument {
 
-    private static final long serialVersionUID = -6020931145385049064L;
-
     public FileDocument(String reference, CachedInputStream content) {
         super(reference, content, new FileMetadata(reference));
     }

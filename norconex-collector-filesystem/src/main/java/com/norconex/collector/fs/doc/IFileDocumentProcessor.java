@@ -18,8 +18,6 @@
  */
 package com.norconex.collector.fs.doc;
 
-import java.io.Serializable;
-
 import org.apache.commons.vfs2.FileSystemManager;
 
 /**
@@ -27,7 +25,7 @@ import org.apache.commons.vfs2.FileSystemManager;
  * just before of after a document has been imported.  
  * @author Pascal Essiembre
  */
-public interface IFileDocumentProcessor extends Serializable {
+public interface IFileDocumentProcessor {
 
 	/**
 	 * Processes a document.

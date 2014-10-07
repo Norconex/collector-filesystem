@@ -18,8 +18,6 @@
  */
 package com.norconex.collector.fs.filter;
 
-import java.io.Serializable;
-
 import org.apache.commons.vfs2.FileObject;
 
 /**
@@ -35,7 +33,7 @@ import org.apache.commons.vfs2.FileObject;
  * <code>filter</code> to ensure it gets loaded properly.</p>
  * @author Pascal Essiembre
  */
-public interface IFileFilter extends Serializable {
+public interface IFileFilter {
 
     /**
      * Whether to accept this reference.  

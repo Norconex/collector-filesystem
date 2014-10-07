@@ -41,8 +41,6 @@ import com.norconex.collector.core.data.store.impl.jdbc.JDBCCrawlDataStore.Datab
  */
 public class JDBCCrawlDataStoreFactory extends AbstractJDBCDataStoreFactory {
 
-    private static final long serialVersionUID = -7569523596981432364L;
-
     public JDBCCrawlDataStoreFactory() {
         super();
     }

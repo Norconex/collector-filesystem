@@ -32,8 +32,6 @@ import com.norconex.collector.fs.crawler.FilesystemCrawlerConfig;
  */
 public class FilesystemCollectorConfig extends AbstractCollectorConfig {
 
-    private static final long serialVersionUID = -3350877963428801802L;
-    
 	public FilesystemCollectorConfig() {
         super(FilesystemCrawlerConfig.class);
     }

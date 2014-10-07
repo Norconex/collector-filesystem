@@ -46,8 +46,6 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  */
 public class FileMetadataChecksummer extends AbstractMetadataChecksummer {
 
-	private static final long serialVersionUID = -6759418012119786557L;
-
     @Override
     protected String doCreateMetaChecksum(Properties metadata) {
     	return metadata.getString(FileMetadata.COLLECTOR_LASTMODIFIED)

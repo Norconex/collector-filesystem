@@ -47,7 +47,6 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  */
 public class FilesystemCrawlerConfig extends AbstractCrawlerConfig {
 
-    private static final long serialVersionUID = 1395707385333823138L;
     private static final Logger LOG = 
             LogManager.getLogger(FilesystemCrawlerConfig.class);
     
