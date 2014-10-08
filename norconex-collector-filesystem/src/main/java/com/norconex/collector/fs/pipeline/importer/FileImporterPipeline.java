@@ -1,5 +1,20 @@
-/**
+/* Copyright 2013-2014 Norconex Inc.
  * 
+ * This file is part of Norconex Filesystem Collector.
+ * 
+ * Norconex Filesystem Collector is free software: you can redistribute it and/or 
+ * modify it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * Norconex Filesystem Collector is distributed in the hope that it will be useful, 
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with Norconex Filesystem Collector. If not, 
+ * see <http://www.gnu.org/licenses/>.
  */
 package com.norconex.collector.fs.pipeline.importer;
 
@@ -31,8 +46,7 @@ import com.norconex.commons.lang.pipeline.Pipeline;
  * @author Pascal Essiembre
  *
  */
-public class FileImporterPipeline 
-        extends Pipeline<ImporterPipelineContext> {
+public class FileImporterPipeline extends Pipeline<ImporterPipelineContext> {
 
     private static final Logger LOG = 
             LogManager.getLogger(FileImporterPipeline.class);
@@ -49,7 +63,8 @@ public class FileImporterPipeline
     }
 
     //--- Document Pre-Processing ----------------------------------------------
-    private class DocumentPreProcessingStage extends AbstractImporterStage {
+    private static class DocumentPreProcessingStage 
+            extends AbstractImporterStage {
         @Override
         public boolean executeStage(FileImporterPipelineContext ctx) {
             if (ctx.getConfig().getPreImportProcessors() != null) {
@@ -66,52 +81,10 @@ public class FileImporterPipeline
             return true;
         }
     }    
-    
-    
-//    // Order is important.
-//    private final IDocumentProcessingStep[] steps = new IDocumentProcessingStep[] {
-//        new DocumentMetadataFetcherStage(),
-//        new FileMetadataChecksumStage(),
-//        new DocumentFetchStage(),
-//        new ImportModuleStep(),
-//        new FileDocumentChecksumStep(),
-//        new DocumentCommitStep()
-//    };
 
-//    /*default*/ DocumentProcessor(
-//            FilesystemCrawlerConfig config, 
-//            IReferenceStore<BaseCrawlData> database, File outputFile,
-//            FileDocument doc, BaseCrawlData crawlURL) {
-//        this.database = database;
-//        this.doc = doc;
-//        this.baseCrawlData = crawlURL;
-//        this.config = config;
-////        this.hdFetcher = config.getHttpHeadersFetcher();
-//        this.outputFile = outputFile; 
-//    }
-
-//    public boolean processURL() {
-//        for (int i = 0; i < steps.length; i++) {
-//            IDocumentProcessingStep step = steps[i];
-//            if (!step.processDocument()) {
-//                return false;
-//            }
-//        }
-//        return true;
-//    }
-
-//    public interface IDocumentProcessingStep {
-//        // Returns true to continue to next step
-//        // Returns false to abort, this URL is rejected.
-//        boolean processDocument();
-//    }
-//
-//    private FileImporterPipelineContext cast(ImporterPipelineContext ctx) {
-//        return (FileImporterPipelineContext) ctx;
-//    }
-    
     //--- IMPORT Module --------------------------------------------------------
-    private class DocumentMetadataFetcherStage extends AbstractImporterStage {
+    private static class DocumentMetadataFetcherStage 
+            extends AbstractImporterStage {
         @Override
         public boolean executeStage(FileImporterPipelineContext ctx) {
             FileDocument doc = ctx.getDocument();
@@ -162,37 +135,10 @@ public class FileImporterPipeline
             return true;
         }
     }    
-    
-//    //--- IMPORT Module --------------------------------------------------------
-//    private class ImportModuleStep implements IDocumentProcessingStep {
-//        @Override
-//        public boolean processDocument() {
-//            Importer importer = new Importer(config.getImporterConfig());
-//            try {
-//                FileUtil.createDirsForFile(outputFile);
-//                if (importer.importDocument(
-//                        doc.getLocalFile(),
-//                        null,
-//                        outputFile,
-//                        doc.getMetadata(),
-//                        baseCrawlData.getReference())) {
-//                    if (LOG.isDebugEnabled()) {
-//                        LOG.debug("ACCEPTED document import. File="
-//                                + doc.getReference());
-//                    }
-//                    return true;
-//                }
-//            } catch (IOException e) {
-//                throw new FilesystemCollectorException(
-//                        "Cannot import File: " + baseCrawlData.getReference(), e);
-//            }
-//            baseCrawlData.setStatus(FileCrawlState.REJECTED);
-//            return false;
-//        }
-//    }    
 
     //--- HTTP Document Checksum -----------------------------------------------
-    private class FileMetadataChecksumStage extends AbstractImporterStage {
+    private static class FileMetadataChecksumStage 
+            extends AbstractImporterStage {
         @Override
         public boolean executeStage(FileImporterPipelineContext ctx) {
             //TODO only if an INCREMENTAL run... else skip.
@@ -211,7 +157,8 @@ public class FileImporterPipeline
     
 
     //--- Document Fetch -------------------------------------------------------
-    private class DocumentFetchStage extends AbstractImporterStage {
+    private static class DocumentFetchStage 
+            extends AbstractImporterStage {
         @Override
         public boolean executeStage(FileImporterPipelineContext ctx) {
             BaseCrawlData crawlData = ctx.getCrawlData();
@@ -253,7 +200,4 @@ public class FileImporterPipeline
 
         }
     }  
-    
-    
-    
 }

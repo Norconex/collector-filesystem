@@ -59,7 +59,6 @@ public class FilesystemCrawlerConfig extends AbstractCrawlerConfig {
     
     private IFileDocumentProcessor[] preImportProcessors;
     private IFileDocumentProcessor[] postImportProcessors;
-//    private IFileFilter[] fileFilters;    
     
     public FilesystemCrawlerConfig() {
         super();
@@ -67,10 +66,10 @@ public class FilesystemCrawlerConfig extends AbstractCrawlerConfig {
     }
 
     public String[] getStartPaths() {
-        return startPaths;
+        return ArrayUtils.clone(startPaths);
     }
     public void setStartPaths(String[] startPaths) {
-        this.startPaths = startPaths;
+        this.startPaths = ArrayUtils.clone(startPaths);
     }
     public boolean isKeepDownloads() {
         return keepDownloads;
@@ -87,22 +86,15 @@ public class FilesystemCrawlerConfig extends AbstractCrawlerConfig {
         this.metadataChecksummer = metadataChecksummer;
     }
     
-
-//    public IFileFilter[] getFileFilters() {
-//        return fileFilters;
-//    }
-//    public void setFileFilters(IFileFilter[] referenceFilters) {
-//        this.fileFilters = referenceFilters;
-//    }
     public IFileDocumentProcessor[] getPreImportProcessors() {
-        return preImportProcessors;
+        return ArrayUtils.clone(preImportProcessors);
     }
     public void setPreImportProcessors(
             IFileDocumentProcessor[] filePostProcessors) {
         this.preImportProcessors = ArrayUtils.clone(filePostProcessors);
     }
     public IFileDocumentProcessor[] getPostImportProcessors() {
-        return postImportProcessors;
+        return ArrayUtils.clone(postImportProcessors);
     }
     public void setPostImportProcessors(
             IFileDocumentProcessor[] filePostProcessors) {
