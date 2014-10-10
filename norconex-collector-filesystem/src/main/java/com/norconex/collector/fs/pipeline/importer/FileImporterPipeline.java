@@ -31,8 +31,10 @@ import com.norconex.collector.core.crawler.event.CrawlerEvent;
 import com.norconex.collector.core.data.BaseCrawlData;
 import com.norconex.collector.core.data.CrawlState;
 import com.norconex.collector.core.pipeline.ChecksumStageUtil;
+import com.norconex.collector.core.pipeline.importer.DocumentFiltersStage;
 import com.norconex.collector.core.pipeline.importer.ImportModuleStage;
 import com.norconex.collector.core.pipeline.importer.ImporterPipelineContext;
+import com.norconex.collector.core.pipeline.importer.ImporterPipelineUtil;
 import com.norconex.collector.core.pipeline.importer.SaveDocumentStage;
 import com.norconex.collector.fs.FilesystemCollectorException;
 import com.norconex.collector.fs.data.FileCrawlState;
@@ -52,16 +54,34 @@ public class FileImporterPipeline extends Pipeline<ImporterPipelineContext> {
             LogManager.getLogger(FileImporterPipeline.class);
     
     public FileImporterPipeline(boolean isKeepDownloads) {
-        addStage(new DocumentMetadataFetcherStage());
+        addStage(new FileMetadataFetcherStage());
+        addStage(new FileMetadataFiltersStage());
         addStage(new FileMetadataChecksumStage());
         addStage(new DocumentFetchStage());
         if (isKeepDownloads) {
             addStage(new SaveDocumentStage());
         }
+        addStage(new DocumentFiltersStage());
         addStage(new DocumentPreProcessingStage());
         addStage(new ImportModuleStage());
     }
 
+    //--- Metadata filters -----------------------------------------------------
+    private static class FileMetadataFiltersStage 
+            extends AbstractImporterStage {
+        @Override
+        public boolean executeStage(FileImporterPipelineContext ctx) {
+            if (ctx.getConfig().getMetadataFilters() == null) {
+                if (ImporterPipelineUtil.isHeadersRejected(ctx)) {
+                    ctx.getCrawlData().setState(CrawlState.REJECTED);
+                    return false;
+                }
+            }
+            return true;
+        }
+    }    
+
+    
     //--- Document Pre-Processing ----------------------------------------------
     private static class DocumentPreProcessingStage 
             extends AbstractImporterStage {
@@ -83,7 +103,7 @@ public class FileImporterPipeline extends Pipeline<ImporterPipelineContext> {
     }    
 
     //--- IMPORT Module --------------------------------------------------------
-    private static class DocumentMetadataFetcherStage 
+    private static class FileMetadataFetcherStage 
             extends AbstractImporterStage {
         @Override
         public boolean executeStage(FileImporterPipelineContext ctx) {
