@@ -51,6 +51,7 @@ public class FilesystemCrawlerConfig extends AbstractCrawlerConfig {
             LogManager.getLogger(FilesystemCrawlerConfig.class);
     
     private String[] startPaths;
+    private String[] pathsFiles;
     
     private boolean keepDownloads;
 
@@ -70,6 +71,12 @@ public class FilesystemCrawlerConfig extends AbstractCrawlerConfig {
     }
     public void setStartPaths(String[] startPaths) {
         this.startPaths = ArrayUtils.clone(startPaths);
+    }
+    public String[] getPathsFiles() {
+        return ArrayUtils.clone(pathsFiles);
+    }
+    public void setPathsFiles(String[] pathsFiles) {
+        this.pathsFiles = ArrayUtils.clone(pathsFiles);
     }
     public boolean isKeepDownloads() {
         return keepDownloads;
@@ -113,6 +120,11 @@ public class FilesystemCrawlerConfig extends AbstractCrawlerConfig {
                 writer.writeCharacters(path);
                 writer.writeEndElement();
             }
+            for (String path : getPathsFiles()) {
+                writer.writeStartElement("pathsFile");
+                writer.writeCharacters(path);
+                writer.writeEndElement();
+            }
             writer.writeEndElement();
             writeObject(out, "metadataChecksummer", getMetadataChecksummer());
             writeArray(out, "preImportProcessors", 
@@ -153,6 +165,9 @@ public class FilesystemCrawlerConfig extends AbstractCrawlerConfig {
 
         String[] startPaths = xml.getStringArray("startPaths.path");
         setStartPaths(defaultIfEmpty(startPaths, getStartPaths()));
+        
+        String[] pathsFiles = xml.getStringArray("startPaths.pathsFile");
+        setPathsFiles(defaultIfEmpty(pathsFiles, getPathsFiles()));
     }
     
     private IFileDocumentProcessor[] loadProcessors(XMLConfiguration xml,

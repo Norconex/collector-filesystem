@@ -18,11 +18,18 @@
  */
 package com.norconex.collector.fs.crawler;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.LineIterator;
+import org.apache.commons.lang3.CharEncoding;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemManager;
 import org.apache.commons.vfs2.VFS;
 
+import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.core.crawler.AbstractCrawler;
 import com.norconex.collector.core.crawler.ICrawler;
 import com.norconex.collector.core.data.BaseCrawlData;
@@ -82,15 +89,39 @@ public class FilesystemCrawler extends AbstractCrawler {
         }
         
         if (!resume) {
-            String[] startPaths = getCrawlerConfig().getStartPaths();
-            for (int i = 0; i < startPaths.length; i++) {
-                String startPath = startPaths[i];
-                executeQueuePipeline(
-                        new BaseCrawlData(startPath), crawlDataStore);
-            }
+            queueStartPaths(crawlDataStore);
         }
     }
 
+    private void queueStartPaths(ICrawlDataStore crawlDataStore) {
+        // Queue regular start urls
+        String[] startPaths = getCrawlerConfig().getStartPaths();
+        for (int i = 0; i < startPaths.length; i++) {
+            String startPath = startPaths[i];
+            executeQueuePipeline(new BaseCrawlData(startPath), crawlDataStore);
+        }
+        // Queue start urls define in one or more seed files
+        String[] pathsFiles = getCrawlerConfig().getPathsFiles();
+        for (int i = 0; i < pathsFiles.length; i++) {
+            String pathsFile = pathsFiles[i];
+            LineIterator it = null;
+            try {
+                it = IOUtils.lineIterator(
+                        new FileInputStream(pathsFile), CharEncoding.UTF_8);
+                while (it.hasNext()) {
+                    String startPath = it.nextLine();
+                    executeQueuePipeline(
+                            new BaseCrawlData(startPath), crawlDataStore);
+                }
+            } catch (IOException e) {
+                throw new CollectorException(
+                        "Could not process paths file: " + pathsFile, e);
+            } finally {
+                LineIterator.closeQuietly(it);;
+            }
+        }
+    }
+    
     @Override
     protected void executeQueuePipeline(
             ICrawlData crawlData, ICrawlDataStore crawlDataStore) {
