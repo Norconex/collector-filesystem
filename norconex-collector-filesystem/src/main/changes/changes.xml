@@ -39,7 +39,16 @@
         after the import module is invoked.
       </action>
       <action dev="essiembre" type="add">
+        New support for files filtering based on their Metadata.
+      </action>
+      <action dev="essiembre" type="add">
+        New support for document filtering.
+      </action>
+      <action dev="essiembre" type="add">
         New ability to keep files fetch from a filesystem to a local location.
+      </action>
+      <action dev="essiembre" type="add">
+        New JMX/MBean support added on crawlers.
       </action>
       <action dev="essiembre" type="update">
         Refactored to use the new Norconex Collector Core library.  
