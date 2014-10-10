@@ -96,28 +96,33 @@ public class FilesystemCrawler extends AbstractCrawler {
     private void queueStartPaths(ICrawlDataStore crawlDataStore) {
         // Queue regular start urls
         String[] startPaths = getCrawlerConfig().getStartPaths();
-        for (int i = 0; i < startPaths.length; i++) {
-            String startPath = startPaths[i];
-            executeQueuePipeline(new BaseCrawlData(startPath), crawlDataStore);
+        if (startPaths != null) {
+            for (int i = 0; i < startPaths.length; i++) {
+                String startPath = startPaths[i];
+                executeQueuePipeline(
+                        new BaseCrawlData(startPath), crawlDataStore);
+            }
         }
         // Queue start urls define in one or more seed files
         String[] pathsFiles = getCrawlerConfig().getPathsFiles();
-        for (int i = 0; i < pathsFiles.length; i++) {
-            String pathsFile = pathsFiles[i];
-            LineIterator it = null;
-            try {
-                it = IOUtils.lineIterator(
-                        new FileInputStream(pathsFile), CharEncoding.UTF_8);
-                while (it.hasNext()) {
-                    String startPath = it.nextLine();
-                    executeQueuePipeline(
-                            new BaseCrawlData(startPath), crawlDataStore);
+        if (pathsFiles != null) {
+            for (int i = 0; i < pathsFiles.length; i++) {
+                String pathsFile = pathsFiles[i];
+                LineIterator it = null;
+                try {
+                    it = IOUtils.lineIterator(
+                            new FileInputStream(pathsFile), CharEncoding.UTF_8);
+                    while (it.hasNext()) {
+                        String startPath = it.nextLine();
+                        executeQueuePipeline(
+                                new BaseCrawlData(startPath), crawlDataStore);
+                    }
+                } catch (IOException e) {
+                    throw new CollectorException(
+                            "Could not process paths file: " + pathsFile, e);
+                } finally {
+                    LineIterator.closeQuietly(it);;
                 }
-            } catch (IOException e) {
-                throw new CollectorException(
-                        "Could not process paths file: " + pathsFile, e);
-            } finally {
-                LineIterator.closeQuietly(it);;
             }
         }
     }
