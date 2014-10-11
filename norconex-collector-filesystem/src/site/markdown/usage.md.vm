@@ -49,12 +49,13 @@ class, by passing it a
 [FilesystemCollectorConfig](./apidocs/com/norconex/collector/fs/FilesystemCollectorConfig.html).
 You can build the configuration using java, or by loading an XML configuration 
 file using the 
-[FilesystemCollectorConfigLoader](./apidocs/com/norconex/collector/fs/FilesystemCollectorConfigLoader.html)
+[CollectorConfigLoader](../collector-core/apidocs/com/norconex/collector/core/CollectorConfigLoader.html)
 class. Below is a sample code usage:
 
     /* XML configuration: */
-    //HttpCollectorConfig config = HttpCollectorConfigLoader.loadCollectorConfig(
-    //    myXMLFile, myVariableFile);
+    //FilesystemCollectorConfig config = 
+    //    new CollectorConfigLoader(FilesystemCollectorConfig.class)
+    //        .loadCollectorConfig(myXMLFile, myVariableFile);
 
     /* Java configuration: */
     FilesystemCollectorConfig config = new FilesystemCollectorConfig();
