@@ -31,7 +31,7 @@ Norconex Filesystem Collector and locate the file
 [./examples/HOWTO_RUN_EXAMPLES.txt](./examples/HOWTO_RUN_EXAMPLES.txt).  
 This file will point you to a functional configuration file and will have you 
 running a very simple crawler in no time.  These sample files are also made 
-available here for your convinience:
+available here for your convenience:
 
   * [Functional Configuration Sample](./examples/sample-config.xml)
   * [Self-Documented Configuration Reference](./examples/collector-filesystem-config-reference.xml)
@@ -59,22 +59,46 @@ page for more details on adding your own implementations.
       <crawlerDefaults>
         <startPaths
           <path>...</path>
+          <pathsFile>...</pathsFile>
           ...
         </startPaths>
         <workDir>...</workDir>
         <numThreads>...</numThreads>
-        <maxFiles>...</maxFiles>
+        <maxDocuments>...</maxDocuments>
         <keepDownloads>...</keepDownloads>
-        <deleteOrphans>...</deleteOrphans>
-        <crawlFileDatabaseFactory class="" />
-        <fileFilters>
+        <orphansStrategy>...</orphansStrategy>
+        <crawlerListeners>
+          <listener class="..."/>
+          ...
+        </crawlerListeners>
+        <crawlDataStoreFactory class="" />
+        <referenceFilters>
           <filter class="..." />
           ...
-        </fileFilters>
+        </referenceFilters>
+        <metadataFilters>
+          <filter class="..." />
+          ...
+        </metadataFilters>
+        <metadataChecksummer class="..." />
+        <documentFilters>
+          <filter class="..." />
+          ...
+        </documentFilters>
+        <preImportProcessors>
+          <processor class="..." />
+          ...
+        </preImportProcessors>
     
         <importer>
            <!-- refer to Importer documentation -->
         </importer>
+    
+        <documentChecksummer class="..." />
+ 
+         <postImportProcessors>
+          <processor class="..."></processor>
+        </postImportProcessors>
     
         <committer class="..." />
       </crawlerDefaults>
@@ -92,15 +116,17 @@ page for more details on adding your own implementations.
 
 The table below lists interface names that you can easily extend, and
 also lists available out-of-the-box implementations.
-Class names starting with "Default..." are the ones automatically configured
-by default unless you overwrite them.
 
 In the configuration file, **you have to use the fully qualified name**,
 as defined in the Javadoc (you can use variables to shorten package names).  
 Click on a class or interface name to go directly
 to its full documentation, with extra configuration options.
+
+When a default implementation exists for a configuration option taking
+a "class" attribute, the default implementations is <u>underlined</u>.
     
-#set($api="./apidocs/com/norconex/collector/fs")
+#set($fileAPI="./apidocs/com/norconex/collector/fs")
+#set($coreAPI="../collector-core/apidocs/com/norconex/collector/fs")
 
 <table>
  <thead>
@@ -132,7 +158,8 @@ to its full documentation, with extra configuration options.
    </tr>
    <tr>
      <td>startPaths</td>
-     <td>One or more &lt;path&gt; to start crawling from.</td>
+     <td>One or more &lt;path&gt; or files containing paths to start crawling from.
+         Try to use in combination with filters.</td>
      <td>N/A</td>
      <td>N/A</td>
    </tr>
@@ -143,7 +170,7 @@ to its full documentation, with extra configuration options.
      <td>N/A</td>
     </tr>
     <tr>
-     <td>maxFiles</td>
+     <td>maxDocuments</td>
      <td>Maximum files to successfully process.  Default is -1 (unlimited).</td>
      <td>N/A</td>
      <td>N/A</td>
@@ -161,25 +188,67 @@ to its full documentation, with extra configuration options.
      <td>N/A</td>
     </tr>
     <tr>
-     <td>deleteOrphans</td>
-     <td>Whether to keep urls not being referenced anymore. Defaut is false.</td>
+     <td>orphansStrategy</td>
+     <td>What to do with urls not being referenced anymore. IGNORE (default), DELETE, or PROCESS.</td>
      <td>N/A</td>
      <td>N/A</td>
     </tr>
     <tr>
-     <td>crawlFileDatabaseFactory</td>
-     <td>File Database.</td>
-     <td>
-       <a href="$api/db/impl/DefaultCrawlFileDatabaseFactory.html">DefaultCrawlFileDatabaseFactory</a>,
-     </td>
-     <td><a href="$api/db/ICrawlFileDatabaseFactory.html">ICrawlFileDatabaseFactory</a></td>
+     <td>crawlerListeners</td>
+     <td>Listen to crawling events.</td>
+     <td></td>
+     <td><a href="$coreAPI/crawler/event/ICrawlerEventListener.html">ICrawlerEventListener</a></td>
     </tr>
     <tr>
-     <td>fileFilters</td>
-     <td>Filter out unwanted files.</td>
+     <td>crawlDataStoreFactory</td>
+     <td>URLs and crawl-related information data store.</td>
      <td>
+       <u><a href="$coreAPI/data/store/impl/mapdb/MapDBCrawlDataStoreFactory.html">MapDBCrawlDataStoreFactory</a></u>,
+       <a href="$fileAPI/data/store/impl/jdbc/JDBCCrawlDataStoreFactory.html">JDBCCrawlDataStoreFactory</a>,
+       <a href="$fileAPI/data/store/impl/mongo/MongoCrawlDataStoreFactory.html">MongoCrawlDataStoreFactory</a>
      </td>
-     <td><a href="$api/filter/IFileFilter.html">IURLFilter</a></td>
+     <td><a href="$coreAPI/data/store/ICrawlDataStoreFactory.html">ICrawlDataStoreFactory</a></td>
+    </tr>
+    <tr>
+     <td>referenceFilters</td>
+     <td>Filter based on refereences (i.e. URLs).</td>
+     <td>
+       <a href="$coreAPI/filter/impl/ExtensionReferenceFilter.html">ExtensionReferenceFilter</a>,
+       <a href="$coreAPI/filter/impl/RegexReferenceFilter.html">RegexReferenceFilter</a>,
+     </td>
+     <td><a href="$coreAPI/filter/IReferenceFilter.html">IReferenceFilter</a></td>
+    </tr>
+    <tr>
+     <td>metadataFilters</td>
+     <td>Filter based on file properties.</td>
+     <td>
+       <a href="$coreAPI/filter/impl/ExtensionReferenceFilter.html">ExtensionReferenceFilter</a>,
+       <a href="$coreAPI/filter/impl/RegexReferenceFilter.html">RegexReferenceFilter</a>,
+       <a href="$coreAPI/filter/impl/RegexMetadataFilter.html">RegexMetadataFilter</a>,
+     </td>
+     <td><a href="$coreAPI/filter/IMetadataFilter.html">IMetadataFilter</a></td>
+    </tr>
+    <tr>
+     <td>metadataChecksummer</td>
+     <td>Create document checksum from file properties.</td>
+     <td><u><a href="$fileAPI/checksum/impl/FileMetadataChecksummer.html">FileMetadataChecksummer</a></u></td>
+     <td><a href="$coreAPI/checksum/IMetadataChecksummer.html">IMetadataChecksummer</a></td>
+    </tr>
+    <tr>
+     <td>documentFilters</td>
+     <td>Filter documents.</td>
+     <td>
+       <a href="$coreAPI/filter/impl/ExtensionReferenceFilter.html">ExtensionReferenceFilter</a>,
+       <a href="$coreAPI/filter/impl/RegexReferenceFilter.html">RegexReferenceFilter</a>,
+       <a href="$coreAPI/filter/impl/RegexMetadataFilter.html">RegexMetadataFilter</a>,
+     </td>
+     <td><a href="$coreAPI/filter/IDocumentFilter.html">IDocumentFilter</a></td>
+    </tr>
+    <tr>
+     <td>preImportProcessors</td>
+     <td>Process a document before import.</td>
+     <td></td>
+     <td><a href="$fileAPI/doc/IFileDocumentProcessor.html">IFileDocumentProcessor</a></td>
     </tr>
     <tr style="color: black;">
      <td><b>importer</b></td>
@@ -192,6 +261,18 @@ to its full documentation, with extra configuration options.
      </td>
      <td></td>
      <td></td>
+    </tr>
+    <tr>
+     <td>documentChecksummer</td>
+     <td>Create a checksum from document.</td>
+     <td><u><a href="$coreAPI/checksum/impl/MD5DocumentChecksummer.html">MD5DocumentChecksummer</a></u></td>
+     <td><a href="$coreAPI/checksum/IDocumentChecksummer.html">IDocumentChecksummer</a></td>
+    </tr>
+    <tr>
+     <td>postImportProcessors</td>
+     <td>Process a document after import.</td>
+     <td></td>
+     <td><a href="$fileAPI/doc/IFileDocumentProcessor.html">IFileDocumentProcessor</a></td>
     </tr>
     <tr style="color: black;">
      <td><b>committer</b></td>
