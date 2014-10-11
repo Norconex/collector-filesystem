@@ -26,8 +26,8 @@ along with Norconex Filesystem Collector. If not, see <http://www.gnu.org/licens
 ##set($path = "/path/to/content/to/index")
 ##set($workdir = "/temp/content-analytics/workdir")
 
-#set($tagger = "com.norconex.importer.tagger.impl")
-#set($transformer = "com.norconex.importer.transformer.impl")
+#set($tagger = "com.norconex.importer.handler.tagger.impl")
+#set($transformer = "com.norconex.importer.handler.transformer.impl")
 
   <logsDir>${workdir}/logs</logsDir>
   <progressDir>${workdir}/progress</progressDir>
