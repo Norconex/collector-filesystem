@@ -143,17 +143,13 @@ along with Norconex Filesystem Collector. If not, see <http://www.gnu.org/licens
               <version>3.3</version>
               <configuration>
                 <generateReports>true</generateReports>
+                <inputEncoding>UTF-8</inputEncoding>
+                <outputEncoding>UTF-8</outputEncoding>
                 <templateFile>
-                  ${basedir}/src/site/resources/skin/reflow-modified.vm
+                  ${basedir}/src/site/skinless.vm
                 </templateFile>
               </configuration>
               <dependencies>
-                <dependency>
-                  <groupId>lt.velykis.maven.skins</groupId>
-                  <artifactId>reflow-velocity-tools</artifactId>
-                  <version>1.0.0</version>
-                </dependency>
-                <!-- Reflow skin requires Velocity >= 1.7  -->
                 <dependency>
                   <groupId>org.apache.velocity</groupId>
                   <artifactId>velocity</artifactId>
@@ -244,24 +240,49 @@ along with Norconex Filesystem Collector. If not, see <http://www.gnu.org/licens
       </plugin>
       
       <plugin>
-       <groupId>org.apache.maven.plugins</groupId>
-       <artifactId>maven-jar-plugin</artifactId>
-       <version>2.2</version>
-       <executions>
-         <execution>
-           <goals>
-             <goal>test-jar</goal>
-           </goals>
-         </execution>
-       </executions>
-     </plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>2.2</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>test-jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>1.7</version>
+        <executions>
+          <execution>
+            <id>id.post-site</id>
+            <phase>post-site</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target>
+                <echo>Remove useless site files</echo>
+                <delete dir="${project.build.directory}/site/css" />
+                <delete dir="${project.build.directory}/site/images" />
+                <delete file="${project.build.directory}/site/project-reports.html" />
+                <copy file="${basedir}/src/changes/changes.xml" todir="${project.build.directory}/site/"/>
+              </target>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
     </plugins>
   </build>
   
   <distributionManagement>
     <site>
       <id>norconex-site-deployment</id>
-      <url>${site.baseurl}/collector-filesystem</url>
+      <url>${site.baseurl}/collector-filesystem/latest</url>
     </site>
     <repository>  
       <id>norconex-release-repo</id>
@@ -288,12 +309,6 @@ along with Norconex Filesystem Collector. If not, see <http://www.gnu.org/licens
         <reportSets>
           <reportSet>
             <reports>
-              <report>summary</report>
-              <report>dependencies</report>
-              <report>issue-tracking</report>
-              <report>license</report>
-              <report>scm</report>
-              <report>project-team</report>
             </reports>
           </reportSet>
         </reportSets>
@@ -343,19 +358,6 @@ along with Norconex Filesystem Collector. If not, see <http://www.gnu.org/licens
             </configuration>
             <reports>
               <report>javadoc</report>
-            </reports>
-          </reportSet>
-        </reportSets>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-changes-plugin</artifactId>
-        <version>2.9</version>
-        <reportSets>
-          <reportSet>
-            <reports>
-              <report>changes-report</report>
-              <!-- report>github-report</report -->
             </reports>
           </reportSet>
         </reportSets>
