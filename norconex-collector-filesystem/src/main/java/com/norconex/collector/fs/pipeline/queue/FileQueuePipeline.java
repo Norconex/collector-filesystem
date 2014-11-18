@@ -19,7 +19,6 @@
 package com.norconex.collector.fs.pipeline.queue;
 
 import com.norconex.collector.core.pipeline.BasePipelineContext;
-import com.norconex.collector.core.pipeline.queue.QueueReferenceStage;
 import com.norconex.collector.core.pipeline.queue.ReferenceFiltersStage;
 import com.norconex.commons.lang.pipeline.Pipeline;
 
@@ -37,7 +36,7 @@ public final class FileQueuePipeline extends Pipeline<BasePipelineContext> {
     public FileQueuePipeline() {
         super();
         addStage(new ReferenceFiltersStage());
-        addStage(new QueueReferenceStage());
+        addStage(new FileQueueReferenceStage()); 
     }
 }
 
