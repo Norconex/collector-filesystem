@@ -22,7 +22,9 @@ import java.util.Objects;
 
 import org.apache.commons.vfs2.FileContent;
 import org.apache.commons.vfs2.FileContentInfo;
+import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
+import org.apache.commons.vfs2.FileType;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
@@ -30,6 +32,7 @@ import com.norconex.collector.core.checksum.IMetadataChecksummer;
 import com.norconex.collector.core.crawler.event.CrawlerEvent;
 import com.norconex.collector.core.data.BaseCrawlData;
 import com.norconex.collector.core.data.CrawlState;
+import com.norconex.collector.core.pipeline.BasePipelineContext;
 import com.norconex.collector.core.pipeline.ChecksumStageUtil;
 import com.norconex.collector.core.pipeline.importer.DocumentFiltersStage;
 import com.norconex.collector.core.pipeline.importer.ImportModuleStage;
@@ -41,6 +44,7 @@ import com.norconex.collector.fs.data.FileCrawlState;
 import com.norconex.collector.fs.doc.FileDocument;
 import com.norconex.collector.fs.doc.FileMetadata;
 import com.norconex.collector.fs.doc.IFileDocumentProcessor;
+import com.norconex.collector.fs.pipeline.queue.FileQueuePipeline;
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.pipeline.Pipeline;
 
@@ -54,6 +58,7 @@ public class FileImporterPipeline extends Pipeline<ImporterPipelineContext> {
             LogManager.getLogger(FileImporterPipeline.class);
     
     public FileImporterPipeline(boolean isKeepDownloads) {
+        addStage(new FolderPathsExtractorStage());
         addStage(new FileMetadataFetcherStage());
         addStage(new FileMetadataFiltersStage());
         addStage(new FileMetadataChecksumStage());
@@ -66,6 +71,39 @@ public class FileImporterPipeline extends Pipeline<ImporterPipelineContext> {
         addStage(new ImportModuleStage());
     }
 
+    //--- Folder Path Extractor ------------------------------------------------
+    // Extract paths to queue them and stop processing this folder
+    private static class FolderPathsExtractorStage 
+            extends AbstractImporterStage {
+        @Override
+        public boolean executeStage(FileImporterPipelineContext ctx) {
+            try {
+                FileObject file = ctx.getFileObject();
+                if (file.getType() == FileType.FOLDER) {
+                    FileObject[] files = file.getChildren();
+                    for (FileObject childFile : files) {
+                        BaseCrawlData crawlData = new BaseCrawlData(
+                                childFile.getURL().toString());
+                        BasePipelineContext newContext = 
+                                new BasePipelineContext(ctx.getCrawler(), 
+                                        ctx.getCrawlDataStore(), crawlData);
+                        new FileQueuePipeline().execute(newContext);
+                    }
+                    return false;
+                }
+                return true;
+            } catch (FileSystemException e) {
+                ctx.getCrawlData().setState(CrawlState.ERROR);
+                ctx.fireCrawlerEvent(CrawlerEvent.REJECTED_ERROR, 
+                        ctx.getCrawlData(), this);
+                throw new FilesystemCollectorException(
+                        "Cannot extract folder paths: " 
+                                + ctx.getCrawlData().getReference(), e);
+            }
+        }
+    }    
+
+    
     //--- Metadata filters -----------------------------------------------------
     private static class FileMetadataFiltersStage 
             extends AbstractImporterStage {
