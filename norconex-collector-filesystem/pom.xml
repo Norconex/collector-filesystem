@@ -34,18 +34,8 @@ along with Norconex Filesystem Collector. If not, see <http://www.gnu.org/licens
 
   <licenses>
     <license>
-      <name>GNU GENERAL PUBLIC LICENSE, Version 3</name>
-      <url>http://www.gnu.org/licenses/gpl-3.0.txt</url>
-    </license>
-    <license>
-      <comments>
-        Norconex provides commercial licenses for all its open-source
-        products, designed to meet the development and distribution 
-        needs of commercial distributors
-        (such as OEMs, ISVs and VARs).  Please contact Norconex
-        for a commercial license at sales@norconex.com.
-      </comments>
-      <name>Commercial License</name>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
     </license>
   </licenses>
 
@@ -117,10 +107,14 @@ along with Norconex Filesystem Collector. If not, see <http://www.gnu.org/licens
             </includes>
         </resource>
         <resource>
+            <filtering>false</filtering>
             <directory>${project.build.sourceDirectory}</directory>
             <includes>
-                <include>**/*.properties</include>
+                <include>**</include>
             </includes>
+            <excludes>
+                <exclude>**/*.java</exclude>
+            </excludes>
         </resource>
     </resources>
     <extensions>
@@ -181,6 +175,26 @@ along with Norconex Filesystem Collector. If not, see <http://www.gnu.org/licens
         </configuration>
       </plugin> 
       <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>license-maven-plugin</artifactId>
+        <version>1.7</version>
+        <executions>
+          <execution>
+            <id>download-licenses</id>
+            <goals>
+              <goal>download-licenses</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>create-license-list</id>
+            <goals>
+              <goal>add-third-party</goal>
+            </goals>
+            <phase>generate-resources</phase>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
         <artifactId>maven-assembly-plugin</artifactId>
         <configuration>
           <descriptors>
@@ -233,12 +247,11 @@ along with Norconex Filesystem Collector. If not, see <http://www.gnu.org/licens
           <execution>
             <id>attach-sources</id>
             <goals>
-              <goal>jar</goal>
+              <goal>jar-no-fork</goal>
             </goals>
           </execution>
         </executions>
       </plugin>
-      
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
@@ -251,7 +264,20 @@ along with Norconex Filesystem Collector. If not, see <http://www.gnu.org/licens
           </execution>
         </executions>
       </plugin>
-
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-gpg-plugin</artifactId>
+        <version>1.5</version>
+        <executions>
+          <execution>
+            <id>sign-artifacts</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>sign</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-antrun-plugin</artifactId>
@@ -322,7 +348,7 @@ along with Norconex Filesystem Collector. If not, see <http://www.gnu.org/licens
           <header><![CDATA[
             <style>div.aboutLanguage .siteLink {font-size: 2em;}</style>
             <span class="siteLink">
-              <a href="http://www.norconex.com/product/collector-filesystem">Norconex Filesystem Collector</a>
+              <a href="http://www.norconex.com/collectors/collector-filesystem">Norconex Filesystem Collector</a>
             </span>
             ]]>
           </header>

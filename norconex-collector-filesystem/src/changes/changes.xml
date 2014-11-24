@@ -49,6 +49,9 @@
       <action dev="essiembre" type="add">
         New JMX/MBean support added on crawlers.
       </action>
+      <action dev="essiembp" type="update">
+        Now licensed under The Apache License, Version 2.0.
+      </action>
       <action dev="essiembre" type="update">
         Replaced the configuration option "deleteOrphans(true|false)" with
         "orphansStrategy(DELETE|PROCESS|IGNORE)".
