@@ -23,9 +23,9 @@ import com.norconex.collector.core.data.store.impl.jdbc.JDBCCrawlDataStore.Datab
 /**
  * JDBC implementation of {@link ICrawlDataStore}.  Defaults to H2 
  * database.
- * <p />
+ * <br><br>
  * XML configuration usage:
- * <p />
+ * <br><br>
  * <pre>
  *  &lt;crawlDataStoreFactory 
  *          class="com.norconex.collector.fs.data.store.impl.jdbc.JDBCCrawlDataStoreFactory"&gt;

@@ -29,7 +29,7 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  * returns the combined values of {@link FileMetadata#COLLECTOR_LASTMODIFIED}
  * and {@link FileMetadata#COLLECTOR_SIZE}, separated with an underscore
  * (e.g. "14125443181234_123").
- * <p/>
+ * <p>
  * XML configuration usage:
  * </p>
  * <pre>
