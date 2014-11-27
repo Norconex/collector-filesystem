@@ -5,4 +5,4 @@ Norconex Filesystem Collector is a flexible crawler for collecting, parsing, and
 
 Visit the web site for binary downloads and online documentation:
 
-**http://www.norconex.com/product/collector-filesystem/**
+**http://www.norconex.com/collectors/collector-filesystem/**
