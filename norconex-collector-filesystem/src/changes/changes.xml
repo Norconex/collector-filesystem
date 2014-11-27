@@ -6,9 +6,81 @@
     <author email="info@norconex.com">Norconex Inc.</author>
   </properties>
   <body>
-  
-    <release version="1.0.0" date="2014-08-25" description="Initial release.">
-      <action dev="essiembp" type="add">
+
+    <release version="2.0.0" date="2014-11-26" description="Major release.">
+      <action dev="essiembre" type="add">
+        Upgraded Norconex Importer to version 2.0.0, which brings to 
+        Norconex Filesystem Collector a lot of new features, such as: 
+        Document content splitting, splitting of embedded documents into 
+        individual documents, new taggers for language detection, changing
+        character case, parsing and formatting dates, providing content 
+        statistics, and more.  Please read the Norconex Importer release notes
+        for a complete list of changes at: 
+        http://www.norconex.com/product/importer/changes-report.html#a2.0.0
+      </action>
+      <action dev="essiembre" type="add">
+        Can now supplied a "pathsFile" as part of the startPaths, 
+        acting as a seed list.
+      </action>
+      <action dev="essiembre" type="add">
+        New H2 database implementation for the reference database 
+        (crawl data store).
+      </action>
+      <action dev="essiembre" type="add">
+        Now keeps track of parent references (for embedded/split documents).
+      </action>
+      <action dev="essiembre" type="add">
+        New replaceable FileMetadataChecksummer which takes the document
+        modified date and size to create a unique representation of a file.
+      </action>
+      <action dev="essiembre" type="add">
+        New IFileDocumentProcessor to manipulated crawled document prior and 
+        after the import module is invoked.
+      </action>
+      <action dev="essiembre" type="add">
+        New support for files filtering based on their Metadata.
+      </action>
+      <action dev="essiembre" type="add">
+        New support for document filtering.
+      </action>
+      <action dev="essiembre" type="add">
+        New ability to keep files fetch from a filesystem to a local location.
+      </action>
+      <action dev="essiembre" type="add">
+        New JMX/MBean support added on crawlers.
+      </action>
+      <action dev="essiembre" type="update">
+        Now licensed under The Apache License, Version 2.0.
+      </action>
+      <action dev="essiembre" type="update">
+        Replaced the configuration option "deleteOrphans(true|false)" with
+        "orphansStrategy(DELETE|PROCESS|IGNORE)".
+      </action>
+      <action dev="essiembre" type="update">
+        The collector now references document content as reusable InputStream
+        with memory caching instead of relying only on files. This saves a 
+        great deal of disk I/O and improves performance in most cases.
+      </action>
+      <action dev="essiembre" type="update">
+        Refactored to use the new Norconex Collector Core library.  
+        A significant portion of the Norconex Filesystem Collector code has 
+        been moved to that core library. 
+      </action>
+      <action dev="essiembre" type="update">
+        New and more scalable crawler event model along with new listeners.
+      </action>
+      <action dev="essiembre" type="update">
+        Refactored to use JEF 4.0.0 which makes the HTTP Collector easier to
+        monitor.
+      </action>
+      <action dev="essiembre" type="update">
+        Other libray upgrades: Norconex Committer to 2.0.0 and 
+        Norconex Commons Lang to 1.5.0.
+      </action>
+    </release>
+
+    <release version="1.0.0" date="2014-08-25" description="Initial release">
+      <action dev="essiembre" type="add">
         Initial release.
       </action>
     </release>
