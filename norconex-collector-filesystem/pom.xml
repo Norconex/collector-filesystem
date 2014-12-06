@@ -278,7 +278,7 @@
   <distributionManagement>
     <site>
       <id>norconex-site-deployment</id>
-      <url>${site.baseurl}/collector-filesystem/latest</url>
+      <url>${site.baseurl}/collectors/collector-filesystem/latest</url>
     </site>
     <snapshotRepository>
       <id>ossrh</id>
