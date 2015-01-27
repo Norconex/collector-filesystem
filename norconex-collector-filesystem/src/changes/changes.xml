@@ -7,6 +7,12 @@
   </properties>
   <body>
 
+    <release version="2.0.2-SNAPSHOT" date="2015-??-??" description="Bug fix release">
+      <action dev="essiembre" type="fix">
+        Fixed the collector "stop" action having no effect.
+      </action>
+    </release>
+
     <release version="2.0.1" date="2014-12-03" description="Bug fix release">
       <action dev="essiembre" type="fix" issue="44">
         From collector-core-1.0.1: When keepDownloads is true, saved files and 
