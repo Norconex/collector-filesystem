@@ -27,6 +27,9 @@
       <action dev="essiembre" type="update">
         Updated several maven plugins and added SonarQube maven plugin.
       </action>
+      <action dev="essiembre" type="fix">
+        Fixed log4j log levels incorrectly ending with a semi-colon.
+      </action>
     </release>
 
     <release version="2.0.2" date="2015-02-04" description="Bug fix release">
