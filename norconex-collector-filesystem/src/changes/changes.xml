@@ -7,6 +7,31 @@
   </properties>
   <body>
 
+    <release version="2.1.0" date="2015-04-08" description="Feature release">
+      <action dev="essiembre" type="add">
+        Several new features, updates and fixes were added by upgrading
+        Norconex Collector Core 
+        (http://www.norconex.com/collectors/collector-core/)  and 
+        Norconex Importer (http://www.norconex.com/collectors/importer/) 
+        dependencies.  Those include support for ORC, translation, a 
+        title generator, new content type parsing, and more. Refer to dependency
+        release notes for more details.
+      </action>      
+      <action dev="essiembre" type="update">
+        Library updates: Norconex Collector Core 1.1.0, Junit 4.12, 
+        Joda-Time 2.7.
+      </action>
+      <action dev="essiembre" type="update">
+        Added Sonatype repository to pom.xml for snapshot releases.
+      </action>
+      <action dev="essiembre" type="update">
+        Updated several maven plugins and added SonarQube maven plugin.
+      </action>
+      <action dev="essiembre" type="fix">
+        Fixed log4j log levels incorrectly ending with a semi-colon.
+      </action>
+    </release>
+
     <release version="2.0.2" date="2015-02-04" description="Bug fix release">
       <action dev="essiembre" type="fix">
         Fixed the collector "stop" action having no effect.
