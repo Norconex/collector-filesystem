@@ -7,6 +7,28 @@
   </properties>
   <body>
 
+    <release version="2.2.0-SNAPSHOT" date="2015-??-??" description="Feature release">
+      <action dev="essiembre" type="add">
+        New CurrentDateTagger, DateMetadataFilter, NumericMetadataFilter, 
+        TextPatternTagger, and more new features introduced by 
+        dependency upgrades.
+      </action>
+      <action dev="essiembre" type="add">
+        New FileMetadataChecksummer#setDisabled(boolean) method to disable
+        this default metadata checksummer.
+      </action>
+      <action dev="essiembre" type="update">
+        Jar manifest now includes implementation entries and 
+        specifications entries (matching Maven pom.xml).
+      </action>
+      <action dev="essiembre" type="update">
+        Maven dependency updates: Norconex Collector Core 1.2.0.
+      </action>
+      <action dev="essiembre" type="update">
+        Improved/fixed javadoc.
+      </action>      
+    </release>
+
     <release version="2.1.0" date="2015-04-08" description="Feature release">
       <action dev="essiembre" type="add">
         Several new features, updates and fixes were added by upgrading

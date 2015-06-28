@@ -1,4 +1,4 @@
-/* Copyright 2013-2014 Norconex Inc.
+/* Copyright 2013-2015 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,19 +19,14 @@ import com.norconex.collector.core.data.CrawlState;
 
 /**
  * Represents a URL crawling status.
+ * Since 2.2.0, this class does not add any new state over the base
+ * class {@link CrawlState} and does not add any value. 
  * @author Pascal Essiembre
  */
 public class FileCrawlState extends CrawlState { 
 
     private static final long serialVersionUID = 7360283251973474053L;
 
-    public static final FileCrawlState DELETED = 
-            new FileCrawlState("DELETED");
-    public static final FileCrawlState NOT_FOUND =
-            new FileCrawlState("NOT_FOUND");
-    public static final FileCrawlState BAD_STATUS = 
-            new FileCrawlState("BAD_STATUS");
-    
     protected FileCrawlState(String state) {
         super(state);
     }

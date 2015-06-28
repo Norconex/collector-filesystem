@@ -44,6 +44,7 @@
   #set($metaChecksummer   = "${file}.checksum.impl.FileMetadataChecksummer")
   #set($docChecksummer    = "${core}.checksum.impl.MD5DocumentChecksummer")
   #set($dataStoreFactory  = "${core}.data.store.impl.mapdb.MapDBCrawlDataStoreFactory")
+  #set($spoiledStrategy   = "${core}.spoil.impl.GenericSpoiledReferenceStrategizer")
 
   <!-- Location where internal progress files are stored. -->
   <progressDir>$workdir\progress</progressDir>
@@ -186,6 +187,19 @@
     <postImportProcessors>
        <processor class="YourClass"></processor>
     </postImportProcessors>
+
+    <!-- Decide what to do with references that have turned bad.
+         Class must implement 
+         com.norconex.collector.core.spoil.ISpoiledReferenceStrategizer.
+         Default implementation is the following.
+         -->
+    <spoiledReferenceStrategizer class="$spoiledStrategy"
+            fallbackStrategy="DELETE">
+        <mapping state="NOT_FOUND"  strategy="DELETE" />
+        <mapping state="BAD_STATUS" strategy="GRACE_ONCE" />
+        <mapping state="ERROR"      strategy="GRACE_ONCE" />
+    </spoiledReferenceStrategizer>
+
 
     <!-- Commits a document to a data source of your choice.
          This step calls the Committer module.  The
