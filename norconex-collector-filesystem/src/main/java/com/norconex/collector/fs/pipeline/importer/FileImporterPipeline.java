@@ -230,7 +230,7 @@ public class FileImporterPipeline extends Pipeline<ImporterPipelineContext> {
                                 ctx.getFileObject().getContent()
                                         .getInputStream()));
                 // if not set to new or modified already, make it new
-                if (!crawlData.getState().isCommittable()) {
+                if (!crawlData.getState().isNewOrModified()) {
                     crawlData.setState(CrawlState.NEW);
                 }
                 ctx.fireCrawlerEvent(
