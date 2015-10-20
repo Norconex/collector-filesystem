@@ -142,7 +142,8 @@ public class FilesystemCrawler extends AbstractCrawler {
     @Override
     protected ImporterResponse executeImporterPipeline(
             ICrawler crawler, ImporterDocument doc,
-            ICrawlDataStore crawlDataStore, BaseCrawlData crawlData) {
+            ICrawlDataStore crawlDataStore, 
+            BaseCrawlData crawlData, BaseCrawlData cachedCrawlData) {
         
         //TODO create pipeline context prototype
         //TODO cache the pipeline object?
@@ -155,7 +156,7 @@ public class FilesystemCrawler extends AbstractCrawler {
         }
         FileImporterPipelineContext context = new FileImporterPipelineContext(
                 (FilesystemCrawler) crawler, crawlDataStore, (FileDocument) doc,
-                (BaseCrawlData) crawlData, fileObject);
+                crawlData, cachedCrawlData, fileObject);
         new FileImporterPipeline(
                 getCrawlerConfig().isKeepDownloads()).execute(context);
         return context.getImporterResponse();
@@ -171,11 +172,11 @@ public class FilesystemCrawler extends AbstractCrawler {
     @Override
     protected void executeCommitterPipeline(ICrawler crawler,
             ImporterDocument doc, ICrawlDataStore crawlDataStore,
-            BaseCrawlData crawlData) {
+            BaseCrawlData crawlData, BaseCrawlData cachedCrawlData) {
         
         FileCommitterPipelineContext context = new FileCommitterPipelineContext(
                 (FilesystemCrawler) crawler, crawlDataStore, (FileDocument) doc, 
-                (BaseCrawlData) crawlData);
+                crawlData, cachedCrawlData);
         new FileCommitterPipeline().execute(context);
     }
     

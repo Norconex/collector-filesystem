@@ -1,4 +1,4 @@
-/* Copyright 2013-2014 Norconex Inc.
+/* Copyright 2013-2015 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,8 +34,11 @@ public class FileImporterPipelineContext extends ImporterPipelineContext {
     
     public FileImporterPipelineContext(
             FilesystemCrawler crawler, ICrawlDataStore crawlDataStore, 
-            FileDocument doc, BaseCrawlData crawlData, FileObject fileObject) {
-        super(crawler, crawlDataStore, crawlData, doc);
+            FileDocument doc, 
+            BaseCrawlData crawlData, 
+            BaseCrawlData cachedCrawlData, 
+            FileObject fileObject) {
+        super(crawler, crawlDataStore, crawlData, cachedCrawlData, doc);
         this.fileObject = fileObject;
     }
 
