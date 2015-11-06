@@ -1,4 +1,4 @@
-/* Copyright 2013-2014 Norconex Inc.
+/* Copyright 2013-2015 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,9 +28,12 @@ import com.norconex.collector.fs.doc.FileDocument;
 public class FileCommitterPipelineContext extends DocumentPipelineContext {
 
     public FileCommitterPipelineContext(
-            FilesystemCrawler crawler, ICrawlDataStore crawlDataStore,
-            FileDocument doc, BaseCrawlData crawlData) {
-        super(crawler, crawlDataStore, crawlData, doc);
+            FilesystemCrawler crawler, 
+            ICrawlDataStore crawlDataStore,
+            FileDocument doc, 
+            BaseCrawlData crawlData,
+            BaseCrawlData cachedCrawlData) {
+        super(crawler, crawlDataStore, crawlData, cachedCrawlData, doc);
     }
 
     public FilesystemCrawler getCrawler() {
