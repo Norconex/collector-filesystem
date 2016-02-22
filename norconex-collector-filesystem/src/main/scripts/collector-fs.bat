@@ -2,5 +2,5 @@
 cd %~dp0
 set ROOT_DIR=%~dp0
 
-java -Dlog4j.configuration="file:///%ROOT_DIR%classes/log4j.properties" -Dfile.encoding=UTF8 -cp "./lib/*;./classes" com.norconex.collector.fs.FilesystemCollector %*
+java -Dlog4j.configuration="file:///%ROOT_DIR%log4j.properties" -Dfile.encoding=UTF8 -cp "./lib/*;./classes" com.norconex.collector.fs.FilesystemCollector %*
 
