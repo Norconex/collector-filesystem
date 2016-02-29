@@ -7,13 +7,14 @@
   </properties>
   <body>
 
-    <release version="2.4.0-SNAPSHOT" date="201?-??-??" description="Feature release">
+    <release version="2.4.0" date="2016-02-28" description="Minor release">
       <action dev="essiembre" type="update">
         The "log4j.properties" file has been moved from classes to the 
         installation root directory.
       </action>
       <action dev="essiembre" type="update">
-        Maven dependency updates: Norconex Collector Core 1.4.0.
+        Maven dependency updates: Norconex Collector Core 1.4.0, 
+        Joda Time 2.9.2.
       </action>            
     </release>
 
