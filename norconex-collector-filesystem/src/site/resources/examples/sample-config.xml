@@ -56,7 +56,7 @@
         </postParseHandlers>
       </importer>
       
-      <committer class="com.norconex.committer.impl.FileSystemCommitter">
+      <committer class="com.norconex.committer.core.impl.FileSystemCommitter">
         <directory>${workdir}/crawledFiles</directory>
       </committer>
     </crawler>

@@ -14,6 +14,7 @@
  */
 package com.norconex.collector.fs.crawler;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 
@@ -95,6 +96,11 @@ public class FilesystemCrawler extends AbstractCrawler {
         if (startPaths != null) {
             for (int i = 0; i < startPaths.length; i++) {
                 String startPath = startPaths[i];
+                // No protocol specified: we assume local file, and we get 
+                // the absolute version.
+                if (!startPath.contains("://")) {
+                    startPath = new File(startPath).getAbsolutePath();
+                }
                 executeQueuePipeline(
                         new BaseCrawlData(startPath), crawlDataStore);
             }
