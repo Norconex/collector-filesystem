@@ -29,7 +29,7 @@ import org.apache.log4j.Logger;
 
 import com.norconex.collector.core.checksum.IMetadataChecksummer;
 import com.norconex.collector.core.crawler.AbstractCrawlerConfig;
-import com.norconex.collector.core.data.store.impl.mapdb.MapDBCrawlDataStoreFactory;
+import com.norconex.collector.core.data.store.impl.mvstore.MVStoreCrawlDataStoreFactory;
 import com.norconex.collector.fs.checksum.impl.FileMetadataChecksummer;
 import com.norconex.collector.fs.doc.IFileDocumentProcessor;
 import com.norconex.commons.lang.config.ConfigurationUtil;
@@ -59,7 +59,7 @@ public class FilesystemCrawlerConfig extends AbstractCrawlerConfig {
     
     public FilesystemCrawlerConfig() {
         super();
-        setCrawlDataStoreFactory(new MapDBCrawlDataStoreFactory());
+        setCrawlDataStoreFactory(new MVStoreCrawlDataStoreFactory());
     }
 
     public String[] getStartPaths() {
