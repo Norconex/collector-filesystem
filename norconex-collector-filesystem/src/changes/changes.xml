@@ -7,7 +7,7 @@
   </properties>
   <body>
 
-    <release version="2.5.0-SNAPSHOT" date="2016-??-??" description="Minor release">
+    <release version="2.5.0" date="2016-06-03" description="Minor release">
       <action dev="essiembre" type="update">
         MVStore is now the default URL crawl store.
       </action>
