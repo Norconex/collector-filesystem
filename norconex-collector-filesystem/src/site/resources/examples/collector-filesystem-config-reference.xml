@@ -207,7 +207,7 @@
          options.  Please refer to committer for complete documentation.
          Below is an example using the FileSystemCommitter.
          -->
-    <committer class="$committer.core.impl.FileSystemCommitter">
+    <committer class="${committer}.core.impl.FileSystemCommitter">
       <directory>$workdir\crawledFiles</directory>
     </committer>
 

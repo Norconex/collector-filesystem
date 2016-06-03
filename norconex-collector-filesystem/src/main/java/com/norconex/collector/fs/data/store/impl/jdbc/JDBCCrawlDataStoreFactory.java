@@ -1,4 +1,4 @@
-/* Copyright 2014 Norconex Inc.
+/* Copyright 2014-2016 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@ package com.norconex.collector.fs.data.store.impl.jdbc;
 
 import com.norconex.collector.core.data.store.ICrawlDataStore;
 import com.norconex.collector.core.data.store.impl.jdbc.AbstractJDBCDataStoreFactory;
+import com.norconex.collector.core.data.store.impl.jdbc.BasicJDBCCrawlDataStoreFactory;
 import com.norconex.collector.core.data.store.impl.jdbc.BasicJDBCSerializer;
 import com.norconex.collector.core.data.store.impl.jdbc.IJDBCSerializer;
 import com.norconex.collector.core.data.store.impl.jdbc.JDBCCrawlDataStore.Database;
@@ -34,7 +35,9 @@ import com.norconex.collector.core.data.store.impl.jdbc.JDBCCrawlDataStore.Datab
  * </pre>
  *
  * @author Pascal Essiembre
+ * @deprecated Since 1.5.0, use {@link BasicJDBCCrawlDataStoreFactory}
  */
+@Deprecated
 public class JDBCCrawlDataStoreFactory extends AbstractJDBCDataStoreFactory {
 
     public JDBCCrawlDataStoreFactory() {
