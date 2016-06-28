@@ -7,6 +7,13 @@
   </properties>
   <body>
 
+    <release version="2.5.1-SNAPSHOT" date="2016-??-??" description="Maintenance release">
+      <action dev="essiembre" type="update">
+        Maven dependency updates: Norconex Collector Core 1.5.1, 
+        Apache Commons VFS 2.1, Joda Time 2.9.4.
+      </action>      
+    </release>
+
     <release version="2.5.0" date="2016-06-03" description="Minor release">
       <action dev="essiembre" type="update">
         MVStore is now the default URL crawl store.
