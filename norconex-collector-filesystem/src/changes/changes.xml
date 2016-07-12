@@ -10,7 +10,7 @@
     <release version="2.5.1-SNAPSHOT" date="2016-??-??" description="Maintenance release">
       <action dev="essiembre" type="update">
         Maven dependency updates: Norconex Collector Core 1.5.1, 
-        Apache Commons VFS 2.1, Joda Time 2.9.4.
+        Apache Commons VFS 2.1, Joda Time 2.9.4, JSoup 1.8.3.
       </action>      
     </release>
 
