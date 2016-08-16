@@ -1,4 +1,4 @@
-/* Copyright 2013-2014 Norconex Inc.
+/* Copyright 2013-2016 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,6 @@ import org.apache.log4j.Logger;
 
 import com.norconex.collector.core.checksum.IMetadataChecksummer;
 import com.norconex.collector.core.crawler.AbstractCrawlerConfig;
-import com.norconex.collector.core.data.store.impl.mvstore.MVStoreCrawlDataStoreFactory;
 import com.norconex.collector.fs.checksum.impl.FileMetadataChecksummer;
 import com.norconex.collector.fs.doc.IFileDocumentProcessor;
 import com.norconex.commons.lang.config.ConfigurationUtil;
@@ -59,7 +58,6 @@ public class FilesystemCrawlerConfig extends AbstractCrawlerConfig {
     
     public FilesystemCrawlerConfig() {
         super();
-        setCrawlDataStoreFactory(new MVStoreCrawlDataStoreFactory());
     }
 
     public String[] getStartPaths() {
