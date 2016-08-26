@@ -7,10 +7,12 @@
   </properties>
   <body>
 
-    <release version="2.5.1-SNAPSHOT" date="2016-??-??" description="Maintenance release">
+    <release version="2.6.0" date="2016-08-25" description="Feature release">
       <action dev="essiembre" type="update">
         Dependency updates: Norconex Collector Core 1.6.0, 
-        Apache Commons VFS 2.1, Joda Time 2.9.4, JSoup 1.8.3.
+        Apache Commons VFS 2.1, Joda Time 2.9.4, JSoup 1.8.3, and Norconex
+        Importer 2.6.0, which introduces new document parsing/manipulation 
+        features.
       </action>      
     </release>
 
