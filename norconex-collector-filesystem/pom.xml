@@ -1,5 +1,5 @@
 <!-- 
-   Copyright 2013-2015 Norconex Inc.
+   Copyright 2013-2016 Norconex Inc.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.norconex.collectors</groupId>
   <artifactId>norconex-collector-filesystem</artifactId>
-  <version>2.5.0</version>
+  <version>2.6.0</version>
   <name>Norconex Filesystem Collector</name>
 
   <properties>
@@ -60,19 +60,39 @@
     <dependency>
       <groupId>com.norconex.collectors</groupId>
       <artifactId>norconex-collector-core</artifactId>
-      <version>1.5.0</version>
+      <version>1.6.0</version>
     </dependency>
     <dependency>
         <groupId>joda-time</groupId>
         <artifactId>joda-time</artifactId>
-        <version>2.9.2</version>
+        <version>2.9.4</version>
     </dependency>    
     <dependency>
 	    <groupId>org.apache.commons</groupId>
 	    <artifactId>commons-vfs2</artifactId>
-	    <version>2.0</version>
+	    <version>2.1</version>
 	</dependency>
   </dependencies>
+  
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>com.norconex.commons</groupId>
+        <artifactId>norconex-commons-lang</artifactId>
+        <version>1.11.0</version>
+      </dependency>
+      <dependency>
+        <groupId>org.jsoup</groupId>
+        <artifactId>jsoup</artifactId>
+        <version>1.9.2</version>
+      </dependency>
+      <dependency>
+        <groupId>commons-lang</groupId>
+        <artifactId>commons-lang</artifactId>
+        <version>2.6</version>
+      </dependency>      
+    </dependencies>
+  </dependencyManagement>  
   
   <build>
     <resources>
@@ -202,9 +222,20 @@
         <configuration>
           <overview>${basedir}/src/main/javadoc/overview.html</overview>
           <show>protected</show>
-          <detectLinks>false</detectLinks>
           <nodeprecated>false</nodeprecated>
           <source>1.7</source>
+          <detectLinks>false</detectLinks>
+          <links>
+            <link>https://www.norconex.com/product/commons-lang/apidocs/</link>
+            <link>https://www.norconex.com/jef/api/latest/apidocs/</link>
+            <link>https://www.norconex.com/collectors/importer/latest/apidocs/</link>
+            <link>https://www.norconex.com/collectors/committer-core/latest/apidocs/</link>
+            <link>https://www.norconex.com/collectors/collector-core/latest/apidocs/</link>
+            <link>https://commons.apache.org/proper/commons-lang/javadocs/api-3.4/</link>
+            <link>https://commons.apache.org/proper/commons-vfs/apidocs/</link>
+            <link>https://commons.apache.org/proper/commons-configuration/javadocs/v1.10/apidocs/</link>
+            <link>http://www.joda.org/joda-time/apidocs/</link>
+          </links>          
         </configuration>
         <executions>
           <execution>
@@ -347,7 +378,7 @@
           <header><![CDATA[
             <style>div.aboutLanguage .siteLink {font-size: 2em;}</style>
             <span class="siteLink">
-              <a href="http://www.norconex.com/collectors/collector-filesystem">Norconex Filesystem Collector</a>
+              <a href="https://www.norconex.com/collectors/collector-filesystem">Norconex Filesystem Collector</a>
             </span>
             ]]>
           </header>
@@ -365,16 +396,24 @@
             </script>
             <a style="font-size: 1.4em;" href="https://github.com/norconex/collector-filesystem/issues">Submit an Issue</a>
             &nbsp;&nbsp;|&nbsp;&nbsp; 
-            <a style="font-size: 1.4em;" href="http://www.norconex.com">www.norconex.com</a>
+            <a style="font-size: 1.4em;" href="https://www.norconex.com">www.norconex.com</a>
             ]]>
           </footer>
           <show>protected</show>
-          <detectLinks>false</detectLinks>
           <nodeprecated>false</nodeprecated>
           <source>1.7</source>
+          <detectLinks>false</detectLinks>
           <links>
-            <link>http://db.apache.org/derby/docs/10.9/publishedapi/jdbc4/</link>            
-          </links>
+            <link>https://www.norconex.com/product/commons-lang/apidocs/</link>
+            <link>https://www.norconex.com/jef/api/latest/apidocs/</link>
+            <link>https://www.norconex.com/collectors/importer/latest/apidocs/</link>
+            <link>https://www.norconex.com/collectors/committer-core/latest/apidocs/</link>
+            <link>https://www.norconex.com/collectors/collector-core/latest/apidocs/</link>
+            <link>https://commons.apache.org/proper/commons-lang/javadocs/api-3.4/</link>
+            <link>https://commons.apache.org/proper/commons-vfs/apidocs/</link>
+            <link>https://commons.apache.org/proper/commons-configuration/javadocs/v1.10/apidocs/</link>
+            <link>http://www.joda.org/joda-time/apidocs/</link>
+          </links>          
         </configuration>
         <reportSets>
           <reportSet>
@@ -392,9 +431,9 @@
 
   <organization>
     <name>Norconex Inc.</name>
-    <url>http://www.norconex.com</url>
+    <url>https://www.norconex.com</url>
   </organization>
-  <url>http://www.norconex.com/collectors/collector-filesystem</url>
+  <url>https://www.norconex.com/collectors/collector-filesystem</url>
   <description>Norconex Filesystem Collector walks through directories and files and extracts their content for integration into any target repository.  It aims to be very flexible, easy to extend, and portable</description>
   <issueManagement>
     <system>GitHub</system>
@@ -412,7 +451,7 @@
         <name>Pascal Essiembre</name>
         <email>pascal.essiembre@norconex.com</email>
         <organization>Norconex Inc.</organization>
-        <organizationUrl>http://www.norconex.com</organizationUrl>
+        <organizationUrl>https://www.norconex.com</organizationUrl>
         <roles>
           <role>project leader</role>
           <role>developer</role>
@@ -424,7 +463,7 @@
         <name>Pascal Dimassimo</name>
         <email>pascal.dimassimo@norconex.com</email>
         <organization>Norconex Inc.</organization>
-        <organizationUrl>http://www.norconex.com</organizationUrl>
+        <organizationUrl>https://www.norconex.com</organizationUrl>
         <roles>
           <role>developer</role>
         </roles>
