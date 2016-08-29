@@ -7,6 +7,14 @@
   </properties>
   <body>
 
+    <release version="2.6.1-SNAPSHOT" date="2016-??-??" description="Bugfix release">
+      <action dev="essiembre" type="update">
+        Dependency updates: Norconex Commons Lang 1.12.0, 
+        Norconex Collection Core 1.6.1, Apache HTTP Client 4.5.2, 
+        Apache HTTP Core 4.4.5.
+      </action>      
+    </release>
+
     <release version="2.6.0" date="2016-08-25" description="Feature release">
       <action dev="essiembre" type="update">
         Dependency updates: Norconex Collector Core 1.6.0, 
