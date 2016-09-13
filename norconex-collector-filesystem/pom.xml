@@ -60,7 +60,7 @@
     <dependency>
       <groupId>com.norconex.collectors</groupId>
       <artifactId>norconex-collector-core</artifactId>
-      <version>1.6.0</version>
+      <version>1.6.1-SNAPSHOT</version>
     </dependency>
     <dependency>
         <groupId>joda-time</groupId>
@@ -105,6 +105,17 @@
         <groupId>org.apache.httpcomponents</groupId>
         <artifactId>httpcore</artifactId>
         <version>4.4.5</version>
+      </dependency>
+      <!-- Upgraded from 5.2 (Importer/Tika dep) to avoid exception:
+           Caused by: java.lang.NoSuchMethodError: 
+           jj2000.j2k.fileformat.reader.FileFormatReader.<init>(
+           Ljj2000/j2k/io/RandomAccessIO;Lcom/sun/media/imageioimpl/plugins/
+           jpeg2000/J2KMetadata;)V
+       -->
+      <dependency>
+        <groupId>edu.ucar</groupId>
+        <artifactId>jj2000</artifactId>
+        <version>5.3</version>
       </dependency>
     </dependencies>
   </dependencyManagement>  
