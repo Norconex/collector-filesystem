@@ -24,7 +24,9 @@ import org.apache.commons.lang3.CharEncoding;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemManager;
+import org.apache.commons.vfs2.FileSystemOptions;
 import org.apache.commons.vfs2.VFS;
+import org.apache.commons.vfs2.provider.ftp.FtpFileSystemConfigBuilder;
 
 import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.core.crawler.AbstractCrawler;
@@ -79,7 +81,21 @@ public class FilesystemCrawler extends AbstractCrawler {
             JobStatusUpdater statusUpdater, JobSuite suite, 
             ICrawlDataStore crawlDataStore, boolean resume) {
 
+
+        
         try {
+            FileSystemOptions opts = new FileSystemOptions();
+
+            // For FTP, these tweaks are required to get directory listings.
+            // More info:
+            //http://stackoverflow.com/questions/6046220/
+            //    apache-commons-vfs-working-with-ftp
+            //https://commons.apache.org/proper/commons-vfs/filesystems.html#FTP
+            FtpFileSystemConfigBuilder ftpConfigBuilder = 
+                    FtpFileSystemConfigBuilder.getInstance();
+            ftpConfigBuilder.setPassiveMode(opts, true);
+            ftpConfigBuilder.setUserDirIsRoot(opts, false);
+            
             this.fileManager = VFS.getManager();
         } catch (FileSystemException e) {
             throw new FilesystemCollectorException(e);

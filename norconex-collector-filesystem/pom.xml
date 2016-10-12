@@ -72,6 +72,23 @@
 	    <artifactId>commons-vfs2</artifactId>
 	    <version>2.1</version>
 	</dependency>
+
+    <!-- Following deps are required for FTP protocol (and probably others), see:
+      http://stackoverflow.com/questions/30600843/unable-to-resolve-a-dependency-on-urlutil-conflicting-requirements    
+      http://stackoverflow.com/questions/12730984/noclassdeffound-error-on-ftp-client-org-apache-commons-net-ftp-ftpclient      
+      -->  
+    <dependency>
+        <groupId>commons-httpclient</groupId>
+        <artifactId>commons-httpclient</artifactId>
+        <version>3.1</version>
+    </dependency>
+    <dependency>
+        <groupId>commons-net</groupId>
+        <artifactId>commons-net</artifactId>
+        <version>3.5</version>
+    </dependency>
+
+  
   </dependencies>
   
   <dependencyManagement>
@@ -79,7 +96,12 @@
       <dependency>
         <groupId>com.norconex.commons</groupId>
         <artifactId>norconex-commons-lang</artifactId>
-        <version>1.12.0</version>
+        <version>1.12.2</version>
+      </dependency>
+      <dependency>
+        <groupId>commons-codec</groupId>
+        <artifactId>commons-codec</artifactId>
+        <version>1.10</version>
       </dependency>
       <dependency>
         <groupId>org.jsoup</groupId>

@@ -1,0 +1,7 @@
+The following are either things to be done, or ideas to consider:
+
+- Wire in SMB/JCIFS dependencies.
+
+- Add Commons VFS third party dependencies for ALL supported file systems.
+
+- Add Commons VFS config options for ALL supported file systems.
