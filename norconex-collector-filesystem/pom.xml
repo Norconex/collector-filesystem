@@ -19,7 +19,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.norconex.collectors</groupId>
   <artifactId>norconex-collector-filesystem</artifactId>
-  <version>2.6.0</version>
+  <version>2.6.1</version>
   <name>Norconex Filesystem Collector</name>
 
   <properties>
@@ -60,7 +60,7 @@
     <dependency>
       <groupId>com.norconex.collectors</groupId>
       <artifactId>norconex-collector-core</artifactId>
-      <version>1.6.0</version>
+      <version>1.7.0</version>
     </dependency>
     <dependency>
         <groupId>joda-time</groupId>
@@ -72,6 +72,23 @@
 	    <artifactId>commons-vfs2</artifactId>
 	    <version>2.1</version>
 	</dependency>
+
+    <!-- Following deps are required for FTP protocol (and probably others), see:
+      http://stackoverflow.com/questions/30600843/unable-to-resolve-a-dependency-on-urlutil-conflicting-requirements    
+      http://stackoverflow.com/questions/12730984/noclassdeffound-error-on-ftp-client-org-apache-commons-net-ftp-ftpclient      
+      -->  
+    <dependency>
+        <groupId>commons-httpclient</groupId>
+        <artifactId>commons-httpclient</artifactId>
+        <version>3.1</version>
+    </dependency>
+    <dependency>
+        <groupId>commons-net</groupId>
+        <artifactId>commons-net</artifactId>
+        <version>3.5</version>
+    </dependency>
+
+  
   </dependencies>
   
   <dependencyManagement>
@@ -79,7 +96,12 @@
       <dependency>
         <groupId>com.norconex.commons</groupId>
         <artifactId>norconex-commons-lang</artifactId>
-        <version>1.11.0</version>
+        <version>1.12.3</version>
+      </dependency>
+      <dependency>
+        <groupId>commons-codec</groupId>
+        <artifactId>commons-codec</artifactId>
+        <version>1.10</version>
       </dependency>
       <dependency>
         <groupId>org.jsoup</groupId>
@@ -91,6 +113,32 @@
         <artifactId>commons-lang</artifactId>
         <version>2.6</version>
       </dependency>      
+      <dependency>
+        <groupId>org.apache.httpcomponents</groupId>
+        <artifactId>httpclient</artifactId>
+        <version>4.5.2</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.httpcomponents</groupId>
+        <artifactId>httpmime</artifactId>
+        <version>4.5.2</version>
+      </dependency>     
+      <dependency>
+        <groupId>org.apache.httpcomponents</groupId>
+        <artifactId>httpcore</artifactId>
+        <version>4.4.5</version>
+      </dependency>
+      <!-- Upgraded from 5.2 (Importer/Tika dep) to avoid exception:
+           Caused by: java.lang.NoSuchMethodError: 
+           jj2000.j2k.fileformat.reader.FileFormatReader.<init>(
+           Ljj2000/j2k/io/RandomAccessIO;Lcom/sun/media/imageioimpl/plugins/
+           jpeg2000/J2KMetadata;)V
+       -->
+      <dependency>
+        <groupId>edu.ucar</groupId>
+        <artifactId>jj2000</artifactId>
+        <version>5.3</version>
+      </dependency>
     </dependencies>
   </dependencyManagement>  
   
