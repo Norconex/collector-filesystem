@@ -7,6 +7,21 @@
   </properties>
   <body>
 
+    <release version="2.7.0-SNAPSHOT" date="2017-??-??" description="Feature release">
+      <action dev="essiembre" type="add">
+        New features from dependency updates. Collector Core: 
+        ICollectorLifeCycleListener.  Importer: MergeTagger.
+      </action>
+      <action dev="essiembre" type="update">
+        Dependency updates: Norconex Collection Core 1.8.0, 
+        Norconex Commons Lang 1.13.0
+      </action>
+      <action dev="essiembre" type="update">
+        Crawler events REJECTED_FILTER, REJECTED_BAD_STATUS, REJECTED_IMPORT,
+        and REJECTED_ERROR are now DEBUG in log4j.properties.
+      </action>      
+    </release>
+
     <release version="2.6.1" date="2016-12-14" description="Maintenance release">
       <action dev="essiembre" type="update">
         Dependency updates: Norconex Commons Lang 1.12.3, JJ2000 5.3,

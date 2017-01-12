@@ -52,6 +52,14 @@
   <!-- Location where logs are stored. -->
   <logsDir>$workdir\logs</logsDir>
 
+  <!-- One or more optional listeners to be notified when the collector
+       starts or finishes.  Class must implement 
+       com.norconex.collector.core.ICollectorLifeCycleListener
+       -->
+  <collectorListeners>
+    <listener class="YourClass"/>
+  </collectorListeners>
+
   <!-- All crawler configuration options can be specified as default 
        (including start paths).  Settings defined here will be inherited by 
        all individual crawlers defined further down, unless overwritten.
@@ -94,9 +102,9 @@
          documents, which on subsequent crawls can no longer be reached when 
          running the crawler (e.g. there are no links pointing to that page 
          anymore).  Available options are: 
-         IGNORE (default), DELETE, and PROCESS.
+         IGNORE, DELETE, and PROCESS (default).
          -->
-    <orphansStrategy>IGNORE</orphansStrategy>
+    <orphansStrategy>PROCESS</orphansStrategy>
 
     <!-- One or more optional listeners to be notified on various crawling
          events (e.g. document rejected, document imported, etc). 
