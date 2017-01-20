@@ -31,7 +31,7 @@ import com.norconex.collector.core.checksum.IMetadataChecksummer;
 import com.norconex.collector.core.crawler.AbstractCrawlerConfig;
 import com.norconex.collector.fs.checksum.impl.FileMetadataChecksummer;
 import com.norconex.collector.fs.doc.IFileDocumentProcessor;
-import com.norconex.commons.lang.config.ConfigurationUtil;
+import com.norconex.commons.lang.config.XMLConfigurationUtil;
 import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
 
 /**
@@ -138,7 +138,7 @@ public class FilesystemCrawlerConfig extends AbstractCrawlerConfig {
         loadSimpleSettings(xml);
         
         //--- Metadata Checksummer -----------------------------------------
-        setMetadataChecksummer(ConfigurationUtil.newInstance(xml,
+        setMetadataChecksummer(XMLConfigurationUtil.newInstance(xml,
                 "metadataChecksummer", getMetadataChecksummer()));
         
         //--- HTTP Pre-Processors ----------------------------------------------
@@ -170,7 +170,7 @@ public class FilesystemCrawlerConfig extends AbstractCrawlerConfig {
         List<HierarchicalConfiguration> filterNodes = xml
                 .configurationsAt(xmlPath);
         for (HierarchicalConfiguration filterNode : filterNodes) {
-            IFileDocumentProcessor filter = ConfigurationUtil
+            IFileDocumentProcessor filter = XMLConfigurationUtil
                     .newInstance(filterNode);
             filters.add(filter);
             LOG.info("HTTP document processor loaded: " + filter);
