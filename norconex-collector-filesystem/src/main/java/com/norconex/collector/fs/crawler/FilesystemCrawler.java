@@ -17,14 +17,19 @@ package com.norconex.collector.fs.crawler;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.net.MalformedURLException;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.LineIterator;
 import org.apache.commons.lang3.CharEncoding;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemManager;
 import org.apache.commons.vfs2.impl.StandardFileSystemManager;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 
 import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.core.crawler.AbstractCrawler;
@@ -52,6 +57,9 @@ import com.norconex.jef4.suite.JobSuite;
  */
 public class FilesystemCrawler extends AbstractCrawler {
 
+    private static final Logger LOG = 
+            LogManager.getLogger(FilesystemCrawler.class);
+    
     private StandardFileSystemManager fileManager;
     private IFilesystemOptionsProvider optionsProvider;
 
@@ -89,10 +97,10 @@ public class FilesystemCrawler extends AbstractCrawler {
 
     private void initializeFileSystemManager() {
         try {
-            this.optionsProvider = 
-                    getCrawlerConfig().getOptionsProvider();
-            this.fileManager = new StandardFileSystemManager();
-            this.fileManager.init();
+            optionsProvider = getCrawlerConfig().getOptionsProvider();
+            fileManager = new StandardFileSystemManager();
+            fileManager.setClassLoader(getClass().getClassLoader());
+            fileManager.init();
         } catch (FileSystemException e) {
             throw new CollectorException("Could not initialize filesystem.", e);
         }
@@ -170,8 +178,7 @@ public class FilesystemCrawler extends AbstractCrawler {
                         optionsProvider.getFilesystemOptions(fileObject));
             }
         } catch (FileSystemException e) {
-            throw new CollectorException(
-                    "Cannot resolve: " + crawlData.getReference(), e);
+            resolveFileException(crawlData.getReference(), e);
         }
         FileImporterPipelineContext context = new FileImporterPipelineContext(
                 (FilesystemCrawler) crawler, crawlDataStore, (FileDocument) doc,
@@ -211,4 +218,20 @@ public class FilesystemCrawler extends AbstractCrawler {
         fileManager.close();
     }
 
+    private void resolveFileException(String ref, Exception e) {
+        Throwable t = ExceptionUtils.getRootCause(e);
+        if (t instanceof MalformedURLException) {
+            if (StringUtils.containsIgnoreCase(t.getMessage(), "smb")) {
+                LOG.error("SMB protocol requires you to have this library in "
+                        + "your classpath (e.g. \"lib\" folder): "
+                        + "http://central.maven.org/maven2/jcifs/jcifs/"
+                        + "1.3.17/jcifs-1.3.17.jar");
+            } else if (StringUtils.containsIgnoreCase(
+                    t.getMessage(), "unknown protocol")) {
+                LOG.error("The protocol used may be unsupported or requires "
+                        + "you to install missing dependencies.");
+            }
+        }
+        throw new CollectorException("Cannot resolve: " + ref, e);
+    }
 }

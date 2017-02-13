@@ -72,17 +72,24 @@
       <artifactId>commons-vfs2</artifactId>
       <version>2.1</version>
     </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-vfs2</artifactId>
+      <version>2.1</version>
+      <type>test-jar</type>
+      <scope>test</scope>
+    </dependency>
     
     <!-- Unfortunately Maven does not distribute its VFS-Sandbox lib.
-         To build this project without errors, you can get the source
-         for it here:
+         Code has been bundled with this project instead.  When made available
+         in a Maven repo, consider adding this back.
          https://github.com/apache/commons-vfs/tree/VFS-2.1
-      -->
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-vfs2-sandbox</artifactId>
       <version>2.1</version>
     </dependency>
+      -->
 
     <!-- Following deps are required for FTP protocol (and probably others), see:
       http://stackoverflow.com/questions/30600843/unable-to-resolve-a-dependency-on-urlutil-conflicting-requirements    
@@ -370,7 +377,8 @@
             <link>https://commons.apache.org/proper/commons-vfs/apidocs/</link>
             <link>https://commons.apache.org/proper/commons-configuration/javadocs/v1.10/apidocs/</link>
             <link>http://www.joda.org/joda-time/apidocs/</link>
-          </links>          
+          </links>
+          <excludePackageNames>org.apache.commons.*</excludePackageNames>
         </configuration>
         <executions>
           <execution>
@@ -412,6 +420,9 @@
               <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
             </manifest>
           </archive>
+          <excludes>
+            <exclude>THIRD-PARTY.txt</exclude>
+          </excludes>
         </configuration>        
         <executions>
           <execution>
@@ -548,7 +559,8 @@
             <link>https://commons.apache.org/proper/commons-vfs/apidocs/</link>
             <link>https://commons.apache.org/proper/commons-configuration/javadocs/v1.10/apidocs/</link>
             <link>http://www.joda.org/joda-time/apidocs/</link>
-          </links>          
+          </links>
+          <excludePackageNames>org.apache.commons.*</excludePackageNames>
         </configuration>
         <reportSets>
           <reportSet>
