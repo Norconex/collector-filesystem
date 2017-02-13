@@ -23,7 +23,6 @@ import com.norconex.collector.fs.crawler.FilesystemCrawlerConfig;
 
 /**
  * Filesystem Collector configuration.
- * @author Pascal Dimassimo
  * @author Pascal Essiembre
  */
 public class FilesystemCollectorConfig extends AbstractCollectorConfig {

@@ -39,10 +39,13 @@
   #set($file      = "com.norconex.collector.fs")
   #set($committer = "com.norconex.committer")
 
+  #set($optionsProvider   = "${file}.option.impl.GenericFilesystemOptionsProvider")
   #set($filterExtension   = "${core}.filter.impl.ExtensionReferenceFilter")
   #set($filterRegexRef    = "${core}.filter.impl.RegexReferenceFilter")
+  #set($metaFetcher       = "${file}.fetch.impl.GenericFileMetadataFetcher")
   #set($filterRegexMeta   = "${core}.filter.impl.RegexMetadataFilter")
   #set($metaChecksummer   = "${file}.checksum.impl.FileMetadataChecksummer")
+  #set($docFetcher        = "${file}.fetch.impl.GenericFileDocumentFetcher")  
   #set($docChecksummer    = "${core}.checksum.impl.MD5DocumentChecksummer")
   #set($dataStoreFactory  = "${core}.data.store.impl.mapdb.MapDBCrawlDataStoreFactory")
   #set($spoiledStrategy   = "${core}.spoil.impl.GenericSpoiledReferenceStrategizer")
@@ -123,6 +126,18 @@
          -->
     <crawlDataStoreFactory class="$dataStoreFactory" />
 
+    <!-- Provider of file system options used when obtaining documents.
+         Classes must implement 
+         com.norconex.collector.fs.option.IFilesystemOptionsProvider.
+         The following set credentials.
+         -->
+    <optionsProvider class="$optionsProvider">
+        <!-- Authentication (any file system) -->
+        <authDomain>WORKSPACE</authDomain>
+        <authUsername>joe</authUsername>
+        <authPassword>youshallnotpass</authPassword>
+    </optionsProvider>
+
     <!-- Optionally filter a path BEFORE any download. Classes must implement 
          com.norconex.collector.core.filter.IReferenceFilter, 
          like the following examples.
@@ -132,6 +147,12 @@
         jpg,gif,png,ico,css,js</filter>
       <filter class="$filterRegexRef">/path/to/include/.*</filter>
     </referenceFilters>
+
+    <!-- Fetch a file metadata.  Classes must implement
+         com.norconex.collector.fs.fetch.IFileMetadataFetcher.  
+         Default implementation is the following.
+         -->
+    <metadataFetcher class="$metaFetcher" />
 
     <!-- Optionally filter AFTER obtaining the file properties.  Classes must 
          implement com.norconex.collector.core.filter.IMetadataFilter.  
@@ -149,6 +170,12 @@
          Default implementation is the following. 
          -->
     <metadataChecksummer class="$metaChecksummer" />
+    
+     <!-- Fetches document.  Class must implement 
+          com.norconex.collector.file.fetch.IFileDocumentFetcher.  
+          Default implementation is the following.
+          -->
+    <documentFetcher class="$docFetcher" />
 
     <!--  Optionally filters a document. Classes must implement 
           com.norconex.collector.core.filter.IDocumentFilter-->

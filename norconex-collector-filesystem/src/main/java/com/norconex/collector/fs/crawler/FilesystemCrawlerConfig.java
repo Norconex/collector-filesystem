@@ -1,4 +1,4 @@
-/* Copyright 2013-2016 Norconex Inc.
+/* Copyright 2013-2017 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,10 @@ import javax.xml.stream.XMLStreamException;
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
@@ -31,13 +35,18 @@ import com.norconex.collector.core.checksum.IMetadataChecksummer;
 import com.norconex.collector.core.crawler.AbstractCrawlerConfig;
 import com.norconex.collector.fs.checksum.impl.FileMetadataChecksummer;
 import com.norconex.collector.fs.doc.IFileDocumentProcessor;
+import com.norconex.collector.fs.fetch.IFileDocumentFetcher;
+import com.norconex.collector.fs.fetch.IFileMetadataFetcher;
+import com.norconex.collector.fs.fetch.impl.GenericFileDocumentFetcher;
+import com.norconex.collector.fs.fetch.impl.GenericFileMetadataFetcher;
+import com.norconex.collector.fs.option.IFilesystemOptionsProvider;
+import com.norconex.collector.fs.option.impl.GenericFilesystemOptionsProvider;
 import com.norconex.commons.lang.config.XMLConfigurationUtil;
 import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
 
 /**
  * Filesystem Crawler configuration.
  * 
- * @author Pascal Dimassimo
  * @author Pascal Essiembre
  */
 public class FilesystemCrawlerConfig extends AbstractCrawlerConfig {
@@ -50,8 +59,17 @@ public class FilesystemCrawlerConfig extends AbstractCrawlerConfig {
     
     private boolean keepDownloads;
 
+    private IFilesystemOptionsProvider optionsProvider = 
+            new GenericFilesystemOptionsProvider();
+
+    private IFileMetadataFetcher metadataFetcher =
+            new GenericFileMetadataFetcher();
+
     private IMetadataChecksummer metadataChecksummer = 
             new FileMetadataChecksummer();
+    
+    private IFileDocumentFetcher documentFetcher =
+            new GenericFileDocumentFetcher();
     
     private IFileDocumentProcessor[] preImportProcessors;
     private IFileDocumentProcessor[] postImportProcessors;
@@ -79,6 +97,43 @@ public class FilesystemCrawlerConfig extends AbstractCrawlerConfig {
         this.keepDownloads = keepDownloads;
     }
 
+    /**
+     * Gets the file system options provider. Default is
+     * {@link GenericFilesystemOptionsProvider}.
+     * @return file system options provider
+     * @since 2.7.0
+     */
+    public IFilesystemOptionsProvider getOptionsProvider() {
+        return optionsProvider;
+    }
+    /**
+     * Sets the file system options provider. Cannot be <code>null</code>.
+     * @param filesystemOptionsProvider file system options provider
+     * @since 2.7.0
+     */
+    public void setOptionsProvider(
+            IFilesystemOptionsProvider filesystemOptionsProvider) {
+        this.optionsProvider = filesystemOptionsProvider;
+    }
+
+    /**
+     * Gets the document metadata fetcher. Default is 
+     * {@link GenericFileMetadataFetcher}.
+     * @return metadata fetcher
+     * @since 2.7.0
+     */
+    public IFileMetadataFetcher getMetadataFetcher() {
+        return metadataFetcher;
+    }
+    /**
+     * Sets the document metadata fetcher. Cannot be <code>null</code>.
+     * @param metadataFetcher metadata fetcher
+     * @since 2.7.0
+     */
+    public void setMetadataFetcher(IFileMetadataFetcher metadataFetcher) {
+        this.metadataFetcher = metadataFetcher;
+    }
+
     public IMetadataChecksummer getMetadataChecksummer() {
         return metadataChecksummer;
     }
@@ -86,7 +141,25 @@ public class FilesystemCrawlerConfig extends AbstractCrawlerConfig {
             IMetadataChecksummer metadataChecksummer) {
         this.metadataChecksummer = metadataChecksummer;
     }
-    
+
+    /**
+     * Gets the document fetcher. Default is 
+     * {@link GenericFileDocumentFetcher}.
+     * @return document fetcher
+     * @since 2.7.0
+     */
+    public IFileDocumentFetcher getDocumentFetcher() {
+        return documentFetcher;
+    }
+    /**
+     * Sets the document fetcher. Cannot be <code>null</code>.
+     * @param documentFetcher document fetcher
+     * @since 2.7.0
+     */
+    public void setDocumentFetcher(IFileDocumentFetcher documentFetcher) {
+        this.documentFetcher = documentFetcher;
+    }
+
     public IFileDocumentProcessor[] getPreImportProcessors() {
         return ArrayUtils.clone(preImportProcessors);
     }
@@ -120,7 +193,11 @@ public class FilesystemCrawlerConfig extends AbstractCrawlerConfig {
                 writer.writeEndElement();
             }
             writer.writeEndElement();
+            
+            writeObject(out, "optionsProvider", getOptionsProvider());
+            writeObject(out, "metadataFetcher", getMetadataFetcher());
             writeObject(out, "metadataChecksummer", getMetadataChecksummer());
+            writeObject(out, "documentFetcher", getDocumentFetcher());
             writeArray(out, "preImportProcessors", 
                     "processor", getPreImportProcessors());
             writeArray(out, "postImportProcessors", 
@@ -137,10 +214,22 @@ public class FilesystemCrawlerConfig extends AbstractCrawlerConfig {
         //--- Simple Settings --------------------------------------------------
         loadSimpleSettings(xml);
         
-        //--- Metadata Checksummer -----------------------------------------
+        //--- FilesystemManager Factory ----------------------------------------
+        setOptionsProvider(XMLConfigurationUtil.newInstance(xml,
+                "optionsProvider", getOptionsProvider()));
+        
+        //--- Metadata Fetcher -------------------------------------------------
+        setMetadataFetcher(XMLConfigurationUtil.newInstance(xml,
+                "metadataFetcher", getMetadataFetcher()));
+        
+        //--- Metadata Checksummer ---------------------------------------------
         setMetadataChecksummer(XMLConfigurationUtil.newInstance(xml,
                 "metadataChecksummer", getMetadataChecksummer()));
-        
+
+        //--- Document Fetcher -------------------------------------------------
+        setDocumentFetcher(XMLConfigurationUtil.newInstance(xml,
+                "documentFetcher", getDocumentFetcher()));
+
         //--- HTTP Pre-Processors ----------------------------------------------
         IFileDocumentProcessor[] preProcFilters = loadProcessors(xml,
                 "preImportProcessors.processor");
@@ -157,11 +246,11 @@ public class FilesystemCrawlerConfig extends AbstractCrawlerConfig {
     private void loadSimpleSettings(XMLConfiguration xml) {
         setKeepDownloads(xml.getBoolean("keepDownloads", isKeepDownloads()));
 
-        String[] startPaths = xml.getStringArray("startPaths.path");
-        setStartPaths(defaultIfEmpty(startPaths, getStartPaths()));
+        String[] startPathsArray = xml.getStringArray("startPaths.path");
+        setStartPaths(defaultIfEmpty(startPathsArray, getStartPaths()));
         
-        String[] pathsFiles = xml.getStringArray("startPaths.pathsFile");
-        setPathsFiles(defaultIfEmpty(pathsFiles, getPathsFiles()));
+        String[] pathsFilesArray = xml.getStringArray("startPaths.pathsFile");
+        setPathsFiles(defaultIfEmpty(pathsFilesArray, getPathsFiles()));
     }
     
     private IFileDocumentProcessor[] loadProcessors(XMLConfiguration xml,
@@ -178,5 +267,56 @@ public class FilesystemCrawlerConfig extends AbstractCrawlerConfig {
         return filters.toArray(new IFileDocumentProcessor[] {});
     }
     
+    @Override
+    public boolean equals(final Object other) {
+        if (!(other instanceof FilesystemCrawlerConfig)) {
+            return false;
+        }
+        FilesystemCrawlerConfig castOther = (FilesystemCrawlerConfig) other;
+        return new EqualsBuilder()
+                .appendSuper(super.equals(castOther))
+                .append(keepDownloads, castOther.keepDownloads)
+                .append(startPaths, castOther.startPaths)
+                .append(pathsFiles, castOther.pathsFiles)
+                .append(optionsProvider, 
+                        castOther.optionsProvider)
+                .append(metadataFetcher, castOther.metadataFetcher)
+                .append(metadataChecksummer, castOther.metadataChecksummer)
+                .append(documentFetcher, castOther.documentFetcher)
+                .append(preImportProcessors, castOther.preImportProcessors)
+                .append(postImportProcessors, castOther.postImportProcessors)
+                .isEquals();
+    }
 
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder()
+                .appendSuper(super.hashCode())
+                .append(keepDownloads)
+                .append(startPaths)
+                .append(pathsFiles)
+                .append(optionsProvider)
+                .append(metadataFetcher)
+                .append(metadataChecksummer)
+                .append(documentFetcher)
+                .append(preImportProcessors)
+                .append(postImportProcessors)
+                .toHashCode();
+    }
+
+    @Override
+    public String toString() {
+        return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
+                .appendSuper(super.toString())
+                .append("keepDownloads", keepDownloads)
+                .append("startPaths", startPaths)
+                .append("pathsFiles", pathsFiles)
+                .append("optionsProvider", optionsProvider)
+                .append("metadataFetcher", metadataFetcher)
+                .append("metadataChecksummer", metadataChecksummer)
+                .append("documentFetcher", documentFetcher)
+                .append("preImportProcessors", preImportProcessors)
+                .append("postImportProcessors", postImportProcessors)
+                .toString();
+    }  
 }

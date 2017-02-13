@@ -1,4 +1,4 @@
-/* Copyright 2013-2014 Norconex Inc.
+/* Copyright 2013-2017 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,8 +23,8 @@ import com.norconex.collector.core.ICollectorConfig;
 import com.norconex.collector.core.crawler.ICrawler;
 import com.norconex.collector.core.crawler.ICrawlerConfig;
 import com.norconex.collector.fs.crawler.FilesystemCrawler;
-import com.norconex.collector.fs.crawler.FilesystemCrawlerConfig;
- 
+import com.norconex.collector.fs.crawler.FilesystemCrawlerConfig; 
+
 /**
  * Main application class. In order to use it properly, you must first configure
  * it, either by providing a populated instance of 
@@ -36,10 +36,8 @@ import com.norconex.collector.fs.crawler.FilesystemCrawlerConfig;
  * in common, it may be best to configure and run them separately, to facilitate
  * troubleshooting.  There is no fair rule for this, experimentation 
  * will help you.
- * @author Pascal Dimassimo
  * @author Pascal Essiembre
  */
-@SuppressWarnings("nls")
 public class FilesystemCollector extends AbstractCollector {
 
     /**
@@ -78,6 +76,8 @@ public class FilesystemCollector extends AbstractCollector {
         }.launch(args);
     }
 
+    
+    
     @Override
     public FilesystemCollectorConfig getCollectorConfig() {
         return (FilesystemCollectorConfig) super.getCollectorConfig();

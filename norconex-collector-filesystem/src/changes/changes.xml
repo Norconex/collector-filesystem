@@ -9,16 +9,38 @@
 
     <release version="2.7.0-SNAPSHOT" date="2017-??-??" description="Feature release">
       <action dev="essiembre" type="add">
+        New configurable GenericFilesystemOptionsProvider which allows
+        to configure how different file systems are accessed
+        (authentication, FTP(s), HTTP, Webdav, etc).
+        Custom implementation can be provided with IFilesystemOptionsProvider. 
+      </action>
+      <action dev="essiembre" type="add">
+        ACL is now extracted from SMB/CIFS file systems. 
+      </action>
+      <action dev="essiembre" type="add">
+        Custom metadata extraction is now possible via IFileMetadataFetcher.
+        Default implementation is GenericFileMetadataFetcher. 
+      </action>
+      <action dev="essiembre" type="add">
+        Custom document extraction is now possible via IFileDocumentFetcher.
+        Default implementation is GenericFileDocumentFetcher. 
+      </action>
+      <action dev="essiembre" type="add">
         New features from dependency updates. Collector Core: 
         ICollectorLifeCycleListener.  Importer: MergeTagger.
       </action>
       <action dev="essiembre" type="update">
         Dependency updates: Norconex Collection Core 1.8.0, 
-        Norconex Commons Lang 1.13.0
+        Norconex Commons Lang 1.13.0, JCIFS 1.3.17, 
+        Apache Commons VFS Sandbox 2.1.
       </action>
       <action dev="essiembre" type="update">
         Crawler events REJECTED_FILTER, REJECTED_BAD_STATUS, REJECTED_IMPORT,
         and REJECTED_ERROR are now DEBUG in log4j.properties.
+      </action>      
+      <action dev="essiembre" type="update">
+        FilesystemCollectorException now deprecated in favor of
+        CollectorException.
       </action>      
     </release>
 

@@ -63,15 +63,26 @@
       <version>1.8.0-SNAPSHOT</version>
     </dependency>
     <dependency>
-        <groupId>joda-time</groupId>
-        <artifactId>joda-time</artifactId>
-        <version>2.9.4</version>
-    </dependency>    
+      <groupId>joda-time</groupId>
+      <artifactId>joda-time</artifactId>
+      <version>2.9.4</version>
+    </dependency>
     <dependency>
-	    <groupId>org.apache.commons</groupId>
-	    <artifactId>commons-vfs2</artifactId>
-	    <version>2.1</version>
-	</dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-vfs2</artifactId>
+      <version>2.1</version>
+    </dependency>
+    
+    <!-- Unfortunately Maven does not distribute its VFS-Sandbox lib.
+         To build this project without errors, you can get the source
+         for it here:
+         https://github.com/apache/commons-vfs/tree/VFS-2.1
+      -->
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-vfs2-sandbox</artifactId>
+      <version>2.1</version>
+    </dependency>
 
     <!-- Following deps are required for FTP protocol (and probably others), see:
       http://stackoverflow.com/questions/30600843/unable-to-resolve-a-dependency-on-urlutil-conflicting-requirements    
@@ -83,12 +94,46 @@
         <version>3.1</version>
     </dependency>
     <dependency>
-        <groupId>commons-net</groupId>
-        <artifactId>commons-net</artifactId>
-        <version>3.5</version>
+      <groupId>commons-net</groupId>
+      <artifactId>commons-net</artifactId>
+      <version>3.5</version>
     </dependency>
 
-  
+    <!-- This jcifs dep is not distributed due to licensing issue (LGPL 2.1).
+         It is included here as "optional" so it does not get distributed.
+         License:
+         https://jcifs.samba.org/src/LICENSE.txt
+         Downloadable Jar:
+         http://central.maven.org/maven2/jcifs/jcifs/1.3.17/jcifs-1.3.17.jar
+      -->
+    <dependency>
+      <groupId>jcifs</groupId>
+      <artifactId>jcifs</artifactId>
+      <version>1.3.17</version>
+      <scope>provided</scope>
+      <optional>true</optional>
+    </dependency>
+    
+    <!-- HDFS deps are optional. There are too many to distribute.
+         Included here for compilation only.
+         Use "$HADOOP_HOME/bin/hadoop classpath" to get them.
+         More info: 
+         https://commons.apache.org/proper/commons-vfs/download.html
+      -->
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-common</artifactId>
+      <version>2.6.0</version>
+      <scope>provided</scope>
+      <optional>true</optional>
+      <exclusions>
+        <exclusion>
+          <groupId>*</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>      
+      
   </dependencies>
   
   <dependencyManagement>
@@ -112,7 +157,42 @@
         <groupId>commons-lang</groupId>
         <artifactId>commons-lang</artifactId>
         <version>2.6</version>
+      </dependency>
+      <dependency>
+        <groupId>commons-cli</groupId>
+        <artifactId>commons-cli</artifactId>
+        <version>1.3.1</version>
       </dependency>      
+      <dependency>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-compress</artifactId>
+        <version>1.12</version>
+      </dependency>
+      <dependency>
+        <groupId>commons-configuration</groupId>
+        <artifactId>commons-configuration</artifactId>
+        <version>1.10</version>
+      </dependency>
+      <dependency>
+        <groupId>commons-io</groupId>
+        <artifactId>commons-io</artifactId>
+        <version>2.5</version>
+      </dependency>
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-api</artifactId>
+        <version>1.7.12</version>
+      </dependency>
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-log4j12</artifactId>
+        <version>1.7.12</version>
+      </dependency>
+      <dependency>
+        <groupId>org.tukaani</groupId>
+        <artifactId>xz</artifactId>
+        <version>1.5</version>
+      </dependency>
       <dependency>
         <groupId>org.apache.httpcomponents</groupId>
         <artifactId>httpclient</artifactId>
@@ -122,7 +202,12 @@
         <groupId>org.apache.httpcomponents</groupId>
         <artifactId>httpmime</artifactId>
         <version>4.5.2</version>
-      </dependency>     
+      </dependency>
+      <dependency>
+        <groupId>com.google.guava</groupId>
+        <artifactId>guava</artifactId>
+        <version>17.0</version>
+      </dependency>
       <dependency>
         <groupId>org.apache.httpcomponents</groupId>
         <artifactId>httpcore</artifactId>
@@ -139,6 +224,7 @@
         <artifactId>jj2000</artifactId>
         <version>5.3</version>
       </dependency>
+
     </dependencies>
   </dependencyManagement>  
   
@@ -247,6 +333,7 @@
       </plugin>
       <plugin>
         <artifactId>maven-assembly-plugin</artifactId>
+        <version>3.0.0</version>
         <configuration>
           <descriptors>
             <descriptor>src/main/assembly/dist.xml</descriptor>
@@ -502,17 +589,6 @@
         <organizationUrl>https://www.norconex.com</organizationUrl>
         <roles>
           <role>project leader</role>
-          <role>developer</role>
-        </roles>
-        <timezone>-4</timezone>
-    </developer>
-    <developer>
-        <id>pascaldimassimo</id>
-        <name>Pascal Dimassimo</name>
-        <email>pascal.dimassimo@norconex.com</email>
-        <organization>Norconex Inc.</organization>
-        <organizationUrl>https://www.norconex.com</organizationUrl>
-        <roles>
           <role>developer</role>
         </roles>
         <timezone>-4</timezone>

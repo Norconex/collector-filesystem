@@ -1,4 +1,4 @@
-/* Copyright 2013-2015 Norconex Inc.
+/* Copyright 2013-2017 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,14 +42,17 @@ public class FileImporterPipelineContext extends ImporterPipelineContext {
         this.fileObject = fileObject;
     }
 
+    @Override
     public FilesystemCrawler getCrawler() {
         return (FilesystemCrawler) super.getCrawler();
     }
 
+    @Override
     public FilesystemCrawlerConfig getConfig() {
         return getCrawler().getCrawlerConfig();
     }
     
+    @Override
     public FileDocument getDocument() {
         return (FileDocument) super.getDocument();
     }

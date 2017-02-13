@@ -1,0 +1,114 @@
+/* Copyright 2017 Norconex Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.norconex.collector.fs.fetch.impl;
+
+import java.util.Objects;
+
+import org.apache.commons.vfs2.FileContent;
+import org.apache.commons.vfs2.FileContentInfo;
+import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.FileSystemException;
+import org.apache.commons.vfs2.provider.smb.SmbFileObject;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
+
+import com.norconex.collector.core.CollectorException;
+import com.norconex.collector.core.data.CrawlState;
+import com.norconex.collector.fs.data.FileCrawlState;
+import com.norconex.collector.fs.doc.FileMetadata;
+import com.norconex.collector.fs.fetch.IFileMetadataFetcher;
+import com.norconex.commons.lang.map.Properties;
+
+/**
+ * Generic file system document metadata fetcher. 
+ * @author Pascal Essiembre
+ * @since 2.7.0
+ */
+public class GenericFileMetadataFetcher implements IFileMetadataFetcher {
+
+    private static final Logger LOG = 
+            LogManager.getLogger(GenericFileMetadataFetcher.class);
+    
+    private static Boolean smbAvailable = null;
+    
+    @Override
+    public CrawlState fetchMetadada(
+            FileObject fileObject, Properties metadata) {
+
+        LOG.debug("Fetching file headers: " + fileObject);
+        
+        try {
+            if (!fileObject.exists()) {
+                return FileCrawlState.NOT_FOUND;
+            }
+            
+            if (isSmbFile(fileObject)) {
+                SmbAclFetcher.fetchACL(fileObject, metadata);
+            }
+            
+            FileContent content = fileObject.getContent();
+            //--- Enhance Metadata ---
+            metadata.addLong(
+                    FileMetadata.COLLECTOR_SIZE, content.getSize());
+            metadata.addLong(FileMetadata.COLLECTOR_LASTMODIFIED,
+                    content.getLastModifiedTime());
+            FileContentInfo info = content.getContentInfo();
+            if (info != null) {
+                metadata.addString(FileMetadata.COLLECTOR_CONTENT_ENCODING, 
+                        info.getContentEncoding());
+                metadata.addString(FileMetadata.COLLECTOR_CONTENT_TYPE, 
+                        info.getContentType());
+            }
+            for (String attrName: content.getAttributeNames()) {
+                Object obj = content.getAttribute(attrName);
+                if (obj != null) {
+                    metadata.addString(FileMetadata.COLLECTOR_PREFIX 
+                            + "attribute." + attrName, 
+                                    Objects.toString(obj));
+                }
+            }
+            
+            //TODO support prefixes like http collector?
+            //TODO do we really want to prefix attributes with 
+            // "collector.attribute." or just store as is (like HTTP headers)?
+            
+            return FileCrawlState.NEW;
+        } catch (FileSystemException e) {
+            if (LOG.isDebugEnabled()) {
+                LOG.error("Cannot fetch metadata: " + fileObject, e);
+            } else {
+                LOG.error("Cannot fetch metadata: " + fileObject
+                        + " (" + e.getMessage() + ")");
+            }
+            throw new CollectorException(e);
+        }
+    }
+    
+    //TODO move to Norconex Commons Lang
+    private static boolean isSmbFile(FileObject fileObject) {
+        if (smbAvailable == null) {
+            try {
+                Class.forName(
+                        "org.apache.commons.vfs2.provider.smb.SmbFileObject", 
+                        false, 
+                        GenericFileMetadataFetcher.class.getClassLoader());
+                smbAvailable = true;
+            } catch (ClassNotFoundException e) {
+                smbAvailable = false;
+            }
+        }
+        return smbAvailable && fileObject instanceof SmbFileObject;
+    }
+}

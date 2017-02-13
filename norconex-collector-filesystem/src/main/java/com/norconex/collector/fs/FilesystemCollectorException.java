@@ -1,4 +1,4 @@
-/* Copyright 2013-2014 Norconex Inc.
+/* Copyright 2013-2017 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,17 @@
  */
 package com.norconex.collector.fs;
 
+import com.norconex.collector.core.CollectorException;
+
 /**
  * Runtime exception for most unrecoverable issues thrown by Filesystem Collector
  * classes.
  * @author Pascal Dimassimo
+ * @author Pascal Essiembre
+ * @deprecated as of 2.7.0 use {@link CollectorException}
  */
-public class FilesystemCollectorException extends RuntimeException {
+@Deprecated
+public class FilesystemCollectorException extends CollectorException {
 
     private static final long serialVersionUID = -805913995358009121L;
 
