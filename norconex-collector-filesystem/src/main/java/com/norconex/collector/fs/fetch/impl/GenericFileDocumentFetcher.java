@@ -16,6 +16,10 @@ package com.norconex.collector.fs.fetch.impl;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.NullOutputStream;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
@@ -62,4 +66,17 @@ public class GenericFileDocumentFetcher implements IFileDocumentFetcher {
         }  
     }
 
+    @Override
+    public boolean equals(final Object other) {
+        return EqualsBuilder.reflectionEquals(this, other, false);
+    }
+    @Override
+    public int hashCode() {
+        return HashCodeBuilder.reflectionHashCode(this, false);
+    }
+    @Override
+    public String toString() {
+        return ReflectionToStringBuilder.toString(
+                this, ToStringStyle.SHORT_PREFIX_STYLE);
+    } 
 }

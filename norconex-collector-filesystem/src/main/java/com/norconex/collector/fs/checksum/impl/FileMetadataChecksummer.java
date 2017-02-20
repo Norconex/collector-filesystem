@@ -1,4 +1,4 @@
-/* Copyright 2013-2015 Norconex Inc.
+/* Copyright 2013-2017 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,15 +39,23 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  * configuration by specifying <code>disabled="true"</code>. When disabled,
  * the checksum returned is always <code>null</code>.  
  * </p>
- * <p>
- * XML configuration usage:
- * </p>
+ * <h3>XML configuration usage:</h3>
  * <pre>
  *  &lt;metadataChecksummer 
- *      class="com.norconex.collector.file.checksum.impl.FileMetadataChecksummer"&gt;
+ *      class="com.norconex.collector.fs.checksum.impl.FileMetadataChecksummer"
  *      disabled="[false|true]"
  *      keep="[false|true]"
  *      targetField="(field to store checksum)" /&gt;
+ * </pre>
+ * <h4>Usage example:</h4>
+ * <p>
+ * The following will store the generated metadata checksum in a field
+ * called "checksum".
+ * </p>
+ * <pre>
+ *  &lt;metadataChecksummer 
+ *      class="com.norconex.collector.fs.checksum.impl.FileMetadataChecksummer"
+ *      keep="true" targetField="checksum" /&gt;
  * </pre>
  * @author Pascal Essiembre
  * @see GenericMetadataChecksummer

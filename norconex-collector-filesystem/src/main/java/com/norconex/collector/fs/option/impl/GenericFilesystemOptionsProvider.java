@@ -177,7 +177,18 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *
  *  &lt;/optionsProvider&gt;
  * </pre>
- * 
+ * <h4>Usage example:</h4>
+ * <p>
+ * The following sets the FTP settings sometimes required to get 
+ * directory listings on remote servers.
+ * </p>
+ * <pre>
+ *  &lt;optionsProvider 
+ *      class="com.norconex.collector.fs.option.impl.GenericFilesystemOptionsProvider"&gt;
+ *      &lt;ftpPassiveMode&gt;true&lt;/ftpPassiveMode&gt;
+ *      &lt;ftpUserDirIsRoot&gt;false&lt;/ftpUserDirIsRoot&gt;
+ *  &lt;/optionsProvider&gt;
+ * </pre>
  * @author Pascal Essiembre
  * @since 2.7.0
  */

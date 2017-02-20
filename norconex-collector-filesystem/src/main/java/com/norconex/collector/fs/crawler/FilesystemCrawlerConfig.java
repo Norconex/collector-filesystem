@@ -179,20 +179,17 @@ public class FilesystemCrawlerConfig extends AbstractCrawlerConfig {
     protected void saveCrawlerConfigToXML(Writer out) throws IOException {
         try {
             EnhancedXMLStreamWriter writer = new EnhancedXMLStreamWriter(out);
-    
+
             writer.writeElementBoolean("keepDownloads", isKeepDownloads());
             writer.writeStartElement("startPaths");
             for (String path : getStartPaths()) {
-                writer.writeStartElement("path");
-                writer.writeCharacters(path);
-                writer.writeEndElement();
+                writer.writeElementString("path", path);
             }
             for (String path : getPathsFiles()) {
-                writer.writeStartElement("pathsFile");
-                writer.writeCharacters(path);
-                writer.writeEndElement();
+                writer.writeElementString("pathsFile", path);
             }
             writer.writeEndElement();
+            writer.flush();
             
             writeObject(out, "optionsProvider", getOptionsProvider());
             writeObject(out, "metadataFetcher", getMetadataFetcher());

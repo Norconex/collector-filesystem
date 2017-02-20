@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE xml>
+<!-- 
+   Copyright 2017 Norconex Inc.
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+
+<!-- This is a config file with as many configuration options being set
+     as possible, to test validation as much we can.
+     -->
+<collector id="Test Collector FS Config">
+
+  <progressDir>/progress</progressDir>
+  <logsDir>/logs</logsDir>
+
+  <crawlerDefaults>
+    <startPaths>
+      <path>/path/dir1</path>
+      <path>/path/dir21</path>
+      <pathsFile>/pathsFile/file1.txt</pathsFile>
+      <pathsFile>/pathsFile/file2.txt</pathsFile>
+    </startPaths>  
+    <keepDownloads>true</keepDownloads>
+    <numThreads>1</numThreads>
+    <workDir>/tmp/111</workDir>
+    <maxDocuments>111</maxDocuments>
+    <orphansStrategy>PROCESS</orphansStrategy>
+    <crawlDataStoreFactory class="com.norconex.collector.fs.data.store.impl.mongo.MongoCrawlDataStoreFactory" />
+    <optionsProvider class="com.norconex.collector.fs.option.impl.GenericFilesystemOptionsProvider">
+      <authDomain>authDomain</authDomain>
+      <authUsername>authUsername</authUsername>
+      <authPassword>authPassword</authPassword>
+      <authPasswordKey>authPasswordKey</authPasswordKey>
+      <authPasswordKeySource>key</authPasswordKeySource>
+      <ftpSecure>true</ftpSecure>
+      <ftpConnectTimeout>111</ftpConnectTimeout>
+      <ftpControlEncoding>ftpControlEncoding</ftpControlEncoding>
+      <ftpDataTimeout>222</ftpDataTimeout>
+      <ftpDefaultDateFormat>...</ftpDefaultDateFormat>
+      <ftpFileType>ASCII</ftpFileType>
+      <ftpPassiveMode>true</ftpPassiveMode>
+      <ftpRecentDateFormat>ftpRecentDateFormat</ftpRecentDateFormat>
+      <ftpRemoteVerification>false</ftpRemoteVerification>
+      <ftpServerLanguageCode>ftpServerLanguageCode</ftpServerLanguageCode>
+      <ftpServerTimeZoneId>ftpServerTimeZoneId</ftpServerTimeZoneId>
+      <ftpShortMonthNames>ftpShortMonthNames</ftpShortMonthNames>
+      <ftpSoTimeout>333</ftpSoTimeout>
+      <ftpUserDirIsRoot>true</ftpUserDirIsRoot>
+      <hdfsConfigName>hdfsConfigName</hdfsConfigName>
+      <hdfsConfigPath>hdfsConfigPath</hdfsConfigPath>
+      <hdfsConfigURL>hdfsConfigURL</hdfsConfigURL>
+      <httpWebdav>false</httpWebdav>
+      <httpConnectionTimeout>666</httpConnectionTimeout>
+      <httpFollowRedirect>true</httpFollowRedirect>
+      <httpMaxConnectionsPerHost>777</httpMaxConnectionsPerHost>
+      <httpMaxTotalConnections>888</httpMaxTotalConnections>
+      <httpPreemptiveAuth>false</httpPreemptiveAuth>
+      <httpSoTimeout>444</httpSoTimeout>
+      <httpUrlCharset>httpUrlCharset</httpUrlCharset>
+      <httpUserAgent>httpUserAgent</httpUserAgent>
+      <httpWebdavCreatorName>httpWebdavCreatorName</httpWebdavCreatorName>
+      <httpWebdavVersioning>false</httpWebdavVersioning>
+      <ramMaxSize>777</ramMaxSize>
+      <sftpCompression>sftpCompression</sftpCompression>
+      <sftpFileNameEncoding>sftpFileNameEncoding</sftpFileNameEncoding>
+      <sftpKnownHosts>sftpKnownHosts</sftpKnownHosts>
+      <sftpPreferredAuthentications>sftpPreferredAuthentications</sftpPreferredAuthentications>
+      <sftpStrictHostKeyChecking>no</sftpStrictHostKeyChecking>
+      <sftpTimeout>555</sftpTimeout>
+      <sftpUserDirIsRoot>true</sftpUserDirIsRoot>
+    </optionsProvider>
+    <referenceFilters>
+      <filter class="com.norconex.collector.core.filter.impl.ExtensionReferenceFilter"
+          onMatch="exclude" caseSensitive="true">xml,pdf,doc</filter>
+      <filter class="com.norconex.collector.core.filter.impl.RegexReferenceFilter"
+          onMatch="exclude" caseSensitive="false">.*example.com.*</filter>
+    </referenceFilters>
+    <metadataFetcher class="com.norconex.collector.fs.fetch.impl.GenericFileMetadataFetcher"/>
+    <metadataFilters>
+      <filter class="com.norconex.collector.core.filter.impl.ExtensionReferenceFilter"
+          onMatch="exclude" caseSensitive="true">xml,pdf,doc</filter>
+      <filter class="com.norconex.collector.core.filter.impl.RegexReferenceFilter"
+          onMatch="exclude" caseSensitive="false">.*example.com.*</filter>
+      <filter class="com.norconex.collector.core.filter.impl.RegexMetadataFilter"
+          onMatch="include" caseSensitive="false" field="title">Blah.*</filter>
+    </metadataFilters>
+    <metadataChecksummer class="com.norconex.collector.fs.checksum.impl.FileMetadataChecksummer"
+        disabled="false" keep="true" targetField="myfield" />
+    <documentFetcher class="com.norconex.collector.fs.fetch.impl.GenericFileDocumentFetcher"/>
+    <documentFilters>
+      <filter class="com.norconex.collector.core.filter.impl.ExtensionReferenceFilter"
+          onMatch="exclude" caseSensitive="true">xml,pdf,doc</filter>
+      <filter class="com.norconex.collector.core.filter.impl.RegexReferenceFilter"
+          onMatch="exclude" caseSensitive="false">.*example.com.*</filter>
+      <filter class="com.norconex.collector.core.filter.impl.RegexMetadataFilter"
+          onMatch="include" caseSensitive="false" field="title">Blah.*</filter>
+    </documentFilters>
+    <preImportProcessors>
+      <processor class="com.norconex.collector.fs.doc.MockFileDocumentProcessor"/>
+    </preImportProcessors>
+    
+    <!-- Importer is purposely slim since the full config is tested in
+         Importer project. -->
+    <importer>
+      <preParseHandlers>
+        <transformer class="com.norconex.importer.handler.transformer.impl.ReplaceTransformer">
+          <replace><fromValue>A</fromValue><toValue>B</toValue></replace>
+        </transformer>  
+      </preParseHandlers>
+      <postParseHandlers>
+        <transformer class="com.norconex.importer.handler.transformer.impl.ReplaceTransformer">
+          <replace><fromValue>C</fromValue><toValue>D</toValue></replace>
+        </transformer>  
+      </postParseHandlers>    
+    </importer>
+
+    <committer class="com.norconex.committer.core.impl.FileSystemCommitter">
+      <directory>/tmp/somepath</directory>
+    </committer>
+
+    <documentChecksummer 
+        class="com.norconex.collector.core.checksum.impl.MD5DocumentChecksummer"
+        disabled="false" keep="true" targetField="afield">
+      <sourceFields>field1,field2</sourceFields>
+    </documentChecksummer>
+    <postImportProcessors>
+      <processor class="com.norconex.collector.fs.doc.MockFileDocumentProcessor"/>
+    </postImportProcessors>    
+    
+    <spoiledReferenceStrategizer 
+        class="com.norconex.collector.core.spoil.impl.GenericSpoiledReferenceStrategizer"
+        fallbackStrategy="DELETE">
+      <mapping state="NOT_FOUND" strategy="DELETE" />
+      <mapping state="BAD_STATUS" strategy="DELETE" />
+      <mapping state="ERROR" strategy="IGNORE" />
+    </spoiledReferenceStrategizer>
+  </crawlerDefaults>
+  <crawlers>
+    <crawler id="myCrawler1">
+      <numThreads>2</numThreads>
+      <workDir>/tmp/222</workDir>
+      <maxDocuments>222</maxDocuments>
+      <orphansStrategy>DELETE</orphansStrategy>
+    </crawler>
+    <crawler id="myCrawler2">
+      <numThreads>3</numThreads>
+      <workDir>/tmp/333</workDir>
+      <maxDocuments>333</maxDocuments>
+      <orphansStrategy>IGNORE</orphansStrategy>
+    </crawler>
+  </crawlers>
+
+</collector>

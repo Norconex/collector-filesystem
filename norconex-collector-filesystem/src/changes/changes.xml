@@ -9,6 +9,10 @@
 
     <release version="2.7.0-SNAPSHOT" date="2017-??-??" description="Feature release">
       <action dev="essiembre" type="add">
+        Added schema-based XML configuration validation which can be trigged
+        on command prompt with this new flag: -k or --checkcfg
+      </action>
+      <action dev="essiembre" type="add">
         New configurable GenericFilesystemOptionsProvider which allows
         to configure how different file systems are accessed
         (authentication, FTP(s), HTTP, Webdav, etc).
@@ -42,6 +46,13 @@
         FilesystemCollectorException now deprecated in favor of
         CollectorException.
       </action>      
+      <action dev="essiembre" type="update">
+        Modified Javadoc to include an XML usage example for all 
+        XML-configurable classes.
+      </action>      
+      <action dev="essiembre" type="fix">
+        Fixed minor errors in writing IXMLConfigurable classes to XML.
+      </action>
     </release>
 
     <release version="2.6.1" date="2016-12-14" description="Maintenance release">

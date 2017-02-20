@@ -16,6 +16,10 @@ package com.norconex.collector.fs.fetch.impl;
 
 import java.util.Objects;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
 import org.apache.commons.vfs2.FileContent;
 import org.apache.commons.vfs2.FileContentInfo;
 import org.apache.commons.vfs2.FileObject;
@@ -111,4 +115,18 @@ public class GenericFileMetadataFetcher implements IFileMetadataFetcher {
         }
         return smbAvailable && fileObject instanceof SmbFileObject;
     }
+    
+    @Override
+    public boolean equals(final Object other) {
+        return EqualsBuilder.reflectionEquals(this, other, false);
+    }
+    @Override
+    public int hashCode() {
+        return HashCodeBuilder.reflectionHashCode(this, false);
+    }
+    @Override
+    public String toString() {
+        return ReflectionToStringBuilder.toString(
+                this, ToStringStyle.SHORT_PREFIX_STYLE);
+    } 
 }

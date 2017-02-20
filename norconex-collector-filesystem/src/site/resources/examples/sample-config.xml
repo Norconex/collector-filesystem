@@ -47,10 +47,10 @@
       <importer>
         <postParseHandlers>
           <tagger class="${tagger}.ReplaceTagger">
-            <replace fromName="samplefield" regex="true">
+            <replace fromField="samplefield" regex="true">
               <fromValue>ping</fromValue><toValue>pong</toValue>
             </replace>
-            <replace fromName="Subject" regex="true">
+            <replace fromField="Subject" regex="true">
 				<fromValue>Sample to crawl</fromValue><toValue>Sample crawled</toValue>
 			</replace>            
           </tagger>

@@ -81,7 +81,7 @@
          than one path, they will be processed together.  -->    
     <startPaths>
       <path>c:\path\to\files\to\crawl</path>
-      <pathsFile>c:\path\to\a\file\full\of\start\paths.xml</pathsFile>
+      <pathsFile>c:\path\to\a\file\full\of\start\paths.txt</pathsFile>
     </startPaths>
 
     <!-- How many threads you want a crawler to use. Default is 2 threads.
