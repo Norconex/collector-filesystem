@@ -34,9 +34,9 @@
           </xs:simpleType>
         </xs:element>
         <xs:element name="ftpSecure" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="ftpConnectTimeout" type="xs:int" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="ftpConnectTimeout" type="xs:string" minOccurs="0" maxOccurs="1"/>
         <xs:element name="ftpControlEncoding" type="nonEmptyString" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="ftpDataTimeout" type="xs:int" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="ftpDataTimeout" type="xs:string" minOccurs="0" maxOccurs="1"/>
         <xs:element name="ftpDefaultDateFormat" type="nonEmptyString" minOccurs="0" maxOccurs="1"/>
         <xs:element name="ftpFileType" minOccurs="0" maxOccurs="1">
           <xs:simpleType>
@@ -54,18 +54,18 @@
         <xs:element name="ftpServerLanguageCode" type="nonEmptyString" minOccurs="0" maxOccurs="1"/>
         <xs:element name="ftpServerTimeZoneId" type="nonEmptyString" minOccurs="0" maxOccurs="1"/>
         <xs:element name="ftpShortMonthNames" type="nonEmptyString" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="ftpSoTimeout" type="xs:int" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="ftpSoTimeout" type="xs:string" minOccurs="0" maxOccurs="1"/>
         <xs:element name="ftpUserDirIsRoot" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
         <xs:element name="hdfsConfigName" type="nonEmptyString" minOccurs="0" maxOccurs="1"/>
         <xs:element name="hdfsConfigPath" type="nonEmptyString" minOccurs="0" maxOccurs="1"/>
         <xs:element name="hdfsConfigURL" type="nonEmptyString" minOccurs="0" maxOccurs="1"/>
         <xs:element name="httpWebdav" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="httpConnectionTimeout" type="xs:int" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="httpConnectionTimeout" type="xs:string" minOccurs="0" maxOccurs="1"/>
         <xs:element name="httpFollowRedirect" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
         <xs:element name="httpMaxConnectionsPerHost" type="xs:int" minOccurs="0" maxOccurs="1"/>
         <xs:element name="httpMaxTotalConnections" type="xs:int" minOccurs="0" maxOccurs="1"/>
         <xs:element name="httpPreemptiveAuth" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="httpSoTimeout" type="xs:int" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="httpSoTimeout" type="xs:string" minOccurs="0" maxOccurs="1"/>
         <xs:element name="httpUrlCharset" type="nonEmptyString" minOccurs="0" maxOccurs="1"/>
         <xs:element name="httpUserAgent" type="nonEmptyString" minOccurs="0" maxOccurs="1"/>
         <xs:element name="httpWebdavCreatorName" type="nonEmptyString" minOccurs="0" maxOccurs="1"/>
@@ -84,7 +84,7 @@
             </xs:restriction>
           </xs:simpleType>
         </xs:element>
-        <xs:element name="sftpTimeout" type="xs:int" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="sftpTimeout" type="xs:string" minOccurs="0" maxOccurs="1"/>
         <xs:element name="sftpUserDirIsRoot" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
       </xs:all>
       <xs:attribute name="class" type="xs:string"/>

@@ -67,7 +67,7 @@ public class GenericFilesystemOptionsProviderTest {
         p.setSftpFileNameEncoding("enc");
         p.setSftpKnownHosts(new File("/tmp").getAbsoluteFile());
         p.setSftpPreferredAuthentications("pref");
-        p.setSftpStrictHostKeyChecking("strict");
+        p.setSftpStrictHostKeyChecking("yes");
         p.setSftpTimeout(5678);
         p.setSftpUserDirIsRoot(true);
         

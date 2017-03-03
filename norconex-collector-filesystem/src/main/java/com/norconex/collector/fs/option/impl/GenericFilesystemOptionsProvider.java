@@ -52,6 +52,7 @@ import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.commons.lang.config.XMLConfigurationUtil;
 import com.norconex.commons.lang.encrypt.EncryptionKey;
 import com.norconex.commons.lang.encrypt.EncryptionUtil;
+import com.norconex.commons.lang.time.DurationParser;
 import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
 
 /**
@@ -116,6 +117,11 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  * set additional options.
  * </p>
  * 
+ * <p>
+ * As of 2.7.0, XML configuration entries expecting millisecond durations
+ * can be provided in human-readable format (English only), as per 
+ * {@link DurationParser} (e.g., "5 minutes and 30 seconds" or "5m30s").
+ * </p>
  * 
  * <h3>XML configuration usage:</h3>
  * <pre>
@@ -672,11 +678,17 @@ public class GenericFilesystemOptionsProvider
                 xml.getString("authPasswordKeySource", null));
     }
     private void loadFTP(XMLConfiguration xml) {
-        ftpConnectTimeout = 
-                xml.getInteger("ftpConnectTimeout", ftpConnectTimeout);
+        String timeout;
+        timeout = xml.getString("ftpConnectTimeout", null);
+        if (StringUtils.isNotBlank(timeout)) {
+            ftpConnectTimeout = (int) DurationParser.parse(timeout);
+        }
         ftpControlEncoding = 
                 xml.getString("ftpControlEncoding", ftpControlEncoding);
-        ftpDataTimeout = xml.getInteger("ftpDataTimeout", ftpDataTimeout);
+        timeout = xml.getString("ftpDataTimeout", null);
+        if (StringUtils.isNotBlank(timeout)) {
+            ftpDataTimeout = (int) DurationParser.parse(timeout);
+        }
         ftpDefaultDateFormat = 
                 xml.getString("ftpDefaultDateFormat", ftpDefaultDateFormat);
         String type = xml.getString(
@@ -695,7 +707,10 @@ public class GenericFilesystemOptionsProvider
                 xml.getString("ftpServerTimeZoneId", ftpServerTimeZoneId);
         ftpShortMonthNames = XMLConfigurationUtil.getCSVStringArray(
                 xml, "ftpShortMonthNames", ftpShortMonthNames);
-        ftpSoTimeout = xml.getInteger("ftpSoTimeout", ftpSoTimeout);
+        timeout = xml.getString("ftpSoTimeout", null);
+        if (StringUtils.isNotBlank(timeout)) {
+            ftpSoTimeout = (int) DurationParser.parse(timeout);
+        }
         ftpUserDirIsRoot = xml.getBoolean("ftpUserDirIsRoot", ftpUserDirIsRoot);
     }
     private void loadHDFS(XMLConfiguration xml) {
@@ -716,8 +731,8 @@ public class GenericFilesystemOptionsProvider
     }
     private void loadHTTP(XMLConfiguration xml) {
         httpWebdav = xml.getBoolean("httpWebdav", httpWebdav);
-        httpConnectionTimeout = 
-                xml.getInteger("httpConnectionTimeout", httpConnectionTimeout);
+        httpConnectionTimeout = (int) XMLConfigurationUtil.getDuration(
+                xml, "httpConnectionTimeout", httpConnectionTimeout);
         httpFollowRedirect = 
                 xml.getBoolean("httpFollowRedirect", httpFollowRedirect);
         httpMaxConnectionsPerHost = xml.getInteger(
@@ -726,7 +741,8 @@ public class GenericFilesystemOptionsProvider
                 "httpMaxTotalConnections", httpMaxTotalConnections);
         httpPreemptiveAuth = 
                 xml.getBoolean("httpPreemptiveAuth", httpPreemptiveAuth);
-        httpSoTimeout = xml.getInteger("httpSoTimeout", httpSoTimeout);
+        httpSoTimeout = (int) XMLConfigurationUtil.getDuration(
+                xml, "httpSoTimeout", httpSoTimeout);
         httpUrlCharset = xml.getString("httpUrlCharset", httpUrlCharset);
         httpUserAgent = xml.getString("httpUserAgent", httpUserAgent);
         httpWebdavCreatorName = 
@@ -749,7 +765,8 @@ public class GenericFilesystemOptionsProvider
                 "sftpPreferredAuthentications", sftpPreferredAuthentications);
         sftpStrictHostKeyChecking = xml.getString(
                 "sftpStrictHostKeyChecking", sftpStrictHostKeyChecking);
-        sftpTimeout = xml.getInteger("sftpTimeout", sftpTimeout);
+        sftpTimeout = (int) XMLConfigurationUtil.getDuration(
+                xml, "sftpTimeout", sftpTimeout);
         sftpUserDirIsRoot = 
                 xml.getBoolean("sftpUserDirIsRoot", sftpUserDirIsRoot);
     }
