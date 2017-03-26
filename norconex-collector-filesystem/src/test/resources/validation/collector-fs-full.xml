@@ -19,7 +19,7 @@
 <!-- This is a config file with as many configuration options being set
      as possible, to test validation as much we can.
      -->
-<collector id="Test Collector FS Config">
+<fscollector id="Test Collector FS Config">
 
   <progressDir>/progress</progressDir>
   <logsDir>/logs</logsDir>
@@ -167,4 +167,4 @@
     </crawler>
   </crawlers>
 
-</collector>
+</fscollector>
