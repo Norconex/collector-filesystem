@@ -55,9 +55,13 @@
       <action dev="essiembre" type="update">
         Modified Javadoc to include an XML usage example for all 
         XML-configurable classes.
-      </action>      
+      </action>
       <action dev="essiembre" type="fix">
         Fixed minor errors in writing IXMLConfigurable classes to XML.
+      </action>
+      <action dev="essiembre" type="remove">
+        Removed JDBCCrawlDataStoreFactory deprecated since 1.5 (replaced  
+        since by BasicJDBCCrawlDataStoreFactory).
       </action>
     </release>
 
