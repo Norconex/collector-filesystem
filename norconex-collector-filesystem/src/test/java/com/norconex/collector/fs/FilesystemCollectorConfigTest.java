@@ -25,6 +25,7 @@ import org.junit.Test;
 import com.norconex.collector.core.crawler.ICrawlerConfig;
 import com.norconex.collector.core.filter.impl.RegexMetadataFilter;
 import com.norconex.collector.fs.crawler.FilesystemCrawlerConfig;
+import com.norconex.collector.fs.crawler.MockStartPathsProvider;
 import com.norconex.collector.fs.option.impl.GenericFilesystemOptionsProvider;
 import com.norconex.committer.core.impl.FileSystemCommitter;
 import com.norconex.commons.lang.config.XMLConfigurationUtil;
@@ -48,6 +49,7 @@ public class FilesystemCollectorConfigTest {
         crawlerCfg.setCommitter(new FileSystemCommitter());
         crawlerCfg.setStartPaths(new String[] {"/start/file1", "/start/file2"});
         RegexMetadataFilter metaFilter = new RegexMetadataFilter();
+        crawlerCfg.setStartPathsProviders(new MockStartPathsProvider());
         metaFilter.setField("field");
         metaFilter.setRegex("potato");
         crawlerCfg.setMetadataFilters(metaFilter);

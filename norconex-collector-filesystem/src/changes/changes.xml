@@ -30,6 +30,9 @@
         Default implementation is GenericFileDocumentFetcher. 
       </action>
       <action dev="essiembre" type="add">
+        Can now provide start paths dynamically with new IStartPathsProvider.
+      </action>
+      <action dev="essiembre" type="add">
         New features from dependency updates. Collector Core: 
         ICollectorLifeCycleListener.  Importer: MergeTagger,
         ExternalTransformer.

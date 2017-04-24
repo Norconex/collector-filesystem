@@ -56,6 +56,7 @@ public class FilesystemCrawlerConfig extends AbstractCrawlerConfig {
     
     private String[] startPaths;
     private String[] pathsFiles;
+    private IStartPathsProvider[] startPathsProviders;
     
     private boolean keepDownloads;
 
@@ -90,6 +91,29 @@ public class FilesystemCrawlerConfig extends AbstractCrawlerConfig {
     public void setPathsFiles(String[] pathsFiles) {
         this.pathsFiles = ArrayUtils.clone(pathsFiles);
     }
+    /**
+     * Gets the providers of paths used as starting points for crawling.
+     * Use this approach over other methods when paths need to be provided
+     * dynamicaly at launch time. Paths obtained by a provider are combined
+     * with start paths provided through other methods.
+     * @return a start paths provider
+     * @since 2.7.0
+     */
+    public IStartPathsProvider[] getStartPathsProviders() {
+        return startPathsProviders;
+    }
+    /**
+     * Sets the providers of paths used as starting points for crawling.
+     * Use this approach over other methods when paths need to be provided
+     * dynamicaly at launch time. Paths obtained by a provider are combined
+     * with start paths provided through other methods.
+     * @param startPathsProviders start paths provider
+     * @since 2.7.0
+     */
+    public void setStartPathsProviders(
+            IStartPathsProvider... startPathsProviders) {
+        this.startPathsProviders = startPathsProviders;
+    }    
     public boolean isKeepDownloads() {
         return keepDownloads;
     }
@@ -188,6 +212,15 @@ public class FilesystemCrawlerConfig extends AbstractCrawlerConfig {
             for (String path : getPathsFiles()) {
                 writer.writeElementString("pathsFile", path);
             }
+            writer.flush();
+            IStartPathsProvider[] startPathsProviders = getStartPathsProviders();
+            if (startPathsProviders != null) {
+                for (IStartPathsProvider provider : startPathsProviders) {
+                    writeObject(out, "provider", provider);
+                }
+            }
+            out.flush();
+            
             writer.writeEndElement();
             writer.flush();
             
@@ -248,6 +281,24 @@ public class FilesystemCrawlerConfig extends AbstractCrawlerConfig {
         
         String[] pathsFilesArray = xml.getStringArray("startPaths.pathsFile");
         setPathsFiles(defaultIfEmpty(pathsFilesArray, getPathsFiles()));
+        
+        IStartPathsProvider[] startPathsProviders = 
+                loadStartPathsProviders(xml);
+        setStartPathsProviders(
+                defaultIfEmpty(startPathsProviders, getStartPathsProviders()));        
+    }
+    
+    private IStartPathsProvider[] loadStartPathsProviders(
+            XMLConfiguration xml) {
+        List<IStartPathsProvider> providers = new ArrayList<>();
+        List<HierarchicalConfiguration> nodes = 
+                xml.configurationsAt("startPaths.provider");
+        for (HierarchicalConfiguration node : nodes) {
+            IStartPathsProvider p = XMLConfigurationUtil.newInstance(node);
+            providers.add(p);
+            LOG.info("Start path provider loaded: " + p);
+        }
+        return providers.toArray(new IStartPathsProvider[] {});
     }
     
     private IFileDocumentProcessor[] loadProcessors(XMLConfiguration xml,
@@ -275,8 +326,8 @@ public class FilesystemCrawlerConfig extends AbstractCrawlerConfig {
                 .append(keepDownloads, castOther.keepDownloads)
                 .append(startPaths, castOther.startPaths)
                 .append(pathsFiles, castOther.pathsFiles)
-                .append(optionsProvider, 
-                        castOther.optionsProvider)
+                .append(startPathsProviders, castOther.startPathsProviders)
+                .append(optionsProvider, castOther.optionsProvider)
                 .append(metadataFetcher, castOther.metadataFetcher)
                 .append(metadataChecksummer, castOther.metadataChecksummer)
                 .append(documentFetcher, castOther.documentFetcher)
@@ -292,6 +343,7 @@ public class FilesystemCrawlerConfig extends AbstractCrawlerConfig {
                 .append(keepDownloads)
                 .append(startPaths)
                 .append(pathsFiles)
+                .append(startPathsProviders)
                 .append(optionsProvider)
                 .append(metadataFetcher)
                 .append(metadataChecksummer)
@@ -308,6 +360,7 @@ public class FilesystemCrawlerConfig extends AbstractCrawlerConfig {
                 .append("keepDownloads", keepDownloads)
                 .append("startPaths", startPaths)
                 .append("pathsFiles", pathsFiles)
+                .append("startPathsProviders", startPathsProviders)
                 .append("optionsProvider", optionsProvider)
                 .append("metadataFetcher", metadataFetcher)
                 .append("metadataChecksummer", metadataChecksummer)

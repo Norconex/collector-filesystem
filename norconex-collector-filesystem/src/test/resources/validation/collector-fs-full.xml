@@ -30,6 +30,7 @@
       <path>/path/dir21</path>
       <pathsFile>/pathsFile/file1.txt</pathsFile>
       <pathsFile>/pathsFile/file2.txt</pathsFile>
+      <provider class="com.norconex.collector.fs.crawler.MockStartPathsProvider"/>
     </startPaths>  
     <keepDownloads>true</keepDownloads>
     <numThreads>1</numThreads>

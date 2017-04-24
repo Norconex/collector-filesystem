@@ -28,7 +28,7 @@
           <xs:element name="startPaths" minOccurs="0" maxOccurs="1">
             <xs:complexType>
               <xs:all>
-                <xs:element ref="pathORpathsFile" minOccurs="1" maxOccurs="unbounded"/>
+                <xs:element ref="startPathChoice" minOccurs="1" maxOccurs="unbounded"/>
               </xs:all>
             </xs:complexType>
           </xs:element>
@@ -63,9 +63,10 @@
     </xs:complexContent>
   </xs:complexType>
 
-  <xs:element name="pathORpathsFile" abstract="true"/>
-  <xs:element name="path" substitutionGroup="pathORpathsFile" type="nonEmptyString"/>
-  <xs:element name="pathsFile" substitutionGroup="pathORpathsFile" type="nonEmptyString"/>
+  <xs:element name="startPathChoice" abstract="true"/>
+  <xs:element name="path" substitutionGroup="startPathChoice" type="nonEmptyString"/>
+  <xs:element name="pathsFile" substitutionGroup="startPathChoice" type="nonEmptyString"/>
+  <xs:element name="provider" substitutionGroup="startPathChoice" type="anyComplexRequiredClassType" />  
 
   <xs:simpleType name="nonEmptyString">
     <xs:restriction base="xs:string">

@@ -17,7 +17,10 @@ package com.norconex.collector.fs.crawler;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.MalformedURLException;
+import java.text.NumberFormat;
+import java.util.Iterator;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.LineIterator;
@@ -107,42 +110,77 @@ public class FilesystemCrawler extends AbstractCrawler {
     }
     
     private void queueStartPaths(ICrawlDataStore crawlDataStore) {
+        int urlCount = 0;
+        urlCount += queueStartPathsRegular(crawlDataStore);
+        urlCount += queueStartPathsSeedFiles(crawlDataStore);
+        urlCount += queueStartPathsProviders(crawlDataStore);
+        LOG.info(NumberFormat.getNumberInstance().format(urlCount)
+                + " start paths identified.");
+    }
+    private int queueStartPathsRegular(final ICrawlDataStore crawlDataStore) {   
         // Queue regular start urls
         String[] startPaths = getCrawlerConfig().getStartPaths();
-        if (startPaths != null) {
-            for (int i = 0; i < startPaths.length; i++) {
-                String startPath = startPaths[i];
-                // No protocol specified: we assume local file, and we get 
-                // the absolute version.
-                if (!startPath.contains("://")) {
-                    startPath = new File(startPath).getAbsolutePath();
-                }
-                executeQueuePipeline(
-                        new BaseCrawlData(startPath), crawlDataStore);
-            }
+        if (startPaths == null) {
+            return 0;
         }
-        // Queue start urls define in one or more seed files
+        
+        for (int i = 0; i < startPaths.length; i++) {
+            String startPath = startPaths[i];
+            // No protocol specified: we assume local file, and we get 
+            // the absolute version.
+            if (!startPath.contains("://")) {
+                startPath = new File(startPath).getAbsolutePath();
+            }
+            executeQueuePipeline(new BaseCrawlData(startPath), crawlDataStore);
+        }
+        return startPaths.length;
+    }
+    private int queueStartPathsSeedFiles(final ICrawlDataStore crawlDataStore) {
         String[] pathsFiles = getCrawlerConfig().getPathsFiles();
-        if (pathsFiles != null) {
-            for (int i = 0; i < pathsFiles.length; i++) {
-                String pathsFile = pathsFiles[i];
-                LineIterator it = null;
-                try {
-                    it = IOUtils.lineIterator(
-                            new FileInputStream(pathsFile), CharEncoding.UTF_8);
-                    while (it.hasNext()) {
-                        String startPath = it.nextLine();
-                        executeQueuePipeline(
-                                new BaseCrawlData(startPath), crawlDataStore);
-                    }
-                } catch (IOException e) {
-                    throw new CollectorException(
-                            "Could not process paths file: " + pathsFile, e);
-                } finally {
-                    LineIterator.closeQuietly(it);
+        if (pathsFiles == null) {
+            return 0;
+        }
+        int pathCount = 0;
+        for (int i = 0; i < pathsFiles.length; i++) {
+            String pathsFile = pathsFiles[i];
+            LineIterator it = null;
+            try (InputStream is = new FileInputStream(pathsFile)) {
+                it = IOUtils.lineIterator(is, CharEncoding.UTF_8);
+                while (it.hasNext()) {
+                    String startPath = it.nextLine();
+                    executeQueuePipeline(
+                            new BaseCrawlData(startPath), crawlDataStore);
+                    pathCount++;
                 }
+            } catch (IOException e) {
+                throw new CollectorException(
+                        "Could not process paths file: " + pathsFile, e);
+            } finally {
+                LineIterator.closeQuietly(it);
             }
         }
+        return pathCount;
+    }
+    
+    private int queueStartPathsProviders(final ICrawlDataStore crawlDataStore) {
+        IStartPathsProvider[] providers = 
+                getCrawlerConfig().getStartPathsProviders();
+        if (providers == null) {
+            return 0;
+        }
+        int count = 0;
+        for (IStartPathsProvider provider : providers) {
+            if (provider == null) {
+                continue;
+            }
+            Iterator<String> it = provider.provideStartPaths();
+            while (it.hasNext()) {
+                executeQueuePipeline(
+                        new BaseCrawlData(it.next()), crawlDataStore);
+                count++;
+            }
+        }
+        return count;
     }
     
     @Override
