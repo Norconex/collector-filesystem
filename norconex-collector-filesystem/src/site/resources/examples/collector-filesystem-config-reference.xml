@@ -78,10 +78,13 @@
 
     
     <!-- Mandatory starting path(s) where crawling begins.  If you put more 
-         than one path, they will be processed together.  -->    
+         than one path, they will all be processed. To have paths dynamically
+         created at launch time, use "provider" with your own implementation
+         of IStartPathsProvider.  -->    
     <startPaths>
       <path>c:\path\to\files\to\crawl</path>
       <pathsFile>c:\path\to\a\file\full\of\start\paths.txt</pathsFile>
+      <provider class="YourClass"/>
     </startPaths>
 
     <!-- How many threads you want a crawler to use. Default is 2 threads.
