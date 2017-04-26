@@ -7,7 +7,7 @@
   </properties>
   <body>
 
-    <release version="2.7.0-SNAPSHOT" date="2017-??-??" description="Feature release">
+    <release version="2.7.0" date="2017-04-26" description="Feature release">
       <action dev="essiembre" type="add">
         Added schema-based XML configuration validation which can be trigged
         on command prompt with this new flag: -k or --checkcfg
