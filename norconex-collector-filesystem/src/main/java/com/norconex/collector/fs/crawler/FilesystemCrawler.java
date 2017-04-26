@@ -1,4 +1,4 @@
-/* Copyright 2013-2014 Norconex Inc.
+/* Copyright 2013-2017 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,16 +17,22 @@ package com.norconex.collector.fs.crawler;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.text.NumberFormat;
+import java.util.Iterator;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.LineIterator;
 import org.apache.commons.lang3.CharEncoding;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemManager;
-import org.apache.commons.vfs2.FileSystemOptions;
-import org.apache.commons.vfs2.VFS;
-import org.apache.commons.vfs2.provider.ftp.FtpFileSystemConfigBuilder;
+import org.apache.commons.vfs2.impl.StandardFileSystemManager;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 
 import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.core.crawler.AbstractCrawler;
@@ -35,8 +41,8 @@ import com.norconex.collector.core.data.BaseCrawlData;
 import com.norconex.collector.core.data.ICrawlData;
 import com.norconex.collector.core.data.store.ICrawlDataStore;
 import com.norconex.collector.core.pipeline.BasePipelineContext;
-import com.norconex.collector.fs.FilesystemCollectorException;
 import com.norconex.collector.fs.doc.FileDocument;
+import com.norconex.collector.fs.option.IFilesystemOptionsProvider;
 import com.norconex.collector.fs.pipeline.committer.FileCommitterPipeline;
 import com.norconex.collector.fs.pipeline.committer.FileCommitterPipelineContext;
 import com.norconex.collector.fs.pipeline.importer.FileImporterPipeline;
@@ -50,11 +56,15 @@ import com.norconex.jef4.suite.JobSuite;
 /**
  * The Filesystem Crawler.
  * 
- * @author Pascal Dimassimo
+ * @author Pascal Essiembre
  */
 public class FilesystemCrawler extends AbstractCrawler {
 
-    private FileSystemManager fileManager;
+    private static final Logger LOG = 
+            LogManager.getLogger(FilesystemCrawler.class);
+    
+    private StandardFileSystemManager fileManager;
+    private IFilesystemOptionsProvider optionsProvider;
 
     /**
      * Constructor.
@@ -81,68 +91,96 @@ public class FilesystemCrawler extends AbstractCrawler {
             JobStatusUpdater statusUpdater, JobSuite suite, 
             ICrawlDataStore crawlDataStore, boolean resume) {
 
-
-        
-        try {
-            FileSystemOptions opts = new FileSystemOptions();
-
-            // For FTP, these tweaks are required to get directory listings.
-            // More info:
-            //http://stackoverflow.com/questions/6046220/
-            //    apache-commons-vfs-working-with-ftp
-            //https://commons.apache.org/proper/commons-vfs/filesystems.html#FTP
-            FtpFileSystemConfigBuilder ftpConfigBuilder = 
-                    FtpFileSystemConfigBuilder.getInstance();
-            ftpConfigBuilder.setPassiveMode(opts, true);
-            ftpConfigBuilder.setUserDirIsRoot(opts, false);
-            
-            this.fileManager = VFS.getManager();
-        } catch (FileSystemException e) {
-            throw new FilesystemCollectorException(e);
-        }
+        initializeFileSystemManager();
         
         if (!resume) {
             queueStartPaths(crawlDataStore);
         }
     }
 
+    private void initializeFileSystemManager() {
+        try {
+            optionsProvider = getCrawlerConfig().getOptionsProvider();
+            fileManager = new StandardFileSystemManager();
+            fileManager.setClassLoader(getClass().getClassLoader());
+            fileManager.init();
+        } catch (FileSystemException e) {
+            throw new CollectorException("Could not initialize filesystem.", e);
+        }
+    }
+    
     private void queueStartPaths(ICrawlDataStore crawlDataStore) {
+        int urlCount = 0;
+        urlCount += queueStartPathsRegular(crawlDataStore);
+        urlCount += queueStartPathsSeedFiles(crawlDataStore);
+        urlCount += queueStartPathsProviders(crawlDataStore);
+        LOG.info(NumberFormat.getNumberInstance().format(urlCount)
+                + " start paths identified.");
+    }
+    private int queueStartPathsRegular(final ICrawlDataStore crawlDataStore) {   
         // Queue regular start urls
         String[] startPaths = getCrawlerConfig().getStartPaths();
-        if (startPaths != null) {
-            for (int i = 0; i < startPaths.length; i++) {
-                String startPath = startPaths[i];
-                // No protocol specified: we assume local file, and we get 
-                // the absolute version.
-                if (!startPath.contains("://")) {
-                    startPath = new File(startPath).getAbsolutePath();
-                }
-                executeQueuePipeline(
-                        new BaseCrawlData(startPath), crawlDataStore);
-            }
+        if (startPaths == null) {
+            return 0;
         }
-        // Queue start urls define in one or more seed files
+        
+        for (int i = 0; i < startPaths.length; i++) {
+            String startPath = startPaths[i];
+            // No protocol specified: we assume local file, and we get 
+            // the absolute version.
+            if (!startPath.contains("://")) {
+                startPath = new File(startPath).getAbsolutePath();
+            }
+            executeQueuePipeline(new BaseCrawlData(startPath), crawlDataStore);
+        }
+        return startPaths.length;
+    }
+    private int queueStartPathsSeedFiles(final ICrawlDataStore crawlDataStore) {
         String[] pathsFiles = getCrawlerConfig().getPathsFiles();
-        if (pathsFiles != null) {
-            for (int i = 0; i < pathsFiles.length; i++) {
-                String pathsFile = pathsFiles[i];
-                LineIterator it = null;
-                try {
-                    it = IOUtils.lineIterator(
-                            new FileInputStream(pathsFile), CharEncoding.UTF_8);
-                    while (it.hasNext()) {
-                        String startPath = it.nextLine();
-                        executeQueuePipeline(
-                                new BaseCrawlData(startPath), crawlDataStore);
-                    }
-                } catch (IOException e) {
-                    throw new CollectorException(
-                            "Could not process paths file: " + pathsFile, e);
-                } finally {
-                    LineIterator.closeQuietly(it);;
+        if (pathsFiles == null) {
+            return 0;
+        }
+        int pathCount = 0;
+        for (int i = 0; i < pathsFiles.length; i++) {
+            String pathsFile = pathsFiles[i];
+            LineIterator it = null;
+            try (InputStream is = new FileInputStream(pathsFile)) {
+                it = IOUtils.lineIterator(is, CharEncoding.UTF_8);
+                while (it.hasNext()) {
+                    String startPath = it.nextLine();
+                    executeQueuePipeline(
+                            new BaseCrawlData(startPath), crawlDataStore);
+                    pathCount++;
                 }
+            } catch (IOException e) {
+                throw new CollectorException(
+                        "Could not process paths file: " + pathsFile, e);
+            } finally {
+                LineIterator.closeQuietly(it);
             }
         }
+        return pathCount;
+    }
+    
+    private int queueStartPathsProviders(final ICrawlDataStore crawlDataStore) {
+        IStartPathsProvider[] providers = 
+                getCrawlerConfig().getStartPathsProviders();
+        if (providers == null) {
+            return 0;
+        }
+        int count = 0;
+        for (IStartPathsProvider provider : providers) {
+            if (provider == null) {
+                continue;
+            }
+            Iterator<String> it = provider.provideStartPaths();
+            while (it.hasNext()) {
+                executeQueuePipeline(
+                        new BaseCrawlData(it.next()), crawlDataStore);
+                count++;
+            }
+        }
+        return count;
     }
     
     @Override
@@ -171,10 +209,14 @@ public class FilesystemCrawler extends AbstractCrawler {
         //TODO cache the pipeline object?
         FileObject fileObject = null;
         try {
-            fileObject = fileManager.resolveFile(crawlData.getReference());
+            if (optionsProvider == null) {
+                fileObject = fileManager.resolveFile(crawlData.getReference());
+            } else {
+                fileObject = fileManager.resolveFile(crawlData.getReference(), 
+                        optionsProvider.getFilesystemOptions(fileObject));
+            }
         } catch (FileSystemException e) {
-            throw new FilesystemCollectorException(
-                    "Cannot resolve: " + crawlData.getReference(), e);
+            resolveFileException(crawlData.getReference(), e);
         }
         FileImporterPipelineContext context = new FileImporterPipelineContext(
                 (FilesystemCrawler) crawler, crawlDataStore, (FileDocument) doc,
@@ -211,7 +253,23 @@ public class FilesystemCrawler extends AbstractCrawler {
     @Override
     protected void cleanupExecution(JobStatusUpdater statusUpdater,
             JobSuite suite, ICrawlDataStore refStore) {
-        //Nothing to clean-up
+        fileManager.close();
     }
 
+    private void resolveFileException(String ref, Exception e) {
+        Throwable t = ExceptionUtils.getRootCause(e);
+        if (t instanceof MalformedURLException) {
+            if (StringUtils.containsIgnoreCase(t.getMessage(), "smb")) {
+                LOG.error("SMB protocol requires you to have this library in "
+                        + "your classpath (e.g. \"lib\" folder): "
+                        + "http://central.maven.org/maven2/jcifs/jcifs/"
+                        + "1.3.17/jcifs-1.3.17.jar");
+            } else if (StringUtils.containsIgnoreCase(
+                    t.getMessage(), "unknown protocol")) {
+                LOG.error("The protocol used may be unsupported or requires "
+                        + "you to install missing dependencies.");
+            }
+        }
+        throw new CollectorException("Cannot resolve: " + ref, e);
+    }
 }

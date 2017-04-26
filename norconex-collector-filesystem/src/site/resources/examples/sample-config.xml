@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE xml>
 <!-- 
-   Copyright 2010-2014 Norconex Inc.
+   Copyright 2010-2017 Norconex Inc.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -21,7 +22,7 @@
 ## sample-config.variables (or properties) with the same variables set.
 
 ##set($path = "/path/to/content/to/index")
-##set($workdir = "/temp/content-analytics/workdir")
+##set($workdir = "/temp/workdir")
 
 #set($tagger = "com.norconex.importer.handler.tagger.impl")
 #set($transformer = "com.norconex.importer.handler.transformer.impl")
@@ -46,10 +47,10 @@
       <importer>
         <postParseHandlers>
           <tagger class="${tagger}.ReplaceTagger">
-            <replace fromName="samplefield" regex="true">
+            <replace fromField="samplefield" regex="true">
               <fromValue>ping</fromValue><toValue>pong</toValue>
             </replace>
-            <replace fromName="Subject" regex="true">
+            <replace fromField="Subject" regex="true">
 				<fromValue>Sample to crawl</fromValue><toValue>Sample crawled</toValue>
 			</replace>            
           </tagger>

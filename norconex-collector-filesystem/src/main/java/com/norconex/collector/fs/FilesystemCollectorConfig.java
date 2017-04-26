@@ -1,4 +1,4 @@
-/* Copyright 2013-2014 Norconex Inc.
+/* Copyright 2013-2017 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,13 +23,12 @@ import com.norconex.collector.fs.crawler.FilesystemCrawlerConfig;
 
 /**
  * Filesystem Collector configuration.
- * @author Pascal Dimassimo
  * @author Pascal Essiembre
  */
 public class FilesystemCollectorConfig extends AbstractCollectorConfig {
 
 	public FilesystemCollectorConfig() {
-        super(FilesystemCrawlerConfig.class);
+        super(FilesystemCrawlerConfig.class, "fscollector");
     }
 
     @Override

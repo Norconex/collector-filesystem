@@ -1,4 +1,4 @@
-/* Copyright 2013-2014 Norconex Inc.
+/* Copyright 2013-2017 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,13 @@
  */
 package com.norconex.collector.fs.pipeline.importer;
 
-import java.util.Objects;
+import java.util.Date;
 
-import org.apache.commons.vfs2.FileContent;
-import org.apache.commons.vfs2.FileContentInfo;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileType;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
 
+import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.core.checksum.IMetadataChecksummer;
 import com.norconex.collector.core.crawler.event.CrawlerEvent;
 import com.norconex.collector.core.data.BaseCrawlData;
@@ -35,13 +32,13 @@ import com.norconex.collector.core.pipeline.importer.ImportModuleStage;
 import com.norconex.collector.core.pipeline.importer.ImporterPipelineContext;
 import com.norconex.collector.core.pipeline.importer.ImporterPipelineUtil;
 import com.norconex.collector.core.pipeline.importer.SaveDocumentStage;
-import com.norconex.collector.fs.FilesystemCollectorException;
-import com.norconex.collector.fs.data.FileCrawlState;
 import com.norconex.collector.fs.doc.FileDocument;
 import com.norconex.collector.fs.doc.FileMetadata;
 import com.norconex.collector.fs.doc.IFileDocumentProcessor;
+import com.norconex.collector.fs.fetch.IFileMetadataFetcher;
 import com.norconex.collector.fs.pipeline.queue.FileQueuePipeline;
 import com.norconex.commons.lang.file.ContentType;
+import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.pipeline.Pipeline;
 
 /**
@@ -50,9 +47,6 @@ import com.norconex.commons.lang.pipeline.Pipeline;
  */
 public class FileImporterPipeline extends Pipeline<ImporterPipelineContext> {
 
-    private static final Logger LOG = 
-            LogManager.getLogger(FileImporterPipeline.class);
-    
     public FileImporterPipeline(boolean isKeepDownloads) {
         addStage(new FolderPathsExtractorStage());
         addStage(new FileMetadataFetcherStage());
@@ -92,7 +86,7 @@ public class FileImporterPipeline extends Pipeline<ImporterPipelineContext> {
                 ctx.getCrawlData().setState(CrawlState.ERROR);
                 ctx.fireCrawlerEvent(CrawlerEvent.REJECTED_ERROR, 
                         ctx.getCrawlData(), this);
-                throw new FilesystemCollectorException(
+                throw new CollectorException(
                         "Cannot extract folder paths: " 
                                 + ctx.getCrawlData().getReference(), e);
             }
@@ -105,11 +99,10 @@ public class FileImporterPipeline extends Pipeline<ImporterPipelineContext> {
             extends AbstractImporterStage {
         @Override
         public boolean executeStage(FileImporterPipelineContext ctx) {
-            if (ctx.getConfig().getMetadataFilters() == null) {
-                if (ImporterPipelineUtil.isHeadersRejected(ctx)) {
-                    ctx.getCrawlData().setState(CrawlState.REJECTED);
-                    return false;
-                }
+            if (ctx.getConfig().getMetadataFilters() != null
+                    && ImporterPipelineUtil.isHeadersRejected(ctx)) {
+                ctx.getCrawlData().setState(CrawlState.REJECTED);
+                return false;
             }
             return true;
         }
@@ -136,56 +129,50 @@ public class FileImporterPipeline extends Pipeline<ImporterPipelineContext> {
         }
     }    
 
-    //--- IMPORT Module --------------------------------------------------------
+    //--- File Metadata Fetcher ------------------------------------------------
     private static class FileMetadataFetcherStage 
             extends AbstractImporterStage {
         @Override
         public boolean executeStage(FileImporterPipelineContext ctx) {
-            FileDocument doc = ctx.getDocument();
+            BaseCrawlData crawlData = ctx.getCrawlData();
+            IFileMetadataFetcher metaFetcher = 
+                    ctx.getConfig().getMetadataFetcher();
             FileMetadata metadata = ctx.getMetadata();
-            try {
-                FileContent content = ctx.getFileObject().getContent();
-                //--- Enhance Metadata ---
-                metadata.addLong(
-                        FileMetadata.COLLECTOR_SIZE, content.getSize());
-                metadata.addLong(FileMetadata.COLLECTOR_LASTMODIFIED,
-                        content.getLastModifiedTime());
-                FileContentInfo info = content.getContentInfo();
-                if (info != null) {
-                    metadata.addString(FileMetadata.COLLECTOR_CONTENT_ENCODING, 
-                            info.getContentEncoding());
-                    metadata.addString(FileMetadata.COLLECTOR_CONTENT_TYPE, 
-                            info.getContentType());
-                }
-                for (String attrName: content.getAttributeNames()) {
-                    Object obj = content.getAttribute(attrName);
-                    if (obj != null) {
-                        metadata.addString(FileMetadata.COLLECTOR_PREFIX 
-                                + "attribute." + attrName, 
-                                        Objects.toString(obj));
-                    }
-                }
-                
-                //--- Apply Metadata to document ---
-                if (doc.getContentType() == null) {
-                    doc.setContentType(ContentType.valueOf(
-                            doc.getMetadata().getString(
-                                    FileMetadata.COLLECTOR_CONTENT_TYPE)));
-                    doc.setContentEncoding(doc.getMetadata().getString(
-                            FileMetadata.COLLECTOR_CONTENT_ENCODING));
-                }
-                
-            } catch (FileSystemException e) {
-                ctx.getCrawlData().setState(CrawlState.ERROR);
-                ctx.fireCrawlerEvent(CrawlerEvent.REJECTED_ERROR, 
-                        ctx.getCrawlData(), this);
 
-                throw new FilesystemCollectorException(
-                        "Cannot fetch file metadata: " 
-                                + ctx.getCrawlData().getReference(), e);
+            //TODO consider passing original metadata instead? 
+            Properties newMeta = new Properties(
+                    metadata.isCaseInsensitiveKeys());
+            FileObject fileObject = ctx.getFileObject();
+            
+            CrawlState state = metaFetcher.fetchMetadada(fileObject, newMeta);
+
+            metadata.putAll(newMeta);
+
+            //--- Apply Metadata to document ---
+            // TODO are there headers to enhance first based on attributes
+            // (like http collector)?
+            FileDocument doc = ctx.getDocument();
+            if (doc.getContentType() == null) {
+                doc.setContentType(ContentType.valueOf(metadata.getString(
+                        FileMetadata.COLLECTOR_CONTENT_TYPE)));
+                doc.setContentEncoding(metadata.getString(
+                        FileMetadata.COLLECTOR_CONTENT_ENCODING));
             }
-            ctx.fireCrawlerEvent(CrawlerEvent.DOCUMENT_METADATA_FETCHED, 
-                    ctx.getCrawlData(), this);
+
+            crawlData.setState(state);
+            if (state.isGoodState()) {
+                ctx.fireCrawlerEvent(CrawlerEvent.DOCUMENT_METADATA_FETCHED, 
+                        crawlData, fileObject);
+            } else {
+                String eventType;
+                if (state.isOneOf(CrawlState.NOT_FOUND)) {
+                    eventType = CrawlerEvent.REJECTED_NOTFOUND;
+                } else {
+                    eventType = CrawlerEvent.REJECTED_BAD_STATUS;
+                }
+                ctx.fireCrawlerEvent(eventType, crawlData, fileObject);
+                return false;
+            }
             return true;
         }
     }    
@@ -216,42 +203,29 @@ public class FileImporterPipeline extends Pipeline<ImporterPipelineContext> {
         @Override
         public boolean executeStage(FileImporterPipelineContext ctx) {
             BaseCrawlData crawlData = ctx.getCrawlData();
-            //TODO replace signature with Writer class.
-            LOG.debug("Fetching document: " + ctx.getDocument().getReference());
-            try {
-                if (!ctx.getFileObject().exists()) {
-                    crawlData.setState(FileCrawlState.NOT_FOUND);
-                    ctx.fireCrawlerEvent(CrawlerEvent.REJECTED_NOTFOUND, 
-                            crawlData, ctx.getFileObject());
-                    return false;
-                }
-                ctx.getDocument().setContent(
-                        ctx.getCrawler().getStreamFactory().newInputStream(
-                                ctx.getFileObject().getContent()
-                                        .getInputStream()));
-                // if not set to new or modified already, make it new
-                if (!crawlData.getState().isNewOrModified()) {
-                    crawlData.setState(CrawlState.NEW);
-                }
-                ctx.fireCrawlerEvent(
-                        CrawlerEvent.DOCUMENT_FETCHED, crawlData, this);
-                return true;
-            } catch (Exception e) {
-                crawlData.setState(CrawlState.ERROR);
-                ctx.fireCrawlerEvent(CrawlerEvent.REJECTED_ERROR, 
-                        crawlData, this);
-                if (LOG.isDebugEnabled()) {
-                    LOG.error("Cannot fetch document: " 
-                            + crawlData.getReference()
-                            + " (" + e.getMessage() + ")", e);
+            FileDocument doc = ctx.getDocument();
+            FileObject fileObject = ctx.getFileObject();
+            CrawlState state = ctx.getConfig().getDocumentFetcher()
+                    .fetchDocument(ctx.getFileObject(), doc);
+            crawlData.setCrawlDate(new Date());
+            crawlData.setContentType(doc.getContentType());
+            crawlData.setState(state);
+            
+            if (state.isGoodState()) {
+                ctx.fireCrawlerEvent(CrawlerEvent.DOCUMENT_FETCHED, 
+                        crawlData, fileObject);
+            } else {
+                String eventType;
+                if (state.isOneOf(CrawlState.NOT_FOUND)) {
+                    eventType = CrawlerEvent.REJECTED_NOTFOUND;
                 } else {
-                    LOG.error("Cannot fetch document: " 
-                            + crawlData.getReference()
-                            + " (" + e.getMessage() + ")");
+                    eventType = CrawlerEvent.REJECTED_BAD_STATUS;
                 }
-                throw new FilesystemCollectorException(e);
-            }  
-
+                ctx.fireCrawlerEvent(eventType, crawlData, fileObject);
+                return false;
+            }
+            return true;
         }
-    }  
+    }
 }
+

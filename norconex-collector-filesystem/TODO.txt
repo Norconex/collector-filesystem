@@ -1,7 +1,6 @@
 The following are either things to be done, or ideas to consider:
 
-- Wire in SMB/JCIFS dependencies.
+- Consider a maxDepth (folder depth).
 
-- Add Commons VFS third party dependencies for ALL supported file systems.
-
-- Add Commons VFS config options for ALL supported file systems.
+- Remove org.apache.commosn.vfs.provider.[smb|mime] package and replace with 
+  appropriate Jar dependency when available in a Maven repo.

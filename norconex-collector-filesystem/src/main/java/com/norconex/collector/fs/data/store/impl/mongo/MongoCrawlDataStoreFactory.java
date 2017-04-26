@@ -1,4 +1,4 @@
-/* Copyright 2013-2014 Norconex Inc.
+/* Copyright 2013-2017 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,12 +18,16 @@ import com.norconex.collector.core.data.store.ICrawlDataStoreFactory;
 import com.norconex.collector.core.data.store.impl.mongo.AbstractMongoCrawlDataStoreFactory;
 import com.norconex.collector.core.data.store.impl.mongo.BaseMongoSerializer;
 import com.norconex.collector.core.data.store.impl.mongo.IMongoSerializer;
+import com.norconex.commons.lang.encrypt.EncryptionUtil;
 
 /**
- * Mongo implementation of {@link ICrawlDataStoreFactory}.
- * <br><br>
- * XML configuration usage:
- * <br><br>
+ * <p>Mongo implementation of {@link ICrawlDataStoreFactory}.</p>
+ * <p>
+ * As of 2.7.0, <code>password</code> can take a password that has been 
+ * encrypted using {@link EncryptionUtil} (or command-line encrypt.[bat|sh]). 
+ * See for {@link AbstractMongoCrawlDataStoreFactory} details.
+ * </p>
+ * <h3>XML configuration usage:</h3>
  * <pre>
  *  &lt;crawlDataStoreFactory  
  *      class="com.norconex.collector.fs.data.store.impl.mongo.MongoCrawlDataStoreFactory"&gt;
@@ -32,6 +36,9 @@ import com.norconex.collector.core.data.store.impl.mongo.IMongoSerializer;
  *      &lt;dbname&gt;(Optional Mongo database name. Default to crawl id)&lt;/dbname&gt;
  *      &lt;username&gt;(Optional user name)&lt;/username&gt;
  *      &lt;password&gt;(Optional user password)&lt;/password&gt;
+ *      &lt;!-- Use the following if password is encrypted. --&gt;
+ *      &lt;passwordKey&gt;(the encryption key or a reference to it)&lt;/passwordKey&gt;
+ *      &lt;passwordKeySource&gt;[key|file|environment|property]&lt;/passwordKeySource&gt;
  *  &lt;/crawlDataStoreFactory&gt;
  * </pre>
  * <p>
@@ -39,6 +46,20 @@ import com.norconex.collector.core.data.store.impl.mongo.IMongoSerializer;
  * The "username" must be a valid user that has the "readWrite" role over 
  * the database (set with "dbname").
  * </p>
+ * 
+ * <h4>Usage example:</h4>
+ * <p>
+ * The following points to a Mongo installation with host name "localhost",
+ * port 1234, and a Mongo database called "MyCrawl".
+ * </p>
+ * <pre>
+ *  &lt;crawlDataStoreFactory  
+ *      class="com.norconex.collector.fs.data.store.impl.mongo.MongoCrawlDataStoreFactory"&gt;
+ *      &lt;host&gt;localhost&lt;/host&gt;
+ *      &lt;port&gt;1234&lt;/port&gt;
+ *      &lt;dbname&gt;MyCrawl&lt;/dbname&gt;
+ *  &lt;/crawlDataStoreFactory&gt;
+ * </pre> 
  * @author Pascal Essiembre
  */
 public class MongoCrawlDataStoreFactory 
