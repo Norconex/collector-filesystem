@@ -36,6 +36,8 @@ import com.norconex.commons.lang.encrypt.EncryptionUtil;
  *      &lt;dbname&gt;(Optional Mongo database name. Default to crawl id)&lt;/dbname&gt;
  *      &lt;username&gt;(Optional user name)&lt;/username&gt;
  *      &lt;password&gt;(Optional user password)&lt;/password&gt;
+ *      &lt;cachedCollectionName&gt;(Custom "cached" collection name)&lt;/cachedCollectionName&gt;
+ *      &lt;referencesCollectionName&gt;(Custom "references" collection name)&lt;/referencesCollectionName&gt;
  *      &lt;mechanism&gt;(Optional authentication mechanism)&lt;/mechanism&gt;
  *      &lt;!-- Use the following if password is encrypted. --&gt;
  *      &lt;passwordKey&gt;(the encryption key or a reference to it)&lt;/passwordKey&gt;
@@ -51,6 +53,12 @@ import com.norconex.commons.lang.encrypt.EncryptionUtil;
  * As of 2.7.1, it is now possible to specify which MongoDB mechanism to use 
  * for authentication. Refer to {@link AbstractMongoCrawlDataStoreFactory}
  * for available options.
+ * </p>
+ * 
+ * <p>
+ * As of 2.7.2, you can define your own collection names with 
+ * {@link #setReferencesCollectionName(String)} and 
+ * {@link #setCachedCollectionName(String)}.
  * </p>
  * 
  * <h4>Usage example:</h4>
