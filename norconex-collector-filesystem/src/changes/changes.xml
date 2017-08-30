@@ -9,7 +9,8 @@
 
     <release version="2.7.2-SNAPSHOT" date="2017-??-??" description="Maintenance release">
       <action dev="essiembre" type="update">
-        Dependency updates: Norconex Collector Core 1.8.3.
+        Dependency updates: Norconex Collector Core 1.8.3, 
+        Norconex Commons Lang 1.14.0.
       </action>
     </release>
 

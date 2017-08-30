@@ -19,12 +19,12 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
+import java.nio.charset.StandardCharsets;
 import java.text.NumberFormat;
 import java.util.Iterator;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.LineIterator;
-import org.apache.commons.lang3.CharEncoding;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.vfs2.FileObject;
@@ -145,7 +145,7 @@ public class FilesystemCrawler extends AbstractCrawler {
             String pathsFile = pathsFiles[i];
             LineIterator it = null;
             try (InputStream is = new FileInputStream(pathsFile)) {
-                it = IOUtils.lineIterator(is, CharEncoding.UTF_8);
+                it = IOUtils.lineIterator(is, StandardCharsets.UTF_8);
                 while (it.hasNext()) {
                     String startPath = it.nextLine();
                     executeQueuePipeline(
