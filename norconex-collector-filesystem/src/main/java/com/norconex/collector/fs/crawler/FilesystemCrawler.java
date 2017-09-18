@@ -41,6 +41,7 @@ import com.norconex.collector.core.data.BaseCrawlData;
 import com.norconex.collector.core.data.ICrawlData;
 import com.norconex.collector.core.data.store.ICrawlDataStore;
 import com.norconex.collector.core.pipeline.BasePipelineContext;
+import com.norconex.collector.core.pipeline.importer.ImporterPipelineContext;
 import com.norconex.collector.fs.doc.FileDocument;
 import com.norconex.collector.fs.option.IFilesystemOptionsProvider;
 import com.norconex.collector.fs.pipeline.committer.FileCommitterPipeline;
@@ -201,12 +202,10 @@ public class FilesystemCrawler extends AbstractCrawler {
 
     @Override
     protected ImporterResponse executeImporterPipeline(
-            ICrawler crawler, ImporterDocument doc,
-            ICrawlDataStore crawlDataStore, 
-            BaseCrawlData crawlData, BaseCrawlData cachedCrawlData) {
+            ImporterPipelineContext importerContext) {
+
+        ICrawlData crawlData = importerContext.getCrawlData();
         
-        //TODO create pipeline context prototype
-        //TODO cache the pipeline object?
         FileObject fileObject = null;
         try {
             if (optionsProvider == null) {
@@ -218,12 +217,12 @@ public class FilesystemCrawler extends AbstractCrawler {
         } catch (FileSystemException e) {
             resolveFileException(crawlData.getReference(), e);
         }
-        FileImporterPipelineContext context = new FileImporterPipelineContext(
-                (FilesystemCrawler) crawler, crawlDataStore, (FileDocument) doc,
-                crawlData, cachedCrawlData, fileObject);
+        FileImporterPipelineContext fileContext = 
+                new FileImporterPipelineContext(importerContext);
+        fileContext.setFileObject(fileObject);
         new FileImporterPipeline(
-                getCrawlerConfig().isKeepDownloads()).execute(context);
-        return context.getImporterResponse();
+                getCrawlerConfig().isKeepDownloads()).execute(fileContext);
+        return fileContext.getImporterResponse();
     }
 
     @Override
