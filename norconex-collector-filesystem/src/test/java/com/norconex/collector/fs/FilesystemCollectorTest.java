@@ -48,6 +48,8 @@ public class FilesystemCollectorTest {
         
         FilesystemCollectorConfig config = new FilesystemCollectorConfig();
         config.setId("test-fs-collector");
+        config.setLogsDir(crawlerCfg.getWorkDir().getAbsolutePath());
+        config.setProgressDir(crawlerCfg.getWorkDir().getAbsolutePath());
         config.setCrawlerConfigs(new ICrawlerConfig[] {crawlerCfg});
 
         final FilesystemCollector collector = new FilesystemCollector(config);
