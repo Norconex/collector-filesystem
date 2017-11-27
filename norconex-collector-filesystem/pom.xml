@@ -19,14 +19,14 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.norconex.collectors</groupId>
   <artifactId>norconex-collector-filesystem</artifactId>
-  <version>2.7.1</version>
+  <version>2.8.0</version>
   <name>Norconex Filesystem Collector</name>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>    
     <site.baseurl/>
-    <norconex-commons-lang.version>1.13.1</norconex-commons-lang.version>
+    <norconex-commons-lang.version>1.14.0</norconex-commons-lang.version>
   </properties>
   <inceptionYear>2014</inceptionYear>
 
@@ -52,6 +52,17 @@
   </repositories>
 
   <dependencies>
+
+    <!-- === Fix transitive dependencies versions: === -->
+  
+    <dependency>
+      <groupId>com.norconex.commons</groupId>
+      <artifactId>norconex-commons-lang</artifactId>
+      <version>${norconex-commons-lang.version}</version>
+    </dependency>
+
+    <!--  === Other dependencies: === -->
+  
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
@@ -61,12 +72,7 @@
     <dependency>
       <groupId>com.norconex.collectors</groupId>
       <artifactId>norconex-collector-core</artifactId>
-      <version>1.8.2</version>
-    </dependency>
-    <dependency>
-      <groupId>joda-time</groupId>
-      <artifactId>joda-time</artifactId>
-      <version>2.9.4</version>
+      <version>1.9.0</version>
     </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>
@@ -100,6 +106,12 @@
         <groupId>commons-httpclient</groupId>
         <artifactId>commons-httpclient</artifactId>
         <version>3.1</version>
+        <exclusions>
+          <exclusion>
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+          </exclusion>
+        </exclusions>
     </dependency>
     <dependency>
       <groupId>commons-net</groupId>
@@ -150,111 +162,6 @@
         <scope>provided</scope>
     </dependency>
   </dependencies>
-  
-  <dependencyManagement>
-    <dependencies>
-      <dependency>
-        <groupId>com.norconex.commons</groupId>
-        <artifactId>norconex-commons-lang</artifactId>
-        <version>${norconex-commons-lang.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>commons-codec</groupId>
-        <artifactId>commons-codec</artifactId>
-        <version>1.10</version>
-      </dependency>
-      <dependency>
-        <groupId>org.jsoup</groupId>
-        <artifactId>jsoup</artifactId>
-        <version>1.10.2</version>
-      </dependency>
-      <dependency>
-        <groupId>commons-lang</groupId>
-        <artifactId>commons-lang</artifactId>
-        <version>2.6</version>
-      </dependency>
-      <dependency>
-        <groupId>commons-collections</groupId>
-        <artifactId>commons-collections</artifactId>
-        <version>3.2.2</version>
-      </dependency>
-      <dependency>
-        <groupId>commons-cli</groupId>
-        <artifactId>commons-cli</artifactId>
-        <version>1.3.1</version>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.commons</groupId>
-        <artifactId>commons-compress</artifactId>
-        <version>1.12</version>
-      </dependency>
-      <dependency>
-        <groupId>commons-configuration</groupId>
-        <artifactId>commons-configuration</artifactId>
-        <version>1.10</version>
-      </dependency>
-      <dependency>
-        <groupId>commons-io</groupId>
-        <artifactId>commons-io</artifactId>
-        <version>2.5</version>
-      </dependency>
-      <dependency>
-        <groupId>org.slf4j</groupId>
-        <artifactId>slf4j-api</artifactId>
-        <version>1.7.12</version>
-      </dependency>
-      <dependency>
-        <groupId>org.slf4j</groupId>
-        <artifactId>slf4j-log4j12</artifactId>
-        <version>1.7.12</version>
-      </dependency>
-      <dependency>
-        <groupId>org.tukaani</groupId>
-        <artifactId>xz</artifactId>
-        <version>1.5</version>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.httpcomponents</groupId>
-        <artifactId>httpclient</artifactId>
-        <version>4.5.2</version>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.httpcomponents</groupId>
-        <artifactId>httpmime</artifactId>
-        <version>4.5.2</version>
-      </dependency>
-      <dependency>
-        <groupId>com.google.guava</groupId>
-        <artifactId>guava</artifactId>
-        <version>17.0</version>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.httpcomponents</groupId>
-        <artifactId>httpcore</artifactId>
-        <version>4.4.5</version>
-      </dependency>
-      <!-- Upgraded from 5.2 (Importer/Tika dep) to avoid exception:
-           Caused by: java.lang.NoSuchMethodError: 
-           jj2000.j2k.fileformat.reader.FileFormatReader.<init>(
-           Ljj2000/j2k/io/RandomAccessIO;Lcom/sun/media/imageioimpl/plugins/
-           jpeg2000/J2KMetadata;)V
-       -->
-      <dependency>
-        <groupId>edu.ucar</groupId>
-        <artifactId>jj2000</artifactId>
-        <version>5.3</version>
-      </dependency>
-      <!-- Ensures correct version, as ooxml-schemas 
-          (required for Visio-XML parsing) brings it down.
-        -->
-      <dependency>
-        <groupId>org.apache.xmlbeans</groupId>
-        <artifactId>xmlbeans</artifactId>
-        <version>2.6.0</version>
-      </dependency>
-
-    </dependencies>
-  </dependencyManagement>  
   
   <build>
     <resources>
@@ -361,7 +268,11 @@
       </plugin>
       <plugin>
         <artifactId>maven-assembly-plugin</artifactId>
-        <version>3.0.0</version>
+        <!--
+        For some reason specifying the version here pulls the wrong 
+        versio on assembly.
+        <version>3.1.0</version>
+        -->
         <configuration>
           <descriptors>
             <descriptor>src/main/assembly/dist.xml</descriptor>

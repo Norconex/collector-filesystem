@@ -14,8 +14,12 @@
  */
 package com.norconex.collector.fs.pipeline.importer;
 
+import java.lang.reflect.InvocationTargetException;
+
+import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.vfs2.FileObject;
 
+import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.core.data.BaseCrawlData;
 import com.norconex.collector.core.data.store.ICrawlDataStore;
 import com.norconex.collector.core.pipeline.importer.ImporterPipelineContext;
@@ -30,7 +34,21 @@ import com.norconex.collector.fs.doc.FileMetadata;
  */
 public class FileImporterPipelineContext extends ImporterPipelineContext {
 
-    private final FileObject fileObject;
+    private FileObject fileObject;
+    
+    /**
+     * Constructor creating a copy of supplied context.
+     * @param copiable the item to be copied
+     * @since 2.7.2
+     */
+    public FileImporterPipelineContext(ImporterPipelineContext copiable) {
+        super(copiable.getCrawler(), copiable.getCrawlDataStore());
+        try {
+            BeanUtils.copyProperties(this, copiable);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            throw new CollectorException("Could not copy importer context.", e);
+        }
+    }
     
     public FileImporterPipelineContext(
             FilesystemCrawler crawler, ICrawlDataStore crawlDataStore, 
@@ -60,7 +78,15 @@ public class FileImporterPipelineContext extends ImporterPipelineContext {
     public FileObject getFileObject() {
         return fileObject;
     }
-    
+    /**
+     * Sets file object.
+     * @param fileObject file object
+     * @since 2.7.2
+     */
+    public void setFileObject(FileObject fileObject) {
+        this.fileObject = fileObject;
+    }
+
     public FileMetadata getMetadata() {
         return getDocument().getMetadata();
     }
