@@ -7,9 +7,15 @@
   </properties>
   <body>
 
-    <release version="2.7.2-SNAPSHOT" date="2017-??-??" description="Maintenance release">
+    <release version="2.8.0" date="2017-11-26" description="Feature release">
+      <action dev="essiembre" type="add">
+        Several new features (new TruncateTagger, ExternalTagger, etc.) are 
+        included with this release, mainly through Norconex Collector Core
+        and Norconex Importer dependency updates.  
+        Refer to related release notes for more details.
+      </action>
       <action dev="essiembre" type="update">
-        Dependency updates: Norconex Collector Core 1.8.3, 
+        Dependency updates: Norconex Collector Core 1.9.0, 
         Norconex Commons Lang 1.14.0.
       </action>
     </release>
