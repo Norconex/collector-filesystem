@@ -7,6 +7,13 @@
   </properties>
   <body>
 
+    <release version="2.8.1-SNAPSHOT" date="2018-??-??" description="Maintenance release">
+      <action dev="essiembre" type="update">
+        Dependency updates: Norconex Collector Core 1.9.1,
+        Norconex Commons Lang 1.14.1.
+      </action>
+    </release>
+
     <release version="2.8.0" date="2017-11-26" description="Feature release">
       <action dev="essiembre" type="add">
         Several new features (new TruncateTagger, ExternalTagger, etc.) are 
