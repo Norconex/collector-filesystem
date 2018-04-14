@@ -206,16 +206,23 @@ public class FilesystemCrawlerConfig extends AbstractCrawlerConfig {
 
             writer.writeElementBoolean("keepDownloads", isKeepDownloads());
             writer.writeStartElement("startPaths");
-            for (String path : getStartPaths()) {
-                writer.writeElementString("path", path);
+            
+            String[] paths = getStartPaths();
+            if (ArrayUtils.isNotEmpty(paths)) {
+                for (String path : paths) {
+                    writer.writeElementString("path", path);
+                }
             }
-            for (String path : getPathsFiles()) {
-                writer.writeElementString("pathsFile", path);
+            String[] files = getPathsFiles();
+            if (ArrayUtils.isNotEmpty(files)) {
+                for (String path : files) {
+                    writer.writeElementString("pathsFile", path);
+                }
             }
             writer.flush();
-            IStartPathsProvider[] startPathsProviders = getStartPathsProviders();
-            if (startPathsProviders != null) {
-                for (IStartPathsProvider provider : startPathsProviders) {
+            IStartPathsProvider[] pathsProviders = getStartPathsProviders();
+            if (ArrayUtils.isNotEmpty(pathsProviders)) {
+                for (IStartPathsProvider provider : pathsProviders) {
                     writeObject(out, "provider", provider);
                 }
             }
