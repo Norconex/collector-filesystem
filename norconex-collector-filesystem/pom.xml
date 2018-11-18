@@ -26,7 +26,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>    
     <site.baseurl/>
-    <norconex-commons-lang.version>1.14.1-SNAPSHOT</norconex-commons-lang.version>
+    <norconex-commons-lang.version>1.15.0</norconex-commons-lang.version>
   </properties>
   <inceptionYear>2014</inceptionYear>
 
@@ -72,7 +72,7 @@
     <dependency>
       <groupId>com.norconex.collectors</groupId>
       <artifactId>norconex-collector-core</artifactId>
-      <version>1.9.1-SNAPSHOT</version>
+      <version>1.9.2-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>
