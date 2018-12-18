@@ -12,6 +12,9 @@
         Dependency updates: Norconex Collector Core 1.9.1,
         Norconex Commons Lang 1.14.1.
       </action>
+      <action dev="essiembre" type="fix" issue="47">
+        Fixed files with pound sign being ignored.
+      </action>
       <action dev="essiembre" type="fix" issue="29">
         Fixed NullPointerException under some conditions for 
         FilesystemCrawlerConfig#saveToXML(...).

@@ -1,4 +1,4 @@
-/* Copyright 2013-2017 Norconex Inc.
+/* Copyright 2013-2018 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@ package com.norconex.collector.fs.pipeline.importer;
 import java.util.Date;
 
 import org.apache.commons.vfs2.FileObject;
-import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileType;
 
 import com.norconex.collector.core.CollectorException;
@@ -63,7 +62,7 @@ public class FileImporterPipeline extends Pipeline<ImporterPipelineContext> {
 
     //--- Folder Path Extractor ------------------------------------------------
     // Extract paths to queue them and stop processing this folder
-    private static class FolderPathsExtractorStage 
+    private static class FolderPathsExtractorStage
             extends AbstractImporterStage {
         @Override
         public boolean executeStage(FileImporterPipelineContext ctx) {
@@ -73,29 +72,29 @@ public class FileImporterPipeline extends Pipeline<ImporterPipelineContext> {
                     FileObject[] files = file.getChildren();
                     for (FileObject childFile : files) {
                         BaseCrawlData crawlData = new BaseCrawlData(
-                                childFile.getURL().toString());
-                        BasePipelineContext newContext = 
-                                new BasePipelineContext(ctx.getCrawler(), 
+                                childFile.getName().getURI());
+                        BasePipelineContext newContext =
+                                new BasePipelineContext(ctx.getCrawler(),
                                         ctx.getCrawlDataStore(), crawlData);
                         new FileQueuePipeline().execute(newContext);
                     }
                     return false;
                 }
                 return true;
-            } catch (FileSystemException e) {
+            } catch (Exception e) {
                 ctx.getCrawlData().setState(CrawlState.ERROR);
-                ctx.fireCrawlerEvent(CrawlerEvent.REJECTED_ERROR, 
+                ctx.fireCrawlerEvent(CrawlerEvent.REJECTED_ERROR,
                         ctx.getCrawlData(), this);
                 throw new CollectorException(
-                        "Cannot extract folder paths: " 
+                        "Cannot extract folder paths: "
                                 + ctx.getCrawlData().getReference(), e);
             }
         }
-    }    
+    }
 
-    
+
     //--- Metadata filters -----------------------------------------------------
-    private static class FileMetadataFiltersStage 
+    private static class FileMetadataFiltersStage
             extends AbstractImporterStage {
         @Override
         public boolean executeStage(FileImporterPipelineContext ctx) {
@@ -106,11 +105,11 @@ public class FileImporterPipeline extends Pipeline<ImporterPipelineContext> {
             }
             return true;
         }
-    }    
+    }
 
-    
+
     //--- Document Pre-Processing ----------------------------------------------
-    private static class DocumentPreProcessingStage 
+    private static class DocumentPreProcessingStage
             extends AbstractImporterStage {
         @Override
         public boolean executeStage(FileImporterPipelineContext ctx) {
@@ -121,29 +120,29 @@ public class FileImporterPipeline extends Pipeline<ImporterPipelineContext> {
                             ctx.getCrawler().getFileManager(),
                             ctx.getDocument());
                     ctx.getCrawler().fireCrawlerEvent(
-                            CrawlerEvent.DOCUMENT_PREIMPORTED, 
+                            CrawlerEvent.DOCUMENT_PREIMPORTED,
                             ctx.getCrawlData(), preProc);
                 }
             }
             return true;
         }
-    }    
+    }
 
     //--- File Metadata Fetcher ------------------------------------------------
-    private static class FileMetadataFetcherStage 
+    private static class FileMetadataFetcherStage
             extends AbstractImporterStage {
         @Override
         public boolean executeStage(FileImporterPipelineContext ctx) {
             BaseCrawlData crawlData = ctx.getCrawlData();
-            IFileMetadataFetcher metaFetcher = 
+            IFileMetadataFetcher metaFetcher =
                     ctx.getConfig().getMetadataFetcher();
             FileMetadata metadata = ctx.getMetadata();
 
-            //TODO consider passing original metadata instead? 
+            //TODO consider passing original metadata instead?
             Properties newMeta = new Properties(
                     metadata.isCaseInsensitiveKeys());
             FileObject fileObject = ctx.getFileObject();
-            
+
             CrawlState state = metaFetcher.fetchMetadada(fileObject, newMeta);
 
             metadata.putAll(newMeta);
@@ -161,7 +160,7 @@ public class FileImporterPipeline extends Pipeline<ImporterPipelineContext> {
 
             crawlData.setState(state);
             if (state.isGoodState()) {
-                ctx.fireCrawlerEvent(CrawlerEvent.DOCUMENT_METADATA_FETCHED, 
+                ctx.fireCrawlerEvent(CrawlerEvent.DOCUMENT_METADATA_FETCHED,
                         crawlData, fileObject);
             } else {
                 String eventType;
@@ -175,30 +174,30 @@ public class FileImporterPipeline extends Pipeline<ImporterPipelineContext> {
             }
             return true;
         }
-    }    
+    }
 
     //--- HTTP Document Checksum -----------------------------------------------
-    private static class FileMetadataChecksumStage 
+    private static class FileMetadataChecksumStage
             extends AbstractImporterStage {
         @Override
         public boolean executeStage(FileImporterPipelineContext ctx) {
             //TODO only if an INCREMENTAL run... else skip.
-            
-            IMetadataChecksummer check = 
+
+            IMetadataChecksummer check =
                     ctx.getConfig().getMetadataChecksummer();
             if (check != null) {
-                String newChecksum = 
+                String newChecksum =
                         check.createMetadataChecksum(ctx.getMetadata());
                 return ChecksumStageUtil.resolveMetaChecksum(
                         newChecksum, ctx, this);
             }
             return true;
         }
-    }   
-    
+    }
+
 
     //--- Document Fetch -------------------------------------------------------
-    private static class DocumentFetchStage 
+    private static class DocumentFetchStage
             extends AbstractImporterStage {
         @Override
         public boolean executeStage(FileImporterPipelineContext ctx) {
@@ -210,9 +209,9 @@ public class FileImporterPipeline extends Pipeline<ImporterPipelineContext> {
             crawlData.setCrawlDate(new Date());
             crawlData.setContentType(doc.getContentType());
             crawlData.setState(state);
-            
+
             if (state.isGoodState()) {
-                ctx.fireCrawlerEvent(CrawlerEvent.DOCUMENT_FETCHED, 
+                ctx.fireCrawlerEvent(CrawlerEvent.DOCUMENT_FETCHED,
                         crawlData, fileObject);
             } else {
                 String eventType;
