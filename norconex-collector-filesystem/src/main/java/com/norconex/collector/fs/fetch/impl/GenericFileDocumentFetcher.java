@@ -31,20 +31,20 @@ import com.norconex.collector.fs.doc.FileDocument;
 import com.norconex.collector.fs.fetch.IFileDocumentFetcher;
 
 /**
- * Generic file system document fetcher. 
+ * Generic file system document fetcher.
  * @author Pascal Essiembre
  * @since 2.7.0
  */
 public class GenericFileDocumentFetcher implements IFileDocumentFetcher {
 
-    private static final Logger LOG = 
+    private static final Logger LOG =
             LogManager.getLogger(GenericFileDocumentFetcher.class);
-    
+
     @Override
     public CrawlState fetchDocument(FileObject fileObject, FileDocument doc) {
-        
+
         LOG.debug("Fetching document: " + doc.getReference());
-        
+
         try {
             if (!fileObject.exists()) {
                 return FileCrawlState.NOT_FOUND;
@@ -63,7 +63,7 @@ public class GenericFileDocumentFetcher implements IFileDocumentFetcher {
                         + " (" + e.getMessage() + ")");
             }
             throw new CollectorException(e);
-        }  
+        }
     }
 
     @Override
@@ -78,5 +78,5 @@ public class GenericFileDocumentFetcher implements IFileDocumentFetcher {
     public String toString() {
         return ReflectionToStringBuilder.toString(
                 this, ToStringStyle.SHORT_PREFIX_STYLE);
-    } 
+    }
 }
