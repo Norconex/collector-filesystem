@@ -1,4 +1,4 @@
-/* Copyright 2017 Norconex Inc.
+/* Copyright 2017-2019 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,8 @@
  */
 package com.norconex.collector.fs.fetch.impl;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -33,35 +35,48 @@ import com.norconex.collector.core.data.CrawlState;
 import com.norconex.collector.fs.data.FileCrawlState;
 import com.norconex.collector.fs.doc.FileMetadata;
 import com.norconex.collector.fs.fetch.IFileMetadataFetcher;
+import com.norconex.collector.fs.vfs2.provider.cmis.CmisFileObject;
 import com.norconex.commons.lang.map.Properties;
 
 /**
- * Generic file system document metadata fetcher. 
+ * Generic file system document metadata fetcher.
  * @author Pascal Essiembre
  * @since 2.7.0
  */
 public class GenericFileMetadataFetcher implements IFileMetadataFetcher {
 
-    private static final Logger LOG = 
+    private static final Logger LOG =
             LogManager.getLogger(GenericFileMetadataFetcher.class);
-    
-    private static Boolean smbAvailable = null;
-    
+
+    private static final Map<Class<? extends FileObject>,
+            IFileSpecificMetaFetcher> FILE_SPECIFICS = new HashMap<>();
+    static {
+        FILE_SPECIFICS.put(SmbFileObject.class, new SpecificSmbFetcher());
+        FILE_SPECIFICS.put(CmisFileObject.class, new SpecificCmisFetcher());
+    }
+
+//    private static Boolean smbAvailable = null;
+
     @Override
     public CrawlState fetchMetadada(
             FileObject fileObject, Properties metadata) {
 
         LOG.debug("Fetching file headers: " + fileObject);
-        
+
         try {
             if (!fileObject.exists()) {
                 return FileCrawlState.NOT_FOUND;
             }
-            
-            if (isSmbFile(fileObject)) {
-                SmbAclFetcher.fetchACL(fileObject, metadata);
+
+            IFileSpecificMetaFetcher specificFetcher = FILE_SPECIFICS.get(
+                    fileObject.getClass());
+            if (specificFetcher != null) {
+                specificFetcher.fetchFileSpecificMeta(fileObject, metadata);
             }
-            
+//            if (isSmbFile(fileObject)) {
+//                SmbAclFetcher.fetchACL(fileObject, metadata);
+//            }
+
             FileContent content = fileObject.getContent();
             //--- Enhance Metadata ---
             metadata.addLong(
@@ -70,24 +85,24 @@ public class GenericFileMetadataFetcher implements IFileMetadataFetcher {
                     content.getLastModifiedTime());
             FileContentInfo info = content.getContentInfo();
             if (info != null) {
-                metadata.addString(FileMetadata.COLLECTOR_CONTENT_ENCODING, 
+                metadata.addString(FileMetadata.COLLECTOR_CONTENT_ENCODING,
                         info.getContentEncoding());
-                metadata.addString(FileMetadata.COLLECTOR_CONTENT_TYPE, 
+                metadata.addString(FileMetadata.COLLECTOR_CONTENT_TYPE,
                         info.getContentType());
             }
             for (String attrName: content.getAttributeNames()) {
                 Object obj = content.getAttribute(attrName);
                 if (obj != null) {
-                    metadata.addString(FileMetadata.COLLECTOR_PREFIX 
-                            + "attribute." + attrName, 
+                    metadata.addString(FileMetadata.COLLECTOR_PREFIX
+                            + "attribute." + attrName,
                                     Objects.toString(obj));
                 }
             }
-            
+
             //TODO support prefixes like http collector?
-            //TODO do we really want to prefix attributes with 
+            //TODO do we really want to prefix attributes with
             // "collector.attribute." or just store as is (like HTTP headers)?
-            
+
             return FileCrawlState.NEW;
         } catch (FileSystemException e) {
             if (LOG.isDebugEnabled()) {
@@ -99,23 +114,23 @@ public class GenericFileMetadataFetcher implements IFileMetadataFetcher {
             throw new CollectorException(e);
         }
     }
-    
-    //TODO move to Norconex Commons Lang
-    private static boolean isSmbFile(FileObject fileObject) {
-        if (smbAvailable == null) {
-            try {
-                Class.forName(
-                        "org.apache.commons.vfs2.provider.smb.SmbFileObject", 
-                        false, 
-                        GenericFileMetadataFetcher.class.getClassLoader());
-                smbAvailable = true;
-            } catch (ClassNotFoundException e) {
-                smbAvailable = false;
-            }
-        }
-        return smbAvailable && fileObject instanceof SmbFileObject;
-    }
-    
+
+//    //TODO move to Norconex Commons Lang
+//    private static boolean isSmbFile(FileObject fileObject) {
+//        if (smbAvailable == null) {
+//            try {
+//                Class.forName(
+//                        "org.apache.commons.vfs2.provider.smb.SmbFileObject",
+//                        false,
+//                        GenericFileMetadataFetcher.class.getClassLoader());
+//                smbAvailable = true;
+//            } catch (ClassNotFoundException e) {
+//                smbAvailable = false;
+//            }
+//        }
+//        return smbAvailable && fileObject instanceof SmbFileObject;
+//    }
+
     @Override
     public boolean equals(final Object other) {
         return EqualsBuilder.reflectionEquals(this, other, false);
@@ -128,5 +143,5 @@ public class GenericFileMetadataFetcher implements IFileMetadataFetcher {
     public String toString() {
         return ReflectionToStringBuilder.toString(
                 this, ToStringStyle.SHORT_PREFIX_STYLE);
-    } 
+    }
 }

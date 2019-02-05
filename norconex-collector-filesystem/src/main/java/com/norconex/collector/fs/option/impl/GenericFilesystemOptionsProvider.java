@@ -48,6 +48,7 @@ import org.apache.hadoop.fs.Path;
 
 import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.fs.option.IFilesystemOptionsProvider;
+import com.norconex.collector.fs.vfs2.provider.cmis.CmisFileSystemConfigBuilder;
 import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.commons.lang.config.XMLConfigurationUtil;
 import com.norconex.commons.lang.encrypt.EncryptionKey;
@@ -59,24 +60,24 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  * <p>
  * Generic implementation of {@link IFilesystemOptionsProvider}.  This provider
  * makes configurable many Commons VFS options.  The same
- * {@link FileSystemOptions} instance is returned regardless of 
+ * {@link FileSystemOptions} instance is returned regardless of
  * the {@link FileObject} supplied.  In many case, it is not necessary
- * to configure any file system options. 
+ * to configure any file system options.
  * </p>
  * <h3>Password encryption:</h3>
  * <p>
  * It is usually recommended to provide credentials here instead of doing
  * so directly on the requested URL to prevent password from appearing
  * in log entries.
- * The <code>authPassword</code> 
- * can take a password that has been encrypted using {@link EncryptionUtil}. 
+ * The <code>authPassword</code>
+ * can take a password that has been encrypted using {@link EncryptionUtil}.
  * In order for the password to be decrypted properly by the crawler, you need
  * to specify the encryption key used to encrypt it. The key can be stored
- * in a few supported locations and a combination of 
+ * in a few supported locations and a combination of
  * <code>[auth|proxy]PasswordKey</code>
  * and <code>[auth|proxy]PasswordKeySource</code> must be specified to properly
  * locate the key. The supported sources are:
- * </p> 
+ * </p>
  * <table border="1" summary="">
  *   <tr>
  *     <th><code>[...]PasswordKeySource</code></th>
@@ -100,33 +101,37 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *   </tr>
  * </table>
  * <p>
- * Still, if you insiste in having the password set on the URL, Apache
- * Commons VFS offers a way to encrypt it there using their own 
+ * Still, if you insist in having the password set on the URL, Apache
+ * Commons VFS offers a way to encrypt it there using their own
  * {@link EncryptUtil}. More info under the "Naming" section here:
  * <a href="http://commons.apache.org/proper/commons-vfs/filesystems.html">
  * http://commons.apache.org/proper/commons-vfs/filesystems.html</a>
  * </p>
- * 
+ *
  * <h3>Available Options</h3>
  * <p>
- * You will not find methods or XML configuration tags for all options 
+ * You will not find methods or XML configuration tags for all options
  * supported by various file systems.  If you need to configure more
- * advanced options for your file system, consider having your own 
+ * advanced options for your file system, consider having your own
  * implementation of {@link IFilesystemOptionsProvider} or extend this class
  * and implement the {@link #buildOptions(FileSystemOptions)} method to
  * set additional options.
  * </p>
- * 
+ *
+ * <p>
+ * As of 2.9.0, CMIS-enabled Content Management Systems are supported.
+ * </p>
+ *
  * <p>
  * As of 2.7.0, XML configuration entries expecting millisecond durations
- * can be provided in human-readable format (English only), as per 
+ * can be provided in human-readable format (English only), as per
  * {@link DurationParser} (e.g., "5 minutes and 30 seconds" or "5m30s").
  * </p>
- * 
+ *
  * <h3>XML configuration usage:</h3>
  * <pre>
  *  &lt;optionsProvider class="com.norconex.collector.fs.option.impl.GenericFilesystemOptionsProvider"&gt;
- *  
+ *
  *      &lt;!-- Authentication (any file system) --&gt;
  *      &lt;authDomain&gt;...&lt;/authDomain&gt;
  *      &lt;authUsername&gt;...&lt;/authUsername&gt;
@@ -134,7 +139,7 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *      &lt;!-- Use the following if password is encrypted. --&gt;
  *      &lt;authPasswordKey&gt;(the encryption key or a reference to it)&lt;/authPasswordKey&gt;
  *      &lt;authPasswordKeySource&gt;[key|file|environment|property]&lt;/authPasswordKeySource&gt;
- *      
+ *
  *      &lt;!-- FTP (for FTPS options set ftpSecure to "true") --&gt;
  *      &lt;ftpSecure&gt;[false|true]&lt;/ftpSecure&gt;
  *      &lt;ftpConnectTimeout&gt;(milliseconds)&lt;/ftpConnectTimeout&gt;
@@ -150,12 +155,12 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *      &lt;ftpShortMonthNames&gt;(comma-separated list)&lt;/ftpShortMonthNames&gt;
  *      &lt;ftpSoTimeout&gt;(milliseconds)&lt;/ftpSoTimeout&gt;
  *      &lt;ftpUserDirIsRoot&gt;[false|true]&lt;/ftpUserDirIsRoot&gt;
- *      
+ *
  *      &lt;!-- HDFS --&gt;
  *      &lt;hdfsConfigName&gt;...&lt;/hdfsConfigName&gt;
  *      &lt;hdfsConfigPath&gt;...&lt;/hdfsConfigPath&gt;
  *      &lt;hdfsConfigURL&gt;...&lt;/hdfsConfigURL&gt;
- *      
+ *
  *      &lt;!-- HTTP (for Webdav options, set httpWebdav to "true") --&gt;
  *      &lt;httpWebdav&gt;[false|true]&lt;/httpWebdav&gt;
  *      &lt;httpConnectionTimeout&gt;(milliseconds)&lt;/httpConnectionTimeout&gt;
@@ -168,7 +173,7 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *      &lt;httpUserAgent&gt;...&lt;/httpUserAgent&gt;
  *      &lt;httpWebdavCreatorName&gt;...&lt;/httpWebdavCreatorName&gt;
  *      &lt;httpWebdavVersioning&gt;[false|true]&lt;/httpWebdavVersioning&gt;
- *      
+ *
  *      &lt;!-- RAM --&gt;
  *      &lt;ramMaxSize&gt;(number of bytes)&lt;/ramMaxSize&gt;
  *
@@ -181,15 +186,18 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *      &lt;sftpTimeout&gt;(milliseconds)&lt;/sftpTimeout&gt;
  *      &lt;sftpUserDirIsRoot&gt;[false|true]&lt;/sftpUserDirIsRoot&gt;
  *
+ *      &lt;!-- CMIS --&gt;
+ *      &lt;cmisAtomURL&gt;(URL to CMIS Atom web service)&lt;/cmisAtomURL&gt;
+ *
  *  &lt;/optionsProvider&gt;
  * </pre>
  * <h4>Usage example:</h4>
  * <p>
- * The following sets the FTP settings sometimes required to get 
+ * The following sets the FTP settings sometimes required to get
  * directory listings on remote servers.
  * </p>
  * <pre>
- *  &lt;optionsProvider 
+ *  &lt;optionsProvider
  *      class="com.norconex.collector.fs.option.impl.GenericFilesystemOptionsProvider"&gt;
  *      &lt;ftpPassiveMode&gt;true&lt;/ftpPassiveMode&gt;
  *      &lt;ftpUserDirIsRoot&gt;false&lt;/ftpUserDirIsRoot&gt;
@@ -198,17 +206,17 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  * @author Pascal Essiembre
  * @since 2.7.0
  */
-public class GenericFilesystemOptionsProvider 
+public class GenericFilesystemOptionsProvider
         implements IFilesystemOptionsProvider, IXMLConfigurable {
 
     private transient FileSystemOptions options;
     private final Auth auth = new Auth();
-    
+
     //TODO: where there are defaults, they are copied from respective
     //builders. Consider constants instead.
     //Booleans are exception: they are always false to keep with
     //Collector convention.
-    
+
     // FTP/FTPS
     private boolean ftpSecure;
     private Integer ftpConnectTimeout;
@@ -224,8 +232,8 @@ public class GenericFilesystemOptionsProvider
     private String[] ftpShortMonthNames;
     private Integer ftpSoTimeout;
     private boolean ftpUserDirIsRoot;
-    
-    // HDFS 
+
+    // HDFS
     private String hdfsConfigName;
     private Path hdfsConfigPath;
     private URL hdfsConfigURL;
@@ -245,7 +253,7 @@ public class GenericFilesystemOptionsProvider
 
     // RAM
     private long ramMaxSize = Integer.MAX_VALUE;
-    
+
     // SFTP
     private String sftpCompression;
     private String sftpFileNameEncoding;
@@ -255,11 +263,13 @@ public class GenericFilesystemOptionsProvider
     private int sftpTimeout;
     private boolean sftpUserDirIsRoot;
 
-    
+    // CMIS
+    private String cmisAtomURL;
+
     public GenericFilesystemOptionsProvider() {
         super();
     }
-    
+
     /**
      * Rebuilds file system options. By default the options are reused.
      * Calling this method asks this provider to rebuild the options
@@ -272,9 +282,9 @@ public class GenericFilesystemOptionsProvider
             throw new CollectorException(
                     "Could not build file system options.", e);
         }
-    }    
+    }
     private void buildOptions() throws FileSystemException {
-        
+
         FileSystemOptions opts = new FileSystemOptions();
 
         // Generic (auth)
@@ -283,7 +293,7 @@ public class GenericFilesystemOptionsProvider
             //that would decrypt on each request to delay when the password
             //is exposed.
             DefaultFileSystemConfigBuilder.getInstance().setUserAuthenticator(
-                    opts, new StaticUserAuthenticator(auth.domain, 
+                    opts, new StaticUserAuthenticator(auth.domain,
                             auth.username, auth.getResolvedPassword()));
         }
 
@@ -307,19 +317,19 @@ public class GenericFilesystemOptionsProvider
         ftp.setShortMonthNames(opts, ftpShortMonthNames);
         ftp.setSoTimeout(opts, ftpSoTimeout);
         ftp.setUserDirIsRoot(opts, ftpUserDirIsRoot);
-        
+
         // HDFS
         HdfsFileSystemConfigBuilder hdfs =
                 HdfsFileSystemConfigBuilder.getInstance();
         hdfs.setConfigName(opts, hdfsConfigName);
         hdfs.setConfigPath(opts, hdfsConfigPath);
         hdfs.setConfigURL(opts, hdfsConfigURL);
-        
+
         // HTTP + Webdav
         HttpFileSystemConfigBuilder http;
         if (httpWebdav) {
-            WebdavFileSystemConfigBuilder 
-                    webdav = (WebdavFileSystemConfigBuilder) 
+            WebdavFileSystemConfigBuilder
+                    webdav = (WebdavFileSystemConfigBuilder)
                             WebdavFileSystemConfigBuilder.getInstance();
             webdav.setCreatorName(opts, httpWebdavCreatorName);
             webdav.setVersioning(opts, httpWebdavVersioning);
@@ -335,12 +345,12 @@ public class GenericFilesystemOptionsProvider
         http.setSoTimeout(opts, httpSoTimeout);
         http.setUrlCharset(opts, httpUrlCharset);
         http.setUserAgent(opts, httpUserAgent);
-        
+
         // RAM
-        RamFileSystemConfigBuilder ram = 
+        RamFileSystemConfigBuilder ram =
                 RamFileSystemConfigBuilder.getInstance();
         ram.setMaxSize(opts, ramMaxSize);
-        
+
         // SFTP
         SftpFileSystemConfigBuilder sftp =
                 SftpFileSystemConfigBuilder.getInstance();
@@ -351,21 +361,27 @@ public class GenericFilesystemOptionsProvider
         sftp.setStrictHostKeyChecking(opts, sftpStrictHostKeyChecking);
         sftp.setTimeout(opts, sftpTimeout);
         sftp.setUserDirIsRoot(opts, sftpUserDirIsRoot);
-        
+
+        // CMIS
+        CmisFileSystemConfigBuilder cmis =
+                CmisFileSystemConfigBuilder.getInstance();
+        cmis.setAtomURL(opts, cmisAtomURL);
+
+
         buildOptions(opts);
         this.options = opts;
     }
-    
+
     /**
      * For subclasses to apply more advanced configuration on file system
-     * options. Default implementation does nothing. 
+     * options. Default implementation does nothing.
      * @param opts file system options
      */
     protected void buildOptions(FileSystemOptions opts) {
         // do nothing
     }
-    
-    
+
+
     /**
      * Gets the authentication domain.
      * @return domain
@@ -418,7 +434,7 @@ public class GenericFilesystemOptionsProvider
         return auth.encryptionKey;
     }
     /**
-     * Sets the authentication password encryption key. Only required when 
+     * Sets the authentication password encryption key. Only required when
      * the password is encrypted.
      * @param authPasswordKey password key
      * @see EncryptionUtil
@@ -511,7 +527,7 @@ public class GenericFilesystemOptionsProvider
     public void setFtpSecure(boolean ftpSecure) {
         this.ftpSecure = ftpSecure;
     }
-    
+
     public String getHdfsConfigName() {
         return hdfsConfigName;
     }
@@ -530,7 +546,7 @@ public class GenericFilesystemOptionsProvider
     public void setHdfsConfigURL(URL hdfsConfigURL) {
         this.hdfsConfigURL = hdfsConfigURL;
     }
-    
+
     public int getHttpConnectionTimeout() {
         return httpConnectionTimeout;
     }
@@ -597,14 +613,14 @@ public class GenericFilesystemOptionsProvider
     public void setHttpWebdavVersioning(boolean httpWebdavVersioning) {
         this.httpWebdavVersioning = httpWebdavVersioning;
     }
-    
+
     public long getRamMaxSize() {
         return ramMaxSize;
     }
     public void setRamMaxSize(long ramMaxSize) {
         this.ramMaxSize = ramMaxSize;
     }
-    
+
     public String getSftpCompression() {
         return sftpCompression;
     }
@@ -649,6 +665,13 @@ public class GenericFilesystemOptionsProvider
         this.sftpUserDirIsRoot = sftpUserDirIsRoot;
     }
 
+    public String getCmisAtomURL() {
+        return cmisAtomURL;
+    }
+    public void setCmisAtomURL(String cmisAtomURL) {
+        this.cmisAtomURL = cmisAtomURL;
+    }
+
     @Override
     public synchronized FileSystemOptions getFilesystemOptions(
             FileObject fileObject) {
@@ -656,7 +679,7 @@ public class GenericFilesystemOptionsProvider
             rebuildOptions();
         }
         return options;
-        
+
     }
 
     @Override
@@ -668,6 +691,7 @@ public class GenericFilesystemOptionsProvider
         loadHTTP(xml);
         loadRAM(xml);
         loadSFTP(xml);
+        loadCMIS(xml);
     }
     private void loadDefaultFileSystem(XMLConfiguration xml) {
         auth.domain = xml.getString("authDomain", auth.domain);
@@ -683,13 +707,13 @@ public class GenericFilesystemOptionsProvider
         if (StringUtils.isNotBlank(timeout)) {
             ftpConnectTimeout = (int) DurationParser.parse(timeout);
         }
-        ftpControlEncoding = 
+        ftpControlEncoding =
                 xml.getString("ftpControlEncoding", ftpControlEncoding);
         timeout = xml.getString("ftpDataTimeout", null);
         if (StringUtils.isNotBlank(timeout)) {
             ftpDataTimeout = (int) DurationParser.parse(timeout);
         }
-        ftpDefaultDateFormat = 
+        ftpDefaultDateFormat =
                 xml.getString("ftpDefaultDateFormat", ftpDefaultDateFormat);
         String type = xml.getString(
                 "ftpFileType", Objects.toString(ftpFileType, null));
@@ -697,13 +721,13 @@ public class GenericFilesystemOptionsProvider
             ftpFileType = FtpFileType.valueOf(type);
         }
         ftpPassiveMode = xml.getBoolean("ftpPassiveMode", ftpPassiveMode);
-        ftpRecentDateFormat = 
+        ftpRecentDateFormat =
                 xml.getString("ftpRecentDateFormat", ftpRecentDateFormat);
-        ftpRemoteVerification = 
+        ftpRemoteVerification =
                 xml.getBoolean("ftpRemoteVerification", ftpRemoteVerification);
-        ftpServerLanguageCode = 
+        ftpServerLanguageCode =
                 xml.getString("ftpServerLanguageCode", ftpServerLanguageCode);
-        ftpServerTimeZoneId = 
+        ftpServerTimeZoneId =
                 xml.getString("ftpServerTimeZoneId", ftpServerTimeZoneId);
         ftpShortMonthNames = XMLConfigurationUtil.getCSVStringArray(
                 xml, "ftpShortMonthNames", ftpShortMonthNames);
@@ -733,21 +757,21 @@ public class GenericFilesystemOptionsProvider
         httpWebdav = xml.getBoolean("httpWebdav", httpWebdav);
         httpConnectionTimeout = (int) XMLConfigurationUtil.getDuration(
                 xml, "httpConnectionTimeout", httpConnectionTimeout);
-        httpFollowRedirect = 
+        httpFollowRedirect =
                 xml.getBoolean("httpFollowRedirect", httpFollowRedirect);
         httpMaxConnectionsPerHost = xml.getInteger(
                 "httpMaxConnectionsPerHost", httpMaxConnectionsPerHost);
         httpMaxTotalConnections = xml.getInteger(
                 "httpMaxTotalConnections", httpMaxTotalConnections);
-        httpPreemptiveAuth = 
+        httpPreemptiveAuth =
                 xml.getBoolean("httpPreemptiveAuth", httpPreemptiveAuth);
         httpSoTimeout = (int) XMLConfigurationUtil.getDuration(
                 xml, "httpSoTimeout", httpSoTimeout);
         httpUrlCharset = xml.getString("httpUrlCharset", httpUrlCharset);
         httpUserAgent = xml.getString("httpUserAgent", httpUserAgent);
-        httpWebdavCreatorName = 
+        httpWebdavCreatorName =
                 xml.getString("httpWebdavCreatorName", httpWebdavCreatorName);
-        httpWebdavVersioning = 
+        httpWebdavVersioning =
                 xml.getBoolean("httpWebdavVersioning", httpWebdavVersioning);
     }
     private void loadRAM(XMLConfiguration xml) {
@@ -755,7 +779,7 @@ public class GenericFilesystemOptionsProvider
     }
     private void loadSFTP(XMLConfiguration xml) {
         sftpCompression = xml.getString("sftpCompression", sftpCompression);
-        sftpFileNameEncoding = 
+        sftpFileNameEncoding =
                 xml.getString("sftpFileNameEncoding", sftpFileNameEncoding);
         String knownHosts = xml.getString("sftpKnownHosts", null);
         if (StringUtils.isNotBlank(knownHosts)) {
@@ -767,10 +791,13 @@ public class GenericFilesystemOptionsProvider
                 "sftpStrictHostKeyChecking", sftpStrictHostKeyChecking);
         sftpTimeout = (int) XMLConfigurationUtil.getDuration(
                 xml, "sftpTimeout", sftpTimeout);
-        sftpUserDirIsRoot = 
+        sftpUserDirIsRoot =
                 xml.getBoolean("sftpUserDirIsRoot", sftpUserDirIsRoot);
     }
-        
+    private void loadCMIS(XMLConfiguration xml) {
+        cmisAtomURL = xml.getString("cmisAtomURL", cmisAtomURL);
+    }
+
     @Override
     public void saveToXML(Writer out) throws IOException {
         try {
@@ -784,15 +811,16 @@ public class GenericFilesystemOptionsProvider
             saveHTTP(writer);
             saveRAM(writer);
             saveSFTP(writer);
-            
+            saveCMIS(writer);
+
             writer.writeEndElement();
             writer.flush();
             writer.close();
         } catch (XMLStreamException e) {
             throw new IOException("Cannot save as XML.", e);
-        }        
+        }
     }
-    private void saveDefaultFileSystem(EnhancedXMLStreamWriter writer) 
+    private void saveDefaultFileSystem(EnhancedXMLStreamWriter writer)
             throws XMLStreamException {
         if (auth.isAuthenticating()) {
             writer.writeElementString("authDomain", auth.domain);
@@ -802,13 +830,13 @@ public class GenericFilesystemOptionsProvider
             if (key != null) {
                 writer.writeElementString("authPasswordKey", key.getValue());
                 if (key.getSource() != null) {
-                    writer.writeElementString("authPasswordKeySource", 
+                    writer.writeElementString("authPasswordKeySource",
                             key.getSource().name().toLowerCase());
                 }
             }
         }
     }
-    private void saveFTP(EnhancedXMLStreamWriter writer) 
+    private void saveFTP(EnhancedXMLStreamWriter writer)
             throws XMLStreamException {
         writer.writeElementInteger("ftpConnectTimeout", ftpConnectTimeout);
         writer.writeElementString("ftpControlEncoding", ftpControlEncoding);
@@ -823,20 +851,20 @@ public class GenericFilesystemOptionsProvider
         writer.writeElementString(
                 "ftpServerLanguageCode", ftpServerLanguageCode);
         writer.writeElementString("ftpServerTimeZoneId", ftpServerTimeZoneId);
-        writer.writeElementString("ftpShortMonthNames", 
+        writer.writeElementString("ftpShortMonthNames",
                 StringUtils.join(ftpShortMonthNames, ","));
         writer.writeElementInteger("ftpSoTimeout", ftpSoTimeout);
         writer.writeElementBoolean("ftpUserDirIsRoot", ftpUserDirIsRoot);
     }
-    private void saveHDFS(EnhancedXMLStreamWriter writer) 
+    private void saveHDFS(EnhancedXMLStreamWriter writer)
             throws XMLStreamException {
         writer.writeElementString("hdfsConfigName", hdfsConfigName);
-        writer.writeElementString("hdfsConfigPath", 
+        writer.writeElementString("hdfsConfigPath",
                 Objects.toString(hdfsConfigPath, null));
         writer.writeElementString("hdfsConfigURL",
                 Objects.toString(hdfsConfigURL, null));
     }
-    private void saveHTTP(EnhancedXMLStreamWriter writer) 
+    private void saveHTTP(EnhancedXMLStreamWriter writer)
             throws XMLStreamException {
         writer.writeElementBoolean("httpWebdav", httpWebdav);
         writer.writeElementInteger(
@@ -855,11 +883,11 @@ public class GenericFilesystemOptionsProvider
         writer.writeElementBoolean(
                 "httpWebdavVersioning", httpWebdavVersioning);
     }
-    private void saveRAM(EnhancedXMLStreamWriter writer) 
+    private void saveRAM(EnhancedXMLStreamWriter writer)
             throws XMLStreamException {
         writer.writeElementLong("ramMaxSize", ramMaxSize);
-    }    
-    private void saveSFTP(EnhancedXMLStreamWriter writer) 
+    }
+    private void saveSFTP(EnhancedXMLStreamWriter writer)
             throws XMLStreamException {
         writer.writeElementString("sftpCompression", sftpCompression);
         writer.writeElementString("sftpFileNameEncoding", sftpFileNameEncoding);
@@ -873,8 +901,12 @@ public class GenericFilesystemOptionsProvider
                 "sftpStrictHostKeyChecking", sftpStrictHostKeyChecking);
         writer.writeElementInteger("sftpTimeout", sftpTimeout);
         writer.writeElementBoolean("sftpUserDirIsRoot", sftpUserDirIsRoot);
-    }    
-    
+    }
+    private void saveCMIS(EnhancedXMLStreamWriter writer)
+            throws XMLStreamException {
+        writer.writeElementString("cmisAtomURL", cmisAtomURL);
+    }
+
     @Override
     public boolean equals(final Object other) {
         return EqualsBuilder.reflectionEquals(this, other, false);
@@ -888,14 +920,14 @@ public class GenericFilesystemOptionsProvider
         return ReflectionToStringBuilder.toString(
                 this, ToStringStyle.SHORT_PREFIX_STYLE);
     }
-    
+
     private class Auth {
         private String domain;
         private String username;
         private String password;
         private EncryptionKey encryptionKey;
         private boolean isAuthenticating() {
-            return StringUtils.isNotBlank(domain) 
+            return StringUtils.isNotBlank(domain)
                     || StringUtils.isNotBlank(username)
                     || StringUtils.isNotBlank(password);
         }
@@ -929,6 +961,6 @@ public class GenericFilesystemOptionsProvider
         public String toString() {
             return ReflectionToStringBuilder.toString(
                     this, ToStringStyle.SHORT_PREFIX_STYLE);
-        } 
+        }
     }
 }
