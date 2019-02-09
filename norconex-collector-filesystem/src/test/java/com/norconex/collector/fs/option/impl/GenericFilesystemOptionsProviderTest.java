@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.net.URL;
 
 import org.apache.commons.vfs2.provider.ftp.FtpFileType;
+import org.apache.hadoop.fs.Path;
 import org.junit.Test;
 
 import com.norconex.commons.lang.config.XMLConfigurationUtil;
@@ -48,7 +49,7 @@ public class GenericFilesystemOptionsProviderTest {
         p.setFtpUserDirIsRoot(true);
 
         p.setHdfsConfigName("ConfigName");
-//        p.setHdfsConfigPath(new Path("configPath"));
+        p.setHdfsConfigPath(new Path("configPath"));
         p.setHdfsConfigURL(new URL("http://url.com"));
 
         p.setHttpConnectionTimeout(123);
@@ -71,6 +72,11 @@ public class GenericFilesystemOptionsProviderTest {
         p.setSftpUserDirIsRoot(true);
 
         p.setCmisAtomURL("http://localhost:80/atomurl");
+        p.setCmisWebServicesURL("http://localhost:80/wsurl");
+        p.setCmisSessionParameter("key1", "val1");
+        p.setCmisSessionParameter("key2", "val2");
+        p.setCmisSessionParameter("key3", "val3");
+        p.setCmisRepositoryId("repoID");
 
         System.out.println("Writing/Reading this: " + p);
         XMLConfigurationUtil.assertWriteRead(p);

@@ -126,7 +126,17 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  * </p>
  *
  * <p>
- * As of 2.9.0, CMIS-enabled Content Management Systems are supported.
+ * As of 2.9.0, CMIS-enabled Content Management Systems (CMS) are supported.
+ * The start path can be specified as:
+ * <code>cmis:http://yourhost:port/path/to/atom</code>.
+ * Optionally you can have a non-root starting path by adding the path
+ * name to the base URL, with an exclamation mark as a separator:
+ * <code>cmis:http://yourhost:port/path/to/atom!/MyFolder/MySubFolder</code>.
+ * Start paths are assumed to be Atom URLs when the repository URL is not
+ * explicitly set here. Use {@link #setCmisWebServicesURL(String)}
+ * to use CMIS web services instead, or {@link #setCmisAtomURL(String)} if
+ * your Atom repository URL differs from your start path (without the "cmis:"
+ * scheme).
  * </p>
  *
  * <p>
@@ -200,10 +210,10 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *          (optional repository ID, defaults to first one found.)
  *      &lt;/cmisRepositoryId&gt;
  *      &lt;cmisSessionParameters&gt;
- *          &lt;param key="(key)"&gt;(value)&lt;/param&gt;
+ *          &lt;param name="(name)"&gt;(value)&lt;/param&gt;
  *          &lt;!--
  *            You can have multiple param tags.
- *            Key and values are described in Apache Chemistry
+ *            Names and values are described in Apache Chemistry
  *            {@link SessionParameter} class.
  *            --&gt;
  *      &lt;/cmisSessionParameters&gt;
@@ -689,36 +699,97 @@ public class GenericFilesystemOptionsProvider
         this.sftpUserDirIsRoot = sftpUserDirIsRoot;
     }
 
+    /**
+     * Gets CMIS repository Atom URL.
+     * @return repository URL
+     * @since 2.9.0
+     */
     public String getCmisAtomURL() {
         return cmisAtomURL;
     }
+    /**
+     * Sets CMIS repository Atom URL.
+     * @param cmisAtomURL repository URL
+     * @since 2.9.0
+     */
     public void setCmisAtomURL(String cmisAtomURL) {
         this.cmisAtomURL = cmisAtomURL;
     }
+    /**
+     * Gets CMIS repository Web Services  URL.
+     * @return repository URL
+     * @since 2.9.0
+     */
     public String getCmisWebServicesURL() {
         return cmisWebServicesURL;
     }
+    /**
+     * Sets CMIS repository Web Services URL.
+     * @param cmisWebServicesURL repository URL
+     * @since 2.9.0
+     */
     public void setCmisWebServicesURL(String cmisWebServicesURL) {
         this.cmisWebServicesURL = cmisWebServicesURL;
     }
+    /**
+     * Gets CMIS repository ID.
+     * @return repository id
+     * @since 2.9.0
+     */
     public String getCmisRepositoryId() {
         return cmisRepositoryId;
     }
+    /**
+     * Sets CMIS repository ID.
+     * @param cmisRepositoryId repository ID
+     * @since 2.9.0
+     */
     public void setCmisRepositoryId(String cmisRepositoryId) {
         this.cmisRepositoryId = cmisRepositoryId;
     }
-    public void setCmisSessionParameter(String key, String value) {
-        cmisSessionParameters.put(key, value);
+    /**
+     * Sets a CMIS session parameter as defined in {@link SessionParameter}.
+     * @param name parameter name
+     * @param value parameter value
+     * @since 2.9.0
+     */
+    public void setCmisSessionParameter(String name, String value) {
+        cmisSessionParameters.put(name, value);
     }
-    public String getCmisSessionParameter(String key) {
-        return cmisSessionParameters.get(key);
+    /**
+     * Sets CMIS session parameters as defined in {@link SessionParameter}.
+     * @param params parameters
+     * @since 2.9.0
+     */
+    public void setCmisSessionParameters(Map<String, String> params) {
+        cmisSessionParameters.putAll(params);
     }
+    /**
+     * Gets a CMIS session parameter.
+     * @param name parameter name
+     * @return parameter value
+     * @since 2.9.0
+     */
+    public String getCmisSessionParameter(String name) {
+        return cmisSessionParameters.get(name);
+    }
+    /**
+     * Gets all CMIS session parameter names.
+     * @return parameter names
+     * @since 2.9.0
+     */
     public String[] getCmisSessionParameterNames() {
         return cmisSessionParameters.keySet().toArray(
                 ArrayUtils.EMPTY_STRING_ARRAY);
     }
-    public String removeCmisSessionParameter(String key) {
-        return cmisSessionParameters.remove(key);
+    /**
+     * Removes a CMIS session parameter.
+     * @param name parameter name
+     * @return the removed parameter value
+     * @since 2.9.0
+     */
+    public String removeCmisSessionParameter(String name) {
+        return cmisSessionParameters.remove(name);
     }
 
     @Override
@@ -850,11 +921,11 @@ public class GenericFilesystemOptionsProvider
         cmisRepositoryId = xml.getString("cmisRepositoryId", cmisRepositoryId);
         List<HierarchicalConfiguration> xmlParams =
                 xml.configurationsAt("cmisSessionParameters.param");
-        if (!cmisSessionParameters.isEmpty()) {
+        if (!xmlParams.isEmpty()) {
             cmisSessionParameters.clear();
             for (HierarchicalConfiguration xmlParam : xmlParams) {
                 cmisSessionParameters.put(
-                        xmlParam.getString("[@key]"),
+                        xmlParam.getString("[@name]"),
                         xmlParam.getString(""));
             }
         }
@@ -974,7 +1045,7 @@ public class GenericFilesystemOptionsProvider
             for (Entry<String, String> entry :
                     cmisSessionParameters.entrySet()) {
                 writer.writeStartElement("param");
-                writer.writeAttributeString("key", entry.getKey());
+                writer.writeAttributeString("name", entry.getKey());
                 writer.writeCharacters(entry.getValue());
                 writer.writeEndElement();
             }

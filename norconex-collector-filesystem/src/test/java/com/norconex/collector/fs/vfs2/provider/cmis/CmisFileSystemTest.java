@@ -36,10 +36,7 @@ import com.norconex.committer.core.impl.JSONFileCommitter;
 
 public class CmisFileSystemTest {
 
-//    private static final Logger LOG =
-//            LogManager.getLogger(CmisFileSystemTest.class);
     private static final String COMMITTER_SUBDIR = "committedFiles";
-
 
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
