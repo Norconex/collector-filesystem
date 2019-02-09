@@ -29,7 +29,6 @@ import org.apache.chemistry.opencmis.client.api.OperationContext;
 import org.apache.chemistry.opencmis.client.api.Session;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.vfs2.FileName;
-import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileType;
 import org.apache.commons.vfs2.provider.AbstractFileName;
 import org.apache.commons.vfs2.provider.AbstractFileObject;
@@ -46,8 +45,7 @@ public class CmisFileObject extends AbstractFileObject<CmisFileSystem> {
 
     private CmisObject cmisObject;
 
-    protected CmisFileObject(AbstractFileName name, CmisFileSystem fileSystem,
-            FileName rootName) throws FileSystemException {
+    protected CmisFileObject(AbstractFileName name, CmisFileSystem fileSystem) {
         super(name, fileSystem);
     }
 

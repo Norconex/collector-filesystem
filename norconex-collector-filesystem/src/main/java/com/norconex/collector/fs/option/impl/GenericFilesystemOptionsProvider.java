@@ -1,4 +1,4 @@
-/* Copyright 2017 Norconex Inc.
+/* Copyright 2017-2019 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,11 +20,18 @@ import java.io.Reader;
 import java.io.Writer;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 
 import javax.xml.stream.XMLStreamException;
 
+import org.apache.chemistry.opencmis.commons.SessionParameter;
+import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -187,7 +194,19 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *      &lt;sftpUserDirIsRoot&gt;[false|true]&lt;/sftpUserDirIsRoot&gt;
  *
  *      &lt;!-- CMIS --&gt;
- *      &lt;cmisAtomURL&gt;(URL to CMIS Atom web service)&lt;/cmisAtomURL&gt;
+ *      &lt;cmisAtomURL&gt;(optional URL to CMIS Atom)&lt;/cmisAtomURL&gt;
+ *      &lt;cmisWebServicesURL&gt;(optional URL to CMIS Web Services)&lt;/cmisWebServicesURL&gt;
+ *      &lt;cmisRepositoryId&gt;
+ *          (optional repository ID, defaults to first one found.)
+ *      &lt;/cmisRepositoryId&gt;
+ *      &lt;cmisSessionParameters&gt;
+ *          &lt;param key="(key)"&gt;(value)&lt;/param&gt;
+ *          &lt;!--
+ *            You can have multiple param tags.
+ *            Key and values are described in Apache Chemistry
+ *            {@link SessionParameter} class.
+ *            --&gt;
+ *      &lt;/cmisSessionParameters&gt;
  *
  *  &lt;/optionsProvider&gt;
  * </pre>
@@ -265,6 +284,9 @@ public class GenericFilesystemOptionsProvider
 
     // CMIS
     private String cmisAtomURL;
+    private String cmisWebServicesURL;
+    private String cmisRepositoryId;
+    private final Map<String, String> cmisSessionParameters = new HashMap<>();
 
     public GenericFilesystemOptionsProvider() {
         super();
@@ -366,7 +388,9 @@ public class GenericFilesystemOptionsProvider
         CmisFileSystemConfigBuilder cmis =
                 CmisFileSystemConfigBuilder.getInstance();
         cmis.setAtomURL(opts, cmisAtomURL);
-
+        cmis.setWebServicesURL(opts, cmisWebServicesURL);
+        cmis.setRepositoryId(opts, cmisRepositoryId);
+        cmis.setSessionParams(opts, cmisSessionParameters);
 
         buildOptions(opts);
         this.options = opts;
@@ -671,6 +695,31 @@ public class GenericFilesystemOptionsProvider
     public void setCmisAtomURL(String cmisAtomURL) {
         this.cmisAtomURL = cmisAtomURL;
     }
+    public String getCmisWebServicesURL() {
+        return cmisWebServicesURL;
+    }
+    public void setCmisWebServicesURL(String cmisWebServicesURL) {
+        this.cmisWebServicesURL = cmisWebServicesURL;
+    }
+    public String getCmisRepositoryId() {
+        return cmisRepositoryId;
+    }
+    public void setCmisRepositoryId(String cmisRepositoryId) {
+        this.cmisRepositoryId = cmisRepositoryId;
+    }
+    public void setCmisSessionParameter(String key, String value) {
+        cmisSessionParameters.put(key, value);
+    }
+    public String getCmisSessionParameter(String key) {
+        return cmisSessionParameters.get(key);
+    }
+    public String[] getCmisSessionParameterNames() {
+        return cmisSessionParameters.keySet().toArray(
+                ArrayUtils.EMPTY_STRING_ARRAY);
+    }
+    public String removeCmisSessionParameter(String key) {
+        return cmisSessionParameters.remove(key);
+    }
 
     @Override
     public synchronized FileSystemOptions getFilesystemOptions(
@@ -796,6 +845,19 @@ public class GenericFilesystemOptionsProvider
     }
     private void loadCMIS(XMLConfiguration xml) {
         cmisAtomURL = xml.getString("cmisAtomURL", cmisAtomURL);
+        cmisWebServicesURL =
+                xml.getString("cmisWebServicesURL", cmisWebServicesURL);
+        cmisRepositoryId = xml.getString("cmisRepositoryId", cmisRepositoryId);
+        List<HierarchicalConfiguration> xmlParams =
+                xml.configurationsAt("cmisSessionParameters.param");
+        if (!cmisSessionParameters.isEmpty()) {
+            cmisSessionParameters.clear();
+            for (HierarchicalConfiguration xmlParam : xmlParams) {
+                cmisSessionParameters.put(
+                        xmlParam.getString("[@key]"),
+                        xmlParam.getString(""));
+            }
+        }
     }
 
     @Override
@@ -905,6 +967,19 @@ public class GenericFilesystemOptionsProvider
     private void saveCMIS(EnhancedXMLStreamWriter writer)
             throws XMLStreamException {
         writer.writeElementString("cmisAtomURL", cmisAtomURL);
+        writer.writeElementString("cmisWebServicesURL", cmisWebServicesURL);
+        writer.writeElementString("cmisRepositoryId", cmisRepositoryId);
+        if (!cmisSessionParameters.isEmpty()) {
+            writer.writeStartElement("cmisSessionParameters");
+            for (Entry<String, String> entry :
+                    cmisSessionParameters.entrySet()) {
+                writer.writeStartElement("param");
+                writer.writeAttributeString("key", entry.getKey());
+                writer.writeCharacters(entry.getValue());
+                writer.writeEndElement();
+            }
+            writer.writeEndElement();
+        }
     }
 
     @Override

@@ -19,21 +19,20 @@ import java.io.IOException;
 import java.net.URL;
 
 import org.apache.commons.vfs2.provider.ftp.FtpFileType;
-import org.apache.hadoop.fs.Path;
 import org.junit.Test;
 
 import com.norconex.commons.lang.config.XMLConfigurationUtil;
 
 public class GenericFilesystemOptionsProviderTest {
-    
+
     @Test
     public void testWriteRead() throws IOException {
-        GenericFilesystemOptionsProvider p = 
+        GenericFilesystemOptionsProvider p =
                 new GenericFilesystemOptionsProvider();
         p.setAuthUsername("JoeUser");
         p.setAuthPassword("JoePassword");
         p.setAuthDomain("JoeDomain");
-        
+
         p.setFtpConnectTimeout(123);
         p.setFtpControlEncoding("encoding");
         p.setFtpDataTimeout(456);
@@ -49,9 +48,9 @@ public class GenericFilesystemOptionsProviderTest {
         p.setFtpUserDirIsRoot(true);
 
         p.setHdfsConfigName("ConfigName");
-        p.setHdfsConfigPath(new Path("configPath"));
+//        p.setHdfsConfigPath(new Path("configPath"));
         p.setHdfsConfigURL(new URL("http://url.com"));
-        
+
         p.setHttpConnectionTimeout(123);
         p.setHttpFollowRedirect(true);
         p.setHttpMaxConnectionsPerHost(456);
@@ -60,9 +59,9 @@ public class GenericFilesystemOptionsProviderTest {
         p.setHttpSoTimeout(321);
         p.setHttpUrlCharset("UTF-8");
         p.setHttpUserAgent("userAgent");
-        
+
         p.setRamMaxSize(1234L);
-        
+
         p.setSftpCompression("blah");
         p.setSftpFileNameEncoding("enc");
         p.setSftpKnownHosts(new File("/tmp").getAbsoluteFile());
@@ -70,15 +69,17 @@ public class GenericFilesystemOptionsProviderTest {
         p.setSftpStrictHostKeyChecking("yes");
         p.setSftpTimeout(5678);
         p.setSftpUserDirIsRoot(true);
-        
+
+        p.setCmisAtomURL("http://localhost:80/atomurl");
+
         System.out.println("Writing/Reading this: " + p);
         XMLConfigurationUtil.assertWriteRead(p);
-        
+
 
         // test empty
         p = new GenericFilesystemOptionsProvider();
         System.out.println("Writing/Reading this: " + p);
         XMLConfigurationUtil.assertWriteRead(p);
-        
+
     }
 }

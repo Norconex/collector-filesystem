@@ -29,6 +29,7 @@ import org.apache.chemistry.opencmis.client.runtime.SessionFactoryImpl;
 import org.apache.chemistry.opencmis.commons.SessionParameter;
 import org.apache.chemistry.opencmis.commons.enums.BindingType;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisConnectionException;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.vfs2.Capability;
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileObject;
@@ -57,7 +58,7 @@ public class CmisFileProvider extends AbstractLayeredFileProvider {
         UserAuthenticationData.USERNAME, UserAuthenticationData.PASSWORD
     };
 
-    static final Collection<Capability> capabilities =
+    static final Collection<Capability> CAPABILITIES =
             Collections.unmodifiableCollection(Arrays.asList(new Capability[] {
         Capability.GET_TYPE,
         Capability.GET_LAST_MODIFIED,
@@ -74,7 +75,7 @@ public class CmisFileProvider extends AbstractLayeredFileProvider {
     @Override
     protected FileSystem doCreateFileSystem(String scheme, FileObject file,
             FileSystemOptions fileSystemOptions) throws FileSystemException {
-        Session session = createSession(fileSystemOptions);
+        Session session = createSession(fileSystemOptions, file);
         OperationContext oc = session.createOperationContext();
         //TODO make operationContext configurable as well.
         oc.setIncludeAcls(true);
@@ -92,52 +93,31 @@ public class CmisFileProvider extends AbstractLayeredFileProvider {
 
     @Override
     public Collection<Capability> getCapabilities() {
-        return capabilities;
+        return CAPABILITIES;
     }
 
-    private Session createSession(FileSystemOptions vfsOpts) {
+    private Session createSession(FileSystemOptions opts, FileObject file) {
         LOG.info("Creating new CMIS connection.");
+        Map<String, String> params = new HashMap<>();
 
-        UserAuthenticator auth = DefaultFileSystemConfigBuilder
-                .getInstance().getUserAuthenticator(vfsOpts);
+        resolveAuth(params, opts);
+        resolveRepo(params, opts, file);
 
-        Map<String, String> cmisParams = new HashMap<>();
-        if (auth != null) {
-            UserAuthenticationData data =
-                    auth.requestAuthentication(AUTHENTICATOR_TYPES);
-            if (data != null) {
-                cmisParams.put(SessionParameter.USER, new String(
-                        data.getData(UserAuthenticationData.USERNAME)));
-                cmisParams.put(SessionParameter.PASSWORD, new String(
-                        data.getData(UserAuthenticationData.PASSWORD)));
-            }
-        }
+        params.put(SessionParameter.COMPRESSION, "true");
+        // Caching is turned off
+        params.put(SessionParameter.CACHE_TTL_OBJECTS, "0");
 
-        CmisFileSystemConfigBuilder cmis =
-                CmisFileSystemConfigBuilder.getInstance();
+        resolveSessionParameters(params, opts);
 
-
-        cmisParams.put(SessionParameter.ATOMPUB_URL, cmis.getAtomURL(vfsOpts));
-//                "http://localhost:8080/alfresco/api/-default-/cmis/versions/1.1/atom");
-        cmisParams.put(SessionParameter.BINDING_TYPE, BindingType.ATOMPUB.value());
-        cmisParams.put(SessionParameter.COMPRESSION, "true");
-        cmisParams.put(SessionParameter.CACHE_TTL_OBJECTS, "0"); // Caching is turned off
-
-
-//        addParam(cmisParams, vfsOpts, SessionParameter.USER);
-//        addParam(cmisParams, vfsOpts, SessionParameter.PASSWORD);
-//        addParam(cmisParams, vfsOpts, SessionParameter.ATOMPUB_URL);
-//        addParam(cmisParams, vfsOpts, SessionParameter.BINDING_TYPE);
-//        addParam(cmisParams, vfsOpts, SessionParameter.COMPRESSION);
-//        addParam(cmisParams, vfsOpts, SessionParameter.CACHE_TTL_OBJECTS);
+        updateSessionParameters(params);
 
         SessionFactory sessionFactory = SessionFactoryImpl.newInstance();
-        List<Repository> repos = sessionFactory.getRepositories(cmisParams);
+        List<Repository> repos = sessionFactory.getRepositories(params);
         Repository cmisRepo = null;
         if (!repos.isEmpty()) {
             LOG.info("Found (" + repos.size() + ") CMIS repositories");
             cmisRepo = repos.get(0);
-            LOG.info("Info about the first CMIS repo "
+            LOG.info("Using (first) CMIS repo "
                     + "[ID=" + cmisRepo.getId() + "]"
                     + "[name=" + cmisRepo.getName() + "]"
                     + "[CMIS ver supported="
@@ -148,6 +128,98 @@ public class CmisFileProvider extends AbstractLayeredFileProvider {
         }
         return cmisRepo.createSession();
     }
+
+    private void resolveSessionParameters(
+            Map<String, String> params, FileSystemOptions opts) {
+        CmisFileSystemConfigBuilder cmis =
+                CmisFileSystemConfigBuilder.getInstance();
+        params.putAll(cmis.getSessionParams(opts));
+    }
+
+    protected void updateSessionParameters(Map<String, String> params) {
+        //NOOP
+    }
+
+    private void resolveAuth(
+            Map<String, String> params, FileSystemOptions opts) {
+        UserAuthenticator auth = DefaultFileSystemConfigBuilder
+                .getInstance().getUserAuthenticator(opts);
+        if (auth != null) {
+            UserAuthenticationData data =
+                    auth.requestAuthentication(AUTHENTICATOR_TYPES);
+            if (data != null) {
+                params.put(SessionParameter.USER, new String(
+                        data.getData(UserAuthenticationData.USERNAME)));
+                params.put(SessionParameter.PASSWORD, new String(
+                        data.getData(UserAuthenticationData.PASSWORD)));
+            }
+        }
+    }
+
+    private void resolveRepo(Map<String, String> params,
+            FileSystemOptions opts, FileObject file) {
+        CmisFileSystemConfigBuilder cmis =
+                CmisFileSystemConfigBuilder.getInstance();
+        String atomURL = cmis.getAtomURL(opts);
+        if (StringUtils.isNotBlank(atomURL)) {
+            resolveAtomParams(params, atomURL);
+            LOG.info("Connecting to CMIS Atom endpoint.");
+        } else if (StringUtils.isNotBlank(cmis.getWebServicesURL(opts))) {
+            resolveWebServicesParams(params, opts);
+            LOG.info("Connecting to CMIS Web Service endpoint.");
+        } else {
+            LOG.info("None of Atom or Web Services URL provided. "
+                   + "Defaulting to Atom, using start URL: "
+                   + file.getPublicURIString());
+            atomURL = StringUtils.substringBefore(file.toString(), "!");
+            resolveAtomParams(params, atomURL);
+        }
+
+        String repoId = cmis.getRepositoryId(opts);
+        if (StringUtils.isNotBlank(repoId)) {
+            params.put(SessionParameter.REPOSITORY_ID, repoId);
+        }
+    }
+    private void resolveAtomParams(Map<String, String> params, String atomURL) {
+        params.put(SessionParameter.BINDING_TYPE, BindingType.ATOMPUB.value());
+        params.put(SessionParameter.ATOMPUB_URL, atomURL);
+    }
+    private void resolveWebServicesParams(
+            Map<String, String> params, FileSystemOptions opts) {
+        CmisFileSystemConfigBuilder cmis =
+                CmisFileSystemConfigBuilder.getInstance();
+        params.put(SessionParameter.BINDING_TYPE,
+                BindingType.WEBSERVICES.value());
+
+        String baseURL =
+                StringUtils.removeEnd(cmis.getWebServicesURL(opts), "/");
+
+        params.put(SessionParameter.WEBSERVICES_ACL_SERVICE,
+                baseURL + "/ACLService?wsdl");
+        params.put(SessionParameter.WEBSERVICES_DISCOVERY_SERVICE,
+                baseURL + "/DiscoveryService?wsdl");
+        params.put(SessionParameter.WEBSERVICES_MULTIFILING_SERVICE,
+                baseURL + "/MultiFilingService?wsdl");
+        params.put(SessionParameter.WEBSERVICES_NAVIGATION_SERVICE,
+                baseURL + "/NavigationService?wsdl");
+        params.put(SessionParameter.WEBSERVICES_OBJECT_SERVICE,
+                baseURL + "/ObjectService?wsdl");
+        params.put(SessionParameter.WEBSERVICES_POLICY_SERVICE,
+                baseURL + "/PolicyService?wsdl");
+        params.put(SessionParameter.WEBSERVICES_RELATIONSHIP_SERVICE,
+                baseURL + "/RelationshipService?wsdl");
+        params.put(SessionParameter.WEBSERVICES_REPOSITORY_SERVICE,
+                baseURL + "/RepositoryService?wsdl");
+        params.put(SessionParameter.WEBSERVICES_VERSIONING_SERVICE,
+                baseURL + "/VersioningService?wsdl");
+
+    }
+
+
+    //TODO save/load custom arguments
+    //TODO allow method overwrite to set things up
+
+
 //    private void addParam(
 //            Map<String, String> cmisParams, String cmisKey,
 //            FileSystemOptions vfsOpts, String vfsKey) {
@@ -157,13 +229,3 @@ public class CmisFileProvider extends AbstractLayeredFileProvider {
 //    }
 
 }
-//parameters.put(SessionParameter.USER, cfg.getSessionParam(opts, SessionParameter.USER));
-//parameters.put(SessionParameter.PASSWORD, pwd);
-//parameters.put(SessionParameter.ATOMPUB_URL, CMIS_URL);
-////          "http://localhost:8080/alfresco/api/-default-/cmis/versions/1.1/atom");
-//parameters.put(SessionParameter.BINDING_TYPE, BindingType.ATOMPUB.value());
-//parameters.put(SessionParameter.COMPRESSION, "true");
-//parameters.put(SessionParameter.CACHE_TTL_OBJECTS, "0"); // Caching is turned off
-
-// If there is only one repository exposed these
-// lines will help detect it and its ID

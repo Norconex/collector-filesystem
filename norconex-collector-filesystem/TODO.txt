@@ -2,5 +2,8 @@ The following are either things to be done, or ideas to consider:
 
 - Consider a maxDepth (folder depth).
 
+- Add delay optoin similar to http collector.  Consider making it part
+  of Collector Core.
+
 - Remove org.apache.commosn.vfs.provider.[smb|mime] package and replace with 
   appropriate Jar dependency when available in a Maven repo.

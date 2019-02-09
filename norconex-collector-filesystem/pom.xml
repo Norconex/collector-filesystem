@@ -27,6 +27,7 @@
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>    
     <site.baseurl/>
     <norconex-commons-lang.version>1.15.0</norconex-commons-lang.version>
+    <jetty.version>9.2.20.v20161216</jetty.version>
   </properties>
   <inceptionYear>2014</inceptionYear>
 
@@ -95,7 +96,21 @@
       <artifactId>chemistry-opencmis-client-impl</artifactId>
       <version>1.1.0</version>
     </dependency>
-    
+
+    <dependency>
+      <groupId>org.apache.chemistry.opencmis</groupId>
+      <artifactId>chemistry-opencmis-server-inmemory</artifactId>
+      <version>1.1.0</version>
+      <classifier>classes</classifier>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+        <groupId>org.eclipse.jetty</groupId>
+        <artifactId>jetty-webapp</artifactId>
+        <version>${jetty.version}</version>
+        <scope>test</scope>
+    </dependency>
+
     <!-- Unfortunately Maven does not distribute its VFS-Sandbox lib.
          Code has been bundled with this project instead.  When made available
          in a Maven repo, consider adding this back.
@@ -149,12 +164,17 @@
          More info: 
          https://commons.apache.org/proper/commons-vfs/download.html
       -->
+      <!-- 
+       -->
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-common</artifactId>
       <version>2.6.0</version>
+      <!-- Will complain at execution time if using "provided":
       <scope>provided</scope>
       <optional>true</optional>
+       -->
+      <!-- Shall we include all dependencies? or make them separate packages to download? -->
       <exclusions>
         <exclusion>
           <groupId>*</groupId>

@@ -14,6 +14,8 @@
  */
 package com.norconex.collector.fs.vfs2.provider.cmis;
 
+import java.util.Map;
+
 import org.apache.chemistry.opencmis.commons.SessionParameter;
 import org.apache.commons.vfs2.FileSystemConfigBuilder;
 import org.apache.commons.vfs2.FileSystemOptions;
@@ -21,6 +23,11 @@ import org.apache.commons.vfs2.FileSystemOptions;
 public class CmisFileSystemConfigBuilder extends FileSystemConfigBuilder {
     private static final CmisFileSystemConfigBuilder INSTANCE =
             new CmisFileSystemConfigBuilder();
+
+    private static final String PARAM_WS_URL =
+            CmisFileSystemConfigBuilder.class.getName() + ".webservices.url";
+    private static final String PARAM_SESSION_PARAMS =
+            CmisFileSystemConfigBuilder.class.getName() + ".session.params";
 
     public static CmisFileSystemConfigBuilder getInstance() {
         return INSTANCE;
@@ -35,16 +42,35 @@ public class CmisFileSystemConfigBuilder extends FileSystemConfigBuilder {
         return (String) getParam(opts, paramName);
     }
 
-
-    public void setAtomURL(
-            FileSystemOptions opts, String atomUrl) {
+    public void setAtomURL(FileSystemOptions opts, String atomUrl) {
         setParam(opts, SessionParameter.ATOMPUB_URL, atomUrl);
     }
-
     public String getAtomURL(FileSystemOptions opts) {
         return (String) getParam(opts, SessionParameter.ATOMPUB_URL);
     }
 
+    public void setWebServicesURL(FileSystemOptions opts, String wsUrl) {
+        setParam(opts, PARAM_WS_URL, wsUrl);
+    }
+    public String getWebServicesURL(FileSystemOptions opts) {
+        return (String) getParam(opts, PARAM_WS_URL);
+    }
+
+    public void setRepositoryId(FileSystemOptions opts, String repositoryId) {
+        setParam(opts, SessionParameter.REPOSITORY_ID, repositoryId);
+    }
+    public String getRepositoryId(FileSystemOptions opts) {
+        return (String) getParam(opts, SessionParameter.REPOSITORY_ID);
+    }
+
+    public void setSessionParams(
+            FileSystemOptions opts, Map<String, String> params) {
+        setParam(opts, PARAM_SESSION_PARAMS, params);
+    }
+    @SuppressWarnings("unchecked")
+    public Map<String, String> getSessionParams(FileSystemOptions opts) {
+        return (Map<String, String>) getParam(opts, PARAM_SESSION_PARAMS);
+    }
 
     @Override
     protected Class<CmisFileSystem> getConfigClass() {

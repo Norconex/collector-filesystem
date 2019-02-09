@@ -56,14 +56,14 @@ import com.norconex.jef4.suite.JobSuite;
 
 /**
  * The Filesystem Crawler.
- * 
+ *
  * @author Pascal Essiembre
  */
 public class FilesystemCrawler extends AbstractCrawler {
 
-    private static final Logger LOG = 
+    private static final Logger LOG =
             LogManager.getLogger(FilesystemCrawler.class);
-    
+
     private StandardFileSystemManager fileManager;
     private IFilesystemOptionsProvider optionsProvider;
 
@@ -74,26 +74,26 @@ public class FilesystemCrawler extends AbstractCrawler {
     public FilesystemCrawler(FilesystemCrawlerConfig crawlerConfig) {
         super(crawlerConfig);
     }
-    
+
     @Override
     public FilesystemCrawlerConfig getCrawlerConfig() {
         return (FilesystemCrawlerConfig) super.getCrawlerConfig();
     }
-    
+
     /**
      * @return the fileManager
      */
     public FileSystemManager getFileManager() {
         return fileManager;
     }
-    
+
     @Override
     protected void prepareExecution(
-            JobStatusUpdater statusUpdater, JobSuite suite, 
+            JobStatusUpdater statusUpdater, JobSuite suite,
             ICrawlDataStore crawlDataStore, boolean resume) {
 
         initializeFileSystemManager();
-        
+
         if (!resume) {
             queueStartPaths(crawlDataStore);
         }
@@ -104,12 +104,16 @@ public class FilesystemCrawler extends AbstractCrawler {
             optionsProvider = getCrawlerConfig().getOptionsProvider();
             fileManager = new StandardFileSystemManager();
             fileManager.setClassLoader(getClass().getClassLoader());
+//            if (getCrawlerConfig().getWorkDir() != null) {
+//                fileManager.setTemporaryFileStore(new DefaultFileReplicator(
+//                       new File(getCrawlerConfig().getWorkDir(), "fvs_cache")));
+//            }
             fileManager.init();
         } catch (FileSystemException e) {
             throw new CollectorException("Could not initialize filesystem.", e);
         }
     }
-    
+
     private void queueStartPaths(ICrawlDataStore crawlDataStore) {
         int urlCount = 0;
         urlCount += queueStartPathsRegular(crawlDataStore);
@@ -118,16 +122,16 @@ public class FilesystemCrawler extends AbstractCrawler {
         LOG.info(NumberFormat.getNumberInstance().format(urlCount)
                 + " start paths identified.");
     }
-    private int queueStartPathsRegular(final ICrawlDataStore crawlDataStore) {   
+    private int queueStartPathsRegular(final ICrawlDataStore crawlDataStore) {
         // Queue regular start urls
         String[] startPaths = getCrawlerConfig().getStartPaths();
         if (startPaths == null) {
             return 0;
         }
-        
+
         for (int i = 0; i < startPaths.length; i++) {
             String startPath = startPaths[i];
-            // No protocol specified: we assume local file, and we get 
+            // No protocol specified: we assume local file, and we get
             // the absolute version.
             if (!startPath.contains("://")) {
                 startPath = new File(startPath).getAbsolutePath();
@@ -162,9 +166,9 @@ public class FilesystemCrawler extends AbstractCrawler {
         }
         return pathCount;
     }
-    
+
     private int queueStartPathsProviders(final ICrawlDataStore crawlDataStore) {
-        IStartPathsProvider[] providers = 
+        IStartPathsProvider[] providers =
                 getCrawlerConfig().getStartPathsProviders();
         if (providers == null) {
             return 0;
@@ -183,12 +187,12 @@ public class FilesystemCrawler extends AbstractCrawler {
         }
         return count;
     }
-    
+
     @Override
     protected void executeQueuePipeline(
             ICrawlData crawlData, ICrawlDataStore crawlDataStore) {
         BaseCrawlData fsData = (BaseCrawlData) crawlData;
-        BasePipelineContext context = 
+        BasePipelineContext context =
                 new BasePipelineContext(this, crawlDataStore, fsData);
         new FileQueuePipeline().execute(context);
     }
@@ -205,19 +209,19 @@ public class FilesystemCrawler extends AbstractCrawler {
             ImporterPipelineContext importerContext) {
 
         ICrawlData crawlData = importerContext.getCrawlData();
-        
+
         FileObject fileObject = null;
         try {
             if (optionsProvider == null) {
                 fileObject = fileManager.resolveFile(crawlData.getReference());
             } else {
-                fileObject = fileManager.resolveFile(crawlData.getReference(), 
+                fileObject = fileManager.resolveFile(crawlData.getReference(),
                         optionsProvider.getFilesystemOptions(fileObject));
             }
         } catch (FileSystemException e) {
             resolveFileException(crawlData.getReference(), e);
         }
-        FileImporterPipelineContext fileContext = 
+        FileImporterPipelineContext fileContext =
                 new FileImporterPipelineContext(importerContext);
         fileContext.setFileObject(fileObject);
         new FileImporterPipeline(
@@ -230,25 +234,25 @@ public class FilesystemCrawler extends AbstractCrawler {
             ICrawlData parentCrawlData) {
         return new BaseCrawlData(embeddedReference);
     }
-    
+
 
     @Override
     protected void executeCommitterPipeline(ICrawler crawler,
             ImporterDocument doc, ICrawlDataStore crawlDataStore,
             BaseCrawlData crawlData, BaseCrawlData cachedCrawlData) {
-        
+
         FileCommitterPipelineContext context = new FileCommitterPipelineContext(
-                (FilesystemCrawler) crawler, crawlDataStore, (FileDocument) doc, 
+                (FilesystemCrawler) crawler, crawlDataStore, (FileDocument) doc,
                 crawlData, cachedCrawlData);
         new FileCommitterPipeline().execute(context);
     }
-    
+
     @Override
     protected void markReferenceVariationsAsProcessed(BaseCrawlData crawlData,
             ICrawlDataStore crawlDataStore) {
         // Nothing to do (does not support variations).
     }
-    
+
     @Override
     protected void cleanupExecution(JobStatusUpdater statusUpdater,
             JobSuite suite, ICrawlDataStore refStore) {

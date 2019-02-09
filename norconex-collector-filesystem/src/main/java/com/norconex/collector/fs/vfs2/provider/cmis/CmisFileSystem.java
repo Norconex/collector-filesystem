@@ -67,7 +67,7 @@ public class CmisFileSystem extends AbstractFileSystem {
     @Override
     protected FileObject createFile(final AbstractFileName name)
             throws FileSystemException {
-        return new CmisFileObject(name, this, getRootName());
+        return new CmisFileObject(name, this);
     }
 
     /**
@@ -75,6 +75,6 @@ public class CmisFileSystem extends AbstractFileSystem {
      */
     @Override
     protected void addCapabilities(final Collection<Capability> caps) {
-        caps.addAll(CmisFileProvider.capabilities);
+        caps.addAll(CmisFileProvider.CAPABILITIES);
     }
 }
