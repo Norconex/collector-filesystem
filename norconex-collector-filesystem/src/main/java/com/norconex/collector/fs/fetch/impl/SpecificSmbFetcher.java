@@ -1,4 +1,4 @@
-/* Copyright 2017 Norconex Inc.
+/* Copyright 2017-2019 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,15 +35,15 @@ import jcifs.smb.SID;
 import jcifs.smb.SmbFile;
 
 /**
- * Use to obtain ACL from files when using SMB protocol.
+ * Used to obtain ACL from files when using SMB protocol.
  * @author Pascal Essiembre
  * @since 2.7.0
  */
-/*default*/ final class SmbAclFetcher {
+/*default*/ final class SpecificSmbFetcher implements IFileSpecificMetaFetcher {
 
-    private static final Logger LOG = LogManager.getLogger(SmbAclFetcher.class);
-    
-    private static final String ACL_PREFIX = 
+    private static final Logger LOG = LogManager.getLogger(SpecificSmbFetcher.class);
+
+    private static final String ACL_PREFIX =
             FileMetadata.COLLECTOR_PREFIX + "acl.smb";
     private static final String ACE = ".ace";
     private static final String SID = ".sid";
@@ -53,12 +53,14 @@ import jcifs.smb.SmbFile;
     private static final String DOMAIN_SID = ".domainSid";
     private static final String DOMAIN_NAME = ".domainName";
     private static final String ACCOUNT_NAME = ".accountName";
-    
-    private SmbAclFetcher() {
+
+    /*default*/ SpecificSmbFetcher() {
         super();
     }
 
-    public static void fetchACL(FileObject fileObject, Properties metadata) {
+    @Override
+    public void fetchFileSpecificMeta(
+            FileObject fileObject, Properties metadata) {
         if (fileObject instanceof SmbFileObject) {
             SmbFileObject smbFileObject = (SmbFileObject) fileObject;
             try {
@@ -72,8 +74,8 @@ import jcifs.smb.SmbFile;
             }
         }
     }
-    
-    private static void storeSID(ACE[] acls, Properties metadata) {
+
+    private void storeSID(ACE[] acls, Properties metadata) {
         for (int i = 0; i < acls.length; i++) {
             ACE acl = acls[i];
             SID sid = acl.getSID();
@@ -88,16 +90,16 @@ import jcifs.smb.SmbFile;
             metadata.setString(key(i, ACCOUNT_NAME), sid.getAccountName());
         }
     }
-    private static String key(int index, String suffix) {
+    private String key(int index, String suffix) {
         return ACL_PREFIX + "[" + index + "]" + suffix;
     }
 
     /*
      * Adapted from SmbFileObject since there is otherwise no way to get
-     * the SmbFile from the Commons VFS sandbox SmbFile class and we need it 
+     * the SmbFile from the Commons VFS sandbox SmbFile class and we need it
      * for ACL extract.  Should delete if a better way is provider by VFS.
      */
-    private static SmbFile createSmbFile(FileObject fileObject)
+    private SmbFile createSmbFile(FileObject fileObject)
             throws IOException {
 
         final SmbFileName smbFileName = (SmbFileName) fileObject.getName();
@@ -114,11 +116,11 @@ import jcifs.smb.SmbFile;
             NtlmPasswordAuthentication auth = null;
             if (authData != null) {
                 auth = new NtlmPasswordAuthentication(
-                        authToString(authData, UserAuthenticationData.DOMAIN, 
+                        authToString(authData, UserAuthenticationData.DOMAIN,
                                 smbFileName.getDomain()),
-                        authToString(authData, UserAuthenticationData.USERNAME, 
+                        authToString(authData, UserAuthenticationData.USERNAME,
                                 smbFileName.getUserName()),
-                        authToString(authData, UserAuthenticationData.PASSWORD, 
+                        authToString(authData, UserAuthenticationData.PASSWORD,
                                 smbFileName.getPassword()));
             }
 
@@ -137,10 +139,9 @@ import jcifs.smb.SmbFile;
         }
     }
 
-    private static String authToString(
+    private String authToString(
             UserAuthenticationData authData, Type type, String part) {
         return UserAuthenticatorUtils.toString(UserAuthenticatorUtils.getData(
                 authData, type, UserAuthenticatorUtils.toChar(part)));
     }
-
 }

@@ -17,6 +17,11 @@
   -->
 <providers>
 
+    <provider class-name="com.norconex.collector.fs.vfs2.provider.cmis.CmisFileProvider">
+        <scheme name="cmis"/>
+        <if-available class-name="org.apache.chemistry.opencmis.client.api.CmisObject"/>
+    </provider>
+
 	<provider class-name="org.apache.commons.vfs2.provider.smb.SmbFileProvider">
 		<scheme name="smb"/>
 		<if-available class-name="jcifs.smb.SmbFile"/>

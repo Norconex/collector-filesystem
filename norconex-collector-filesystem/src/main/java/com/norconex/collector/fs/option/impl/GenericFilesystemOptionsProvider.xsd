@@ -86,6 +86,24 @@
         </xs:element>
         <xs:element name="sftpTimeout" type="xs:string" minOccurs="0" maxOccurs="1"/>
         <xs:element name="sftpUserDirIsRoot" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="cmisAtomURL" type="nonEmptyString" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="cmisWebServicesURL" type="nonEmptyString" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="cmisRepositoryId" type="nonEmptyString" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="cmisSessionParameters" minOccurs="0" maxOccurs="1">
+          <xs:complexType>
+            <xs:all>
+              <xs:element name="param" minOccurs="1" maxOccurs="unbounded">
+                <xs:complexType>
+                  <xs:simpleContent>
+                    <xs:extension base="xs:string">
+                      <xs:attribute name="name" type="xs:string" use="required" />
+                    </xs:extension>
+                  </xs:simpleContent>
+                </xs:complexType>
+              </xs:element>
+            </xs:all>
+          </xs:complexType>
+        </xs:element>        
       </xs:all>
       <xs:attribute name="class" type="xs:string"/>
     </xs:complexType>
