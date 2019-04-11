@@ -41,7 +41,8 @@ import jcifs.smb.SmbFile;
  */
 /*default*/ final class SpecificSmbFetcher implements IFileSpecificMetaFetcher {
 
-    private static final Logger LOG = LogManager.getLogger(SpecificSmbFetcher.class);
+    private static final Logger LOG =
+            LogManager.getLogger(SpecificSmbFetcher.class);
 
     private static final String ACL_PREFIX =
             FileMetadata.COLLECTOR_PREFIX + "acl.smb";

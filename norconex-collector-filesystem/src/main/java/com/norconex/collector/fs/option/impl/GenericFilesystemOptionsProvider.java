@@ -56,6 +56,7 @@ import org.apache.hadoop.fs.Path;
 import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.fs.option.IFilesystemOptionsProvider;
 import com.norconex.collector.fs.vfs2.provider.cmis.CmisFileSystemConfigBuilder;
+import com.norconex.collector.fs.vfs2.provider.cmis.CmisFileSystemConfigBuilder.PrefixFormat;
 import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.commons.lang.config.XMLConfigurationUtil;
 import com.norconex.commons.lang.encrypt.EncryptionKey;
@@ -217,6 +218,7 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *            {@link SessionParameter} class.
  *            --&gt;
  *      &lt;/cmisSessionParameters&gt;
+ *      &lt;cmisPrefixFormat&gt;[FULL|COMPACT|NONE]&lt;/cmisPrefixFormat&gt;
  *
  *  &lt;/optionsProvider&gt;
  * </pre>
@@ -297,6 +299,7 @@ public class GenericFilesystemOptionsProvider
     private String cmisWebServicesURL;
     private String cmisRepositoryId;
     private final Map<String, String> cmisSessionParameters = new HashMap<>();
+    private PrefixFormat cmisPrefixFormat = PrefixFormat.FULL;
 
     public GenericFilesystemOptionsProvider() {
         super();
@@ -401,6 +404,7 @@ public class GenericFilesystemOptionsProvider
         cmis.setWebServicesURL(opts, cmisWebServicesURL);
         cmis.setRepositoryId(opts, cmisRepositoryId);
         cmis.setSessionParams(opts, cmisSessionParameters);
+        cmis.setPrefixFormat(opts, cmisPrefixFormat);
 
         buildOptions(opts);
         this.options = opts;
@@ -791,6 +795,22 @@ public class GenericFilesystemOptionsProvider
     public String removeCmisSessionParameter(String name) {
         return cmisSessionParameters.remove(name);
     }
+    /**
+     * Gets CMIS field prefix format.  Default to {@link PrefixFormat#FULL}.
+     * @return prefix format
+     * @since 2.9.0
+     */
+    public PrefixFormat getCmisPrefixFormat() {
+        return cmisPrefixFormat;
+    }
+    /**
+     * Sets CMIS field prefix format.  Default to {@link PrefixFormat#FULL}.
+     * @param cmisPrefixFormat prefix format
+     * @since 2.9.0
+     */
+    public void setCmisPrefixFormat(PrefixFormat cmisPrefixFormat) {
+        this.cmisPrefixFormat = cmisPrefixFormat;
+    }
 
     @Override
     public synchronized FileSystemOptions getFilesystemOptions(
@@ -929,6 +949,11 @@ public class GenericFilesystemOptionsProvider
                         xmlParam.getString(""));
             }
         }
+        String prefixFormat = xml.getString(
+                "cmisPrefixFormat", Objects.toString(cmisPrefixFormat, null));
+        if (StringUtils.isNotBlank(prefixFormat)) {
+            cmisPrefixFormat = PrefixFormat.valueOf(prefixFormat.toUpperCase());
+        }
     }
 
     @Override
@@ -1051,6 +1076,8 @@ public class GenericFilesystemOptionsProvider
             }
             writer.writeEndElement();
         }
+        writer.writeElementString(
+                "cmisPrefixFormat", Objects.toString(cmisPrefixFormat, null));
     }
 
     @Override

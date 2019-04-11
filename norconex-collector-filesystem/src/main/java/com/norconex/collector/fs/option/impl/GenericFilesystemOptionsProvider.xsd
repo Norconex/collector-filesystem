@@ -103,7 +103,19 @@
               </xs:element>
             </xs:all>
           </xs:complexType>
-        </xs:element>        
+        </xs:element>
+        <xs:element name="cmisPrefixFormat" minOccurs="0" maxOccurs="1">
+          <xs:simpleType>
+            <xs:restriction base="xs:string">
+              <xs:enumeration value="FULL"/>
+              <xs:enumeration value="COMPACT"/>
+              <xs:enumeration value="NONE"/>
+              <xs:enumeration value="full"/>
+              <xs:enumeration value="compact"/>
+              <xs:enumeration value="none"/>
+            </xs:restriction>
+          </xs:simpleType>
+        </xs:element>
       </xs:all>
       <xs:attribute name="class" type="xs:string"/>
     </xs:complexType>

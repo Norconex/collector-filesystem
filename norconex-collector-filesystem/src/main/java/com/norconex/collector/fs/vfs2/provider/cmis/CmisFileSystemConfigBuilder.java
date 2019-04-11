@@ -28,16 +28,28 @@ public class CmisFileSystemConfigBuilder extends FileSystemConfigBuilder {
             CmisFileSystemConfigBuilder.class.getName() + ".webservices.url";
     private static final String PARAM_SESSION_PARAMS =
             CmisFileSystemConfigBuilder.class.getName() + ".session.params";
+    private static final String PARAM_PREFIX_FORMAT =
+            CmisFileSystemConfigBuilder.class.getName() + ".prefixFormat";
+
+    public enum PrefixFormat {
+        FULL, COMPACT, NONE
+    }
 
     public static CmisFileSystemConfigBuilder getInstance() {
         return INSTANCE;
+    }
+
+    public void setPrefixFormat(FileSystemOptions opts, PrefixFormat format) {
+        setParam(opts, PARAM_PREFIX_FORMAT, format);
+    }
+    public PrefixFormat getPrefixFormat(FileSystemOptions opts) {
+        return (PrefixFormat) getParam(opts, PARAM_PREFIX_FORMAT);
     }
 
     public void setSessionParam(
             FileSystemOptions opts, String paramName, String paramValue) {
         setParam(opts, paramName, paramValue);
     }
-
     public String getSessionParam(FileSystemOptions opts, String paramName) {
         return (String) getParam(opts, paramName);
     }
