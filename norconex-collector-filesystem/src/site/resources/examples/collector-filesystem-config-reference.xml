@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xml>
 <!-- 
-   Copyright 2014-2017 Norconex Inc.
+   Copyright 2014-2019 Norconex Inc.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -53,8 +53,11 @@
   <!-- Location where internal progress files are stored. -->
   <progressDir>$workdir\progress</progressDir>
 
-  <!-- Location where logs are stored. -->
-  <logsDir>$workdir\logs</logsDir>
+  <!-- Location where logs are stored.
+       File-based logging is by default managed by the collector. 
+       To have it unmanaged and rely on log4j.properties settings only,
+       set "unmanaged" to "true". -->
+  <logsDir unmanaged="false">$workdir\logs</logsDir>  
 
   <!-- One or more optional listeners to be notified when the collector
        starts or finishes.  Class must implement 
