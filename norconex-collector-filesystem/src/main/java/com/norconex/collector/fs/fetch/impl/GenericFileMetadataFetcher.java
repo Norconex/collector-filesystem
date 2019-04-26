@@ -26,6 +26,7 @@ import org.apache.commons.vfs2.FileContent;
 import org.apache.commons.vfs2.FileContentInfo;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
+import org.apache.commons.vfs2.provider.local.LocalFile;
 import org.apache.commons.vfs2.provider.smb.SmbFileObject;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
@@ -53,9 +54,8 @@ public class GenericFileMetadataFetcher implements IFileMetadataFetcher {
     static {
         FILE_SPECIFICS.put(SmbFileObject.class, new SpecificSmbFetcher());
         FILE_SPECIFICS.put(CmisFileObject.class, new SpecificCmisFetcher());
+        FILE_SPECIFICS.put(LocalFile.class, new SpecificLocalFileFetcher());
     }
-
-//    private static Boolean smbAvailable = null;
 
     @Override
     public CrawlState fetchMetadada(
@@ -73,9 +73,6 @@ public class GenericFileMetadataFetcher implements IFileMetadataFetcher {
             if (specificFetcher != null) {
                 specificFetcher.fetchFileSpecificMeta(fileObject, metadata);
             }
-//            if (isSmbFile(fileObject)) {
-//                SmbAclFetcher.fetchACL(fileObject, metadata);
-//            }
 
             FileContent content = fileObject.getContent();
             //--- Enhance Metadata ---
@@ -114,22 +111,6 @@ public class GenericFileMetadataFetcher implements IFileMetadataFetcher {
             throw new CollectorException(e);
         }
     }
-
-//    //TODO move to Norconex Commons Lang
-//    private static boolean isSmbFile(FileObject fileObject) {
-//        if (smbAvailable == null) {
-//            try {
-//                Class.forName(
-//                        "org.apache.commons.vfs2.provider.smb.SmbFileObject",
-//                        false,
-//                        GenericFileMetadataFetcher.class.getClassLoader());
-//                smbAvailable = true;
-//            } catch (ClassNotFoundException e) {
-//                smbAvailable = false;
-//            }
-//        }
-//        return smbAvailable && fileObject instanceof SmbFileObject;
-//    }
 
     @Override
     public boolean equals(final Object other) {

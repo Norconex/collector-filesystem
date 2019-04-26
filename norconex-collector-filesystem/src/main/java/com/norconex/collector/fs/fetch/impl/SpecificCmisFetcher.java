@@ -233,7 +233,6 @@ public class SpecificCmisFetcher implements IFileSpecificMetaFetcher {
 
         String key = keyName;
         key = key.replaceFirst("\\{.*\\}", "");
-//        key = key.replaceFirst(".*:(.*)", "$1");
 
         PrefixFormat format = ctx.getPrefixFormat();
         if (format == PrefixFormat.FULL) {

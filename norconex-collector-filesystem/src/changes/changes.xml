@@ -9,6 +9,9 @@
 
     <release version="2.9.0-SNAPSHOT" date="2019-??-??" description="Feature release">
       <action dev="essiembre" type="add">
+        Now extracts ACL from local files.
+      </action>
+      <action dev="essiembre" type="add">
         From Collector Core update, added "unmanaged" attribute to "logsDir" 
         configuration option to prevent the collector from managing its 
         own file-based logging. 
