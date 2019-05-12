@@ -21,15 +21,19 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.TreeSet;
 
+import org.apache.chemistry.opencmis.client.api.CmisObject;
+import org.apache.chemistry.opencmis.client.api.Document;
+import org.apache.chemistry.opencmis.client.api.ObjectId;
+import org.apache.chemistry.opencmis.client.api.Property;
+import org.apache.chemistry.opencmis.client.api.SecondaryType;
 import org.apache.chemistry.opencmis.client.api.Session;
 import org.apache.chemistry.opencmis.commons.data.Ace;
 import org.apache.chemistry.opencmis.commons.data.Acl;
 import org.apache.chemistry.opencmis.commons.data.AllowableActions;
 import org.apache.chemistry.opencmis.commons.data.CmisExtensionElement;
-import org.apache.chemistry.opencmis.commons.data.ObjectData;
-import org.apache.chemistry.opencmis.commons.data.PropertyData;
 import org.apache.chemistry.opencmis.commons.data.RepositoryInfo;
 import org.apache.chemistry.opencmis.commons.enums.Action;
+import org.apache.chemistry.opencmis.commons.enums.ExtensionLevel;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -46,10 +50,10 @@ import com.norconex.collector.fs.vfs2.provider.cmis.CmisFileSystemConfigBuilder;
 import com.norconex.collector.fs.vfs2.provider.cmis.CmisFileSystemConfigBuilder.PrefixFormat;
 import com.norconex.commons.lang.map.Properties;
 
-public class SpecificCmisFetcher implements IFileSpecificMetaFetcher {
+public class ORIGINAL_SpecificCmisFetcher implements IFileSpecificMetaFetcher {
 
     private static final Logger LOG =
-            LogManager.getLogger(SpecificCmisFetcher.class);
+            LogManager.getLogger(ORIGINAL_SpecificCmisFetcher.class);
 
     private static final String CMIS_PREFIX =
             FileMetadata.COLLECTOR_PREFIX + "cmis.";
@@ -100,14 +104,12 @@ public class SpecificCmisFetcher implements IFileSpecificMetaFetcher {
 //            e.printStackTrace();
 //        }
 
-
-
         //end test
 
 
         fetchSystemMeta(ctx);
-        if (ctx.data != null) {
-//            fetchCoreMeta(ctx);
+        if (ctx.cmisObject != null) {
+            fetchCoreMeta(ctx);
             fetchAcl(ctx);
             fetchAllowableActions(ctx);
             fetchProperties(ctx);
@@ -137,89 +139,61 @@ public class SpecificCmisFetcher implements IFileSpecificMetaFetcher {
         add(ctx, "session", "repository.vendorName", repo.getVendorName());
     }
 
-    private void fetchProperties(Context ctx) {
-        for (PropertyData<?> p : ctx.data.getProperties().getPropertyList()) {
-
-            LOG.warn(p.getDisplayName() + " => " + p.getFirstValue());
-
+    private void fetchCoreMeta(Context ctx) {
+        List<ObjectId> policyIds = ctx.cmisObject.getPolicyIds();
+        if (policyIds != null) {
+            for (ObjectId policyId : policyIds) {
+                add(ctx, null, "policyId", policyId.getId());
+            }
         }
 
-//        String repoId = ctx.session.getRepositoryInfo().getId();
-//
-//        try {
-//            StringWriter out = new StringWriter();
-//            EnhancedXMLStreamWriter w = new EnhancedXMLStreamWriter(out);
-//            XMLConverter.writeObject(w, CmisVersion.CMIS_1_1, true,
-//                    "document", "fscollector", ctx.data);
-//            w.flush();
-//            w.close();
-//            String xml = out.toString();
-//
-//            //add(ctx, "session", "repository.vendorName", repo.getVendorName());
-//
-//
-//        } catch (XMLStreamException e) {
-//            e.printStackTrace();
-//        }
+        for (ExtensionLevel lvl : ExtensionLevel.values()) {
+            fetchExtensions(ctx,
+                    ctx.cmisObject.getExtensions(lvl), "extension-" + lvl);
+        }
+
+        List<SecondaryType> secTypes = ctx.cmisObject.getSecondaryTypes();
+        if (secTypes != null) {
+            for (SecondaryType secType : secTypes) {
+                add(ctx, null, "secondaryType",  secType.getDisplayName());
+            }
+        }
+
+        if (ctx.cmisObject instanceof Document) {
+            Document doc = (Document) ctx.cmisObject;
+            add(ctx, "file", "contentUrl",  doc.getContentUrl());
+            if (doc.getPaths() != null) {
+                for (String path : doc.getPaths()) {
+                    add(ctx, "file", "path", path);
+                }
+            }
+        }
     }
 
-
-//    private void fetchCoreMeta(Context ctx) {
-//        List<ObjectId> policyIds = ctx.cmisObject.getPolicyIds();
-//        if (policyIds != null) {
-//            for (ObjectId policyId : policyIds) {
-//                add(ctx, null, "policyId", policyId.getId());
-//            }
-//        }
-//
-//        for (ExtensionLevel lvl : ExtensionLevel.values()) {
-//            fetchExtensions(ctx,
-//                    ctx.cmisObject.getExtensions(lvl), "extension-" + lvl);
-//        }
-//
-//        List<SecondaryType> secTypes = ctx.cmisObject.getSecondaryTypes();
-//        if (secTypes != null) {
-//            for (SecondaryType secType : secTypes) {
-//                add(ctx, null, "secondaryType",  secType.getDisplayName());
-//            }
-//        }
-//
-//        if (ctx.cmisObject instanceof Document) {
-//            Document doc = (Document) ctx.cmisObject;
-//            add(ctx, "file", "contentUrl",  doc.getContentUrl());
-//            if (doc.getPaths() != null) {
-//                for (String path : doc.getPaths()) {
-//                    add(ctx, "file", "path", path);
-//                }
-//            }
-//        }
-//    }
-
-//    private void fetchProperties(Context ctx) {
-//        List<Property<?>> properties = ctx.cmisObject.getProperties();
-//        if (properties == null) {
-//            return;
-//        }
-//        if (LOG.isTraceEnabled()) {
-//            LOG.trace("PROPERTIES:");
-//            LOG.trace("-----------");
-//        }
-//        for (Property<?> p : properties) {
-//            if (LOG.isTraceEnabled()) {
-//                LOG.trace("  " + p);
-//            }
-//            if (StringUtils.isNotBlank(p.getId())) {
-//                for (Object val : p.getValues()) {
-//                    add(ctx, "property", p.getId(), val);
-//                }
-//            }
-//            fetchExtensions(ctx, p.getExtensions(), "property.extension");
-//        }
-//    }
+    private void fetchProperties(Context ctx) {
+        List<Property<?>> properties = ctx.cmisObject.getProperties();
+        if (properties == null) {
+            return;
+        }
+        if (LOG.isTraceEnabled()) {
+            LOG.trace("PROPERTIES:");
+            LOG.trace("-----------");
+        }
+        for (Property<?> p : properties) {
+            if (LOG.isTraceEnabled()) {
+                LOG.trace("  " + p);
+            }
+            if (StringUtils.isNotBlank(p.getId())) {
+                for (Object val : p.getValues()) {
+                    add(ctx, "property", p.getId(), val);
+                }
+            }
+            fetchExtensions(ctx, p.getExtensions(), "property.extension");
+        }
+    }
 
     private void fetchAllowableActions(Context ctx) {
-        AllowableActions actions = ctx.data.getAllowableActions();
-//        AllowableActions actions = ctx.cmisObject.getAllowableActions();
+        AllowableActions actions = ctx.cmisObject.getAllowableActions();
         if (actions == null) {
             return;
         }
@@ -233,8 +207,7 @@ public class SpecificCmisFetcher implements IFileSpecificMetaFetcher {
     }
 
     private void fetchAcl(Context ctx) {
-        Acl acl = ctx.data.getAcl();
-//        Acl acl = ctx.cmisObject.getAcl();
+        Acl acl = ctx.cmisObject.getAcl();
         if (acl == null) {
             return;
         }
@@ -332,7 +305,7 @@ public class SpecificCmisFetcher implements IFileSpecificMetaFetcher {
 
     private class Context {
         private final FileSystemOptions vfsOptions;
-        private final ObjectData data;
+        private final CmisObject cmisObject;
         private final Properties metadata;
         private final Session session;
         private final CmisFileSystemConfigBuilder cfg =
@@ -340,7 +313,7 @@ public class SpecificCmisFetcher implements IFileSpecificMetaFetcher {
         public Context(CmisFileObject vfsFile, Properties metadata) {
             super();
             this.session = vfsFile.getSession();
-            this.data = vfsFile.getData();
+            this.cmisObject = null;//vfsFile.getCmisObject();   <<-------------------------------------------------------
             this.vfsOptions = vfsFile.getFileSystem().getFileSystemOptions();
             this.metadata = metadata;
         }
