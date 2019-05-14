@@ -20,18 +20,11 @@ import java.io.Reader;
 import java.io.Writer;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Objects;
 
 import javax.xml.stream.XMLStreamException;
 
-import org.apache.chemistry.opencmis.commons.SessionParameter;
-import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -55,8 +48,7 @@ import org.apache.hadoop.fs.Path;
 
 import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.fs.option.IFilesystemOptionsProvider;
-import com.norconex.collector.fs.vfs2.provider.cmis.CmisFileSystemConfigBuilder;
-import com.norconex.collector.fs.vfs2.provider.cmis.CmisFileSystemConfigBuilder.PrefixFormat;
+import com.norconex.collector.fs.vfs2.provider.cmis.atom.CmisAtomFileSystemConfigBuilder;
 import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.commons.lang.config.XMLConfigurationUtil;
 import com.norconex.commons.lang.encrypt.EncryptionKey;
@@ -127,17 +119,14 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  * </p>
  *
  * <p>
- * As of 2.9.0, CMIS-enabled Content Management Systems (CMS) are supported.
+ * As of 2.9.0, CMIS-enabled Content Management Systems (CMS) are supported
+ * (Atom end-point).
  * The start path can be specified as:
- * <code>cmis:http://yourhost:port/path/to/atom</code>.
+ * <code>cmis-atom:http://yourhost:port/path/to/atom</code>.
  * Optionally you can have a non-root starting path by adding the path
  * name to the base URL, with an exclamation mark as a separator:
- * <code>cmis:http://yourhost:port/path/to/atom!/MyFolder/MySubFolder</code>.
- * Start paths are assumed to be Atom URLs when the repository URL is not
- * explicitly set here. Use {@link #setCmisWebServicesURL(String)}
- * to use CMIS web services instead, or {@link #setCmisAtomURL(String)} if
- * your Atom repository URL differs from your start path (without the "cmis:"
- * scheme).
+ * <code>cmis-atom:http://yourhost:port/path/to/atom!/MyFolder/MySubFolder</code>.
+ * Start paths are assumed to be Atom URLs.
  * </p>
  *
  * <p>
@@ -205,20 +194,13 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *      &lt;sftpUserDirIsRoot&gt;[false|true]&lt;/sftpUserDirIsRoot&gt;
  *
  *      &lt;!-- CMIS --&gt;
- *      &lt;cmisAtomURL&gt;(optional URL to CMIS Atom)&lt;/cmisAtomURL&gt;
- *      &lt;cmisWebServicesURL&gt;(optional URL to CMIS Web Services)&lt;/cmisWebServicesURL&gt;
  *      &lt;cmisRepositoryId&gt;
- *          (optional repository ID, defaults to first one found.)
+ *          (Optional repository ID, defaults to first one found.)
  *      &lt;/cmisRepositoryId&gt;
- *      &lt;cmisSessionParameters&gt;
- *          &lt;param name="(name)"&gt;(value)&lt;/param&gt;
- *          &lt;!--
- *            You can have multiple param tags.
- *            Names and values are described in Apache Chemistry
- *            {@link SessionParameter} class.
- *            --&gt;
- *      &lt;/cmisSessionParameters&gt;
- *      &lt;cmisPrefixFormat&gt;[FULL|COMPACT|NONE]&lt;/cmisPrefixFormat&gt;
+ *      &lt;cmisXmlTargetField&gt;
+ *          (Optional target field name where to store the raw CMIS REST API
+ *           XML. Default does not store the raw XML in a field.)
+ *      &lt;/cmisXmlTargetField&gt;
  *
  *  &lt;/optionsProvider&gt;
  * </pre>
@@ -295,11 +277,8 @@ public class GenericFilesystemOptionsProvider
     private boolean sftpUserDirIsRoot;
 
     // CMIS
-    private String cmisAtomURL;
-    private String cmisWebServicesURL;
     private String cmisRepositoryId;
-    private final Map<String, String> cmisSessionParameters = new HashMap<>();
-    private PrefixFormat cmisPrefixFormat = PrefixFormat.FULL;
+    private String cmisXmlTargetField;
 
     public GenericFilesystemOptionsProvider() {
         super();
@@ -398,13 +377,10 @@ public class GenericFilesystemOptionsProvider
         sftp.setUserDirIsRoot(opts, sftpUserDirIsRoot);
 
         // CMIS
-        CmisFileSystemConfigBuilder cmis =
-                CmisFileSystemConfigBuilder.getInstance();
-        cmis.setAtomURL(opts, cmisAtomURL);
-        cmis.setWebServicesURL(opts, cmisWebServicesURL);
+        CmisAtomFileSystemConfigBuilder cmis =
+                CmisAtomFileSystemConfigBuilder.getInstance();
         cmis.setRepositoryId(opts, cmisRepositoryId);
-        cmis.setSessionParams(opts, cmisSessionParameters);
-        cmis.setPrefixFormat(opts, cmisPrefixFormat);
+        cmis.setXmlTargetField(opts, cmisXmlTargetField);
 
         buildOptions(opts);
         this.options = opts;
@@ -704,38 +680,6 @@ public class GenericFilesystemOptionsProvider
     }
 
     /**
-     * Gets CMIS repository Atom URL.
-     * @return repository URL
-     * @since 2.9.0
-     */
-    public String getCmisAtomURL() {
-        return cmisAtomURL;
-    }
-    /**
-     * Sets CMIS repository Atom URL.
-     * @param cmisAtomURL repository URL
-     * @since 2.9.0
-     */
-    public void setCmisAtomURL(String cmisAtomURL) {
-        this.cmisAtomURL = cmisAtomURL;
-    }
-    /**
-     * Gets CMIS repository Web Services  URL.
-     * @return repository URL
-     * @since 2.9.0
-     */
-    public String getCmisWebServicesURL() {
-        return cmisWebServicesURL;
-    }
-    /**
-     * Sets CMIS repository Web Services URL.
-     * @param cmisWebServicesURL repository URL
-     * @since 2.9.0
-     */
-    public void setCmisWebServicesURL(String cmisWebServicesURL) {
-        this.cmisWebServicesURL = cmisWebServicesURL;
-    }
-    /**
      * Gets CMIS repository ID.
      * @return repository id
      * @since 2.9.0
@@ -752,64 +696,23 @@ public class GenericFilesystemOptionsProvider
         this.cmisRepositoryId = cmisRepositoryId;
     }
     /**
-     * Sets a CMIS session parameter as defined in {@link SessionParameter}.
-     * @param name parameter name
-     * @param value parameter value
+     * Sets the name of the field where the raw XML obtained from
+     * the CMIS REST API will be stored.  Default is <code>null</code>
+     * (does not store the raw XML).
+     * @return field name
      * @since 2.9.0
      */
-    public void setCmisSessionParameter(String name, String value) {
-        cmisSessionParameters.put(name, value);
+    public String getCmisXmlTargetField() {
+        return cmisXmlTargetField;
     }
     /**
-     * Sets CMIS session parameters as defined in {@link SessionParameter}.
-     * @param params parameters
+     * Sets the name of the field where the raw XML obtained from
+     * the CMIS REST API will be stored.
+     * @param cmisXmlTargetField target field
      * @since 2.9.0
      */
-    public void setCmisSessionParameters(Map<String, String> params) {
-        cmisSessionParameters.putAll(params);
-    }
-    /**
-     * Gets a CMIS session parameter.
-     * @param name parameter name
-     * @return parameter value
-     * @since 2.9.0
-     */
-    public String getCmisSessionParameter(String name) {
-        return cmisSessionParameters.get(name);
-    }
-    /**
-     * Gets all CMIS session parameter names.
-     * @return parameter names
-     * @since 2.9.0
-     */
-    public String[] getCmisSessionParameterNames() {
-        return cmisSessionParameters.keySet().toArray(
-                ArrayUtils.EMPTY_STRING_ARRAY);
-    }
-    /**
-     * Removes a CMIS session parameter.
-     * @param name parameter name
-     * @return the removed parameter value
-     * @since 2.9.0
-     */
-    public String removeCmisSessionParameter(String name) {
-        return cmisSessionParameters.remove(name);
-    }
-    /**
-     * Gets CMIS field prefix format.  Default to {@link PrefixFormat#FULL}.
-     * @return prefix format
-     * @since 2.9.0
-     */
-    public PrefixFormat getCmisPrefixFormat() {
-        return cmisPrefixFormat;
-    }
-    /**
-     * Sets CMIS field prefix format.  Default to {@link PrefixFormat#FULL}.
-     * @param cmisPrefixFormat prefix format
-     * @since 2.9.0
-     */
-    public void setCmisPrefixFormat(PrefixFormat cmisPrefixFormat) {
-        this.cmisPrefixFormat = cmisPrefixFormat;
+    public void setCmisXmlTargetField(String cmisXmlTargetField) {
+        this.cmisXmlTargetField = cmisXmlTargetField;
     }
 
     @Override
@@ -935,25 +838,9 @@ public class GenericFilesystemOptionsProvider
                 xml.getBoolean("sftpUserDirIsRoot", sftpUserDirIsRoot);
     }
     private void loadCMIS(XMLConfiguration xml) {
-        cmisAtomURL = xml.getString("cmisAtomURL", cmisAtomURL);
-        cmisWebServicesURL =
-                xml.getString("cmisWebServicesURL", cmisWebServicesURL);
+        cmisXmlTargetField =
+                xml.getString("cmisXmlTargetField", cmisXmlTargetField);
         cmisRepositoryId = xml.getString("cmisRepositoryId", cmisRepositoryId);
-        List<HierarchicalConfiguration> xmlParams =
-                xml.configurationsAt("cmisSessionParameters.param");
-        if (!xmlParams.isEmpty()) {
-            cmisSessionParameters.clear();
-            for (HierarchicalConfiguration xmlParam : xmlParams) {
-                cmisSessionParameters.put(
-                        xmlParam.getString("[@name]"),
-                        xmlParam.getString(""));
-            }
-        }
-        String prefixFormat = xml.getString(
-                "cmisPrefixFormat", Objects.toString(cmisPrefixFormat, null));
-        if (StringUtils.isNotBlank(prefixFormat)) {
-            cmisPrefixFormat = PrefixFormat.valueOf(prefixFormat.toUpperCase());
-        }
     }
 
     @Override
@@ -1062,22 +949,8 @@ public class GenericFilesystemOptionsProvider
     }
     private void saveCMIS(EnhancedXMLStreamWriter writer)
             throws XMLStreamException {
-        writer.writeElementString("cmisAtomURL", cmisAtomURL);
-        writer.writeElementString("cmisWebServicesURL", cmisWebServicesURL);
+        writer.writeElementString("cmisXmlTargetField", cmisXmlTargetField);
         writer.writeElementString("cmisRepositoryId", cmisRepositoryId);
-        if (!cmisSessionParameters.isEmpty()) {
-            writer.writeStartElement("cmisSessionParameters");
-            for (Entry<String, String> entry :
-                    cmisSessionParameters.entrySet()) {
-                writer.writeStartElement("param");
-                writer.writeAttributeString("name", entry.getKey());
-                writer.writeCharacters(entry.getValue());
-                writer.writeEndElement();
-            }
-            writer.writeEndElement();
-        }
-        writer.writeElementString(
-                "cmisPrefixFormat", Objects.toString(cmisPrefixFormat, null));
     }
 
     @Override

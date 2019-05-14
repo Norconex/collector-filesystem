@@ -36,7 +36,7 @@ import com.norconex.collector.core.data.CrawlState;
 import com.norconex.collector.fs.data.FileCrawlState;
 import com.norconex.collector.fs.doc.FileMetadata;
 import com.norconex.collector.fs.fetch.IFileMetadataFetcher;
-import com.norconex.collector.fs.vfs2.provider.cmis.CmisFileObject;
+import com.norconex.collector.fs.vfs2.provider.cmis.atom.CmisAtomFileObject;
 import com.norconex.commons.lang.map.Properties;
 
 /**
@@ -53,7 +53,8 @@ public class GenericFileMetadataFetcher implements IFileMetadataFetcher {
             IFileSpecificMetaFetcher> FILE_SPECIFICS = new HashMap<>();
     static {
         FILE_SPECIFICS.put(SmbFileObject.class, new SpecificSmbFetcher());
-        FILE_SPECIFICS.put(CmisFileObject.class, new SpecificCmisFetcher());
+        FILE_SPECIFICS.put(
+                CmisAtomFileObject.class, new SpecificCmisAtomFetcher());
         FILE_SPECIFICS.put(LocalFile.class, new SpecificLocalFileFetcher());
     }
 

@@ -31,7 +31,6 @@ import com.norconex.collector.core.crawler.ICrawlerConfig;
 import com.norconex.collector.fs.FilesystemCollector;
 import com.norconex.collector.fs.FilesystemCollectorConfig;
 import com.norconex.collector.fs.crawler.FilesystemCrawlerConfig;
-import com.norconex.collector.fs.option.impl.GenericFilesystemOptionsProvider;
 import com.norconex.committer.core.impl.JSONFileCommitter;
 
 public class CmisFileSystemTest {
@@ -56,14 +55,14 @@ public class CmisFileSystemTest {
         }
     }
 
-    @Test
-    public void testWebService_1_0() throws IOException {
-        testCmisFileSystem(CmisTestServer.WS_1_0, 21);
-    }
-    @Test
-    public void testWebService_1_1() throws IOException {
-        testCmisFileSystem(CmisTestServer.WS_1_1, 21);
-    }
+//    @Test
+//    public void testWebService_1_0() throws IOException {
+//        testCmisFileSystem(CmisTestServer.WS_1_0, 21);
+//    }
+//    @Test
+//    public void testWebService_1_1() throws IOException {
+//        testCmisFileSystem(CmisTestServer.WS_1_1, 21);
+//    }
 
     @Test
     public void testAtom_1_0() throws IOException {
@@ -107,16 +106,8 @@ public class CmisFileSystemTest {
         FilesystemCrawlerConfig crawlerCfg = new FilesystemCrawlerConfig();
         crawlerCfg.setId("test-cmis-crawler");
         crawlerCfg.setCommitter(committer);//new NilCommitter());
-        crawlerCfg.setStartPaths(new String[] { "cmis:" + endpointURL });
+        crawlerCfg.setStartPaths(new String[] { "cmis-atom:" + endpointURL });
         crawlerCfg.setWorkDir(workdir);
-        GenericFilesystemOptionsProvider options =
-             (GenericFilesystemOptionsProvider) crawlerCfg.getOptionsProvider();
-
-        if (endpointURL.contains("atom")) {
-            options.setCmisAtomURL(endpointURL);
-        } else {
-            options.setCmisWebServicesURL(endpointURL);
-        }
 
         FilesystemCollectorConfig config = new FilesystemCollectorConfig();
         config.setId("test-fs-cmis-collector");

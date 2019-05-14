@@ -12,12 +12,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.collector.fs.vfs2.provider.cmis;
+package com.norconex.collector.fs.vfs2.provider.cmis.atom;
 
 import java.util.Collection;
 
-import org.apache.chemistry.opencmis.client.api.OperationContext;
-import org.apache.chemistry.opencmis.client.api.Session;
 import org.apache.commons.vfs2.Capability;
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileObject;
@@ -27,39 +25,24 @@ import org.apache.commons.vfs2.provider.AbstractFileName;
 import org.apache.commons.vfs2.provider.AbstractFileSystem;
 
 /**
- * An CMIS file system.
+ * An CMIS Atom file system.
  */
-public class CmisFileSystem extends AbstractFileSystem {
+public class CmisAtomFileSystem extends AbstractFileSystem {
 
-    private final Session session;
-    private final OperationContext operationContext;
+    private final CmisAtomSession session;
 
-    protected CmisFileSystem(
+    protected CmisAtomFileSystem(
             final FileName rootName,
             final FileObject parentLayer,
-            final Session session,
-            final OperationContext operationContext,
-            final FileSystemOptions fileSystemOptions) {
+            final FileSystemOptions fileSystemOptions,
+            final CmisAtomSession session) {
         super(rootName, parentLayer, fileSystemOptions);
         this.session = session;
-        this.operationContext = operationContext;
     }
 
-    /**
-     * Gets OpenCmis session.
-     * @return session
-     */
-    public Session getSession() {
+    public CmisAtomSession getSession() {
         return session;
     }
-    /**
-     * Gets OpenCmis operation context.
-     * @return operation context
-     */
-    public OperationContext getOperationContext() {
-        return operationContext;
-    }
-
 
     /**
      * Creates a file object.
@@ -67,7 +50,7 @@ public class CmisFileSystem extends AbstractFileSystem {
     @Override
     protected FileObject createFile(final AbstractFileName name)
             throws FileSystemException {
-        return new CmisFileObject(name, this);
+        return new CmisAtomFileObject(name, this);
     }
 
     /**
@@ -75,6 +58,11 @@ public class CmisFileSystem extends AbstractFileSystem {
      */
     @Override
     protected void addCapabilities(final Collection<Capability> caps) {
-        caps.addAll(CmisFileProvider.CAPABILITIES);
+        caps.addAll(CmisAtomFileProvider.CAPABILITIES);
+    }
+
+    @Override
+    protected void doCloseCommunicationLink() {
+        session.close();
     }
 }

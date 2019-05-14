@@ -90,13 +90,7 @@
     
     <!-- Dependency for CMIS systems (e.g., Alfresco, Interwoven, Magnolia, 
          SharePoint server, OpenCMS, OpenText Documentum, etc).
-         More at: https://en.wikipedia.org/wiki/Content_Management_Interoperability_Services#CMIS_Servers -->    
-    <dependency>
-      <groupId>org.apache.chemistry.opencmis</groupId>
-      <artifactId>chemistry-opencmis-client-impl</artifactId>
-      <version>1.1.0</version>
-    </dependency>
-
+         More at: https://en.wikipedia.org/wiki/Content_Management_Interoperability_Services#CMIS_Servers -->
     <dependency>
       <groupId>org.apache.chemistry.opencmis</groupId>
       <artifactId>chemistry-opencmis-server-inmemory</artifactId>

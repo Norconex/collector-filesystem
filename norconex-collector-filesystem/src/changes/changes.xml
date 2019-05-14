@@ -17,9 +17,9 @@
         own file-based logging. 
       </action>
       <action dev="essiembre" type="add">
-        Now supports CMIS, the open standard for content management systems.
-        E.g., Alfresco, Interwoven, Magnolia, SharePoint server, OpenCMS, 
-        OpenText Documentum, etc.
+        Now supports CMIS (Atom), the open standard for content management
+        systems. E.g., Alfresco, Interwoven, Magnolia, SharePoint server, 
+        OpenCMS, OpenText Documentum, etc.
       </action>
       <action dev="essiembre" type="update">
         Dependency updates: Norconex Collector Core 1.9.2,

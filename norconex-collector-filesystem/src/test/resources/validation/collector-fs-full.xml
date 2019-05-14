@@ -86,6 +86,8 @@
       <sftpStrictHostKeyChecking>no</sftpStrictHostKeyChecking>
       <sftpTimeout>555</sftpTimeout>
       <sftpUserDirIsRoot>true</sftpUserDirIsRoot>
+      <cmisRepositoryId>repoId</cmisRepositoryId>
+      <cmisXmlTargetField>field</cmisXmlTargetField>
     </optionsProvider>
     <referenceFilters>
       <filter class="com.norconex.collector.core.filter.impl.ExtensionReferenceFilter"

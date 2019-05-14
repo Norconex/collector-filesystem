@@ -71,12 +71,8 @@ public class GenericFilesystemOptionsProviderTest {
         p.setSftpTimeout(5678);
         p.setSftpUserDirIsRoot(true);
 
-        p.setCmisAtomURL("http://localhost:80/atomurl");
-        p.setCmisWebServicesURL("http://localhost:80/wsurl");
-        p.setCmisSessionParameter("key1", "val1");
-        p.setCmisSessionParameter("key2", "val2");
-        p.setCmisSessionParameter("key3", "val3");
         p.setCmisRepositoryId("repoID");
+        p.setCmisXmlTargetField("xmlField");
 
         System.out.println("Writing/Reading this: " + p);
         XMLConfigurationUtil.assertWriteRead(p);
