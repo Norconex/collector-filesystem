@@ -31,6 +31,7 @@ import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.http.HttpResponse;
@@ -38,12 +39,17 @@ import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 public class CmisAtomSession {
+
+    private static final Logger LOG =
+            LogManager.getLogger(CmisAtomSession.class);
 
     private final CloseableHttpClient http;
     private String endpointURL;
@@ -116,10 +122,15 @@ public class CmisAtomSession {
     public Document getDocument(String fullURL) throws FileSystemException {
         try (CloseableHttpResponse resp = http.execute(new HttpGet(fullURL))) {
             if (resp.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
+                String consumedContent = IOUtils.toString(
+                        resp.getEntity().getContent(), StandardCharsets.UTF_8);
+                LOG.debug("Could not get document. Response content: "
+                        + consumedContent);
                 throw new IOException("Invalid HTTP response \""
                         +  resp.getStatusLine() + "\" from " + fullURL);
             }
-            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            DocumentBuilderFactory factory =
+                    DocumentBuilderFactory.newInstance();
             factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
             DocumentBuilder builder = factory.newDocumentBuilder();
             try (InputStream is = resp.getEntity().getContent()) {
