@@ -26,7 +26,8 @@
         Norconex Commons Lang 1.15.1.
       </action>
       <action dev="essiembre" type="fix" issue="47">
-        Fixed files with pound sign being ignored.
+        Fixed files with pound sign being ignored and/or having the 
+        pound sign URL-encoded.
       </action>
       <action dev="essiembre" type="fix" issue="29">
         Fixed NullPointerException under some conditions for 

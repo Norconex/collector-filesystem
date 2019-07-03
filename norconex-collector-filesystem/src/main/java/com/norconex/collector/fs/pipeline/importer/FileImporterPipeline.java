@@ -18,6 +18,7 @@ import java.util.Date;
 
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileType;
+import org.apache.commons.vfs2.provider.local.LocalFile;
 
 import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.core.checksum.IMetadataChecksummer;
@@ -71,8 +72,14 @@ public class FileImporterPipeline extends Pipeline<ImporterPipelineContext> {
                 if (file.getType() == FileType.FOLDER) {
                     FileObject[] files = file.getChildren();
                     for (FileObject childFile : files) {
-                        BaseCrawlData crawlData = new BaseCrawlData(
-                                childFile.getName().getURI());
+                        // Special chars such as # can be valid in local
+                        // file names, so get path from toString on local files,
+                        // which returns the unencoded path (github #47).
+                        String ref = childFile.getName().getURI();
+                        if (childFile instanceof LocalFile) {
+                            ref = childFile.getName().toString();
+                        }
+                        BaseCrawlData crawlData = new BaseCrawlData(ref);
                         BasePipelineContext newContext =
                                 new BasePipelineContext(ctx.getCrawler(),
                                         ctx.getCrawlDataStore(), crawlData);

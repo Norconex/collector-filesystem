@@ -1,4 +1,5 @@
 The following are either things to be done, or ideas to consider:
+- DateFormatTagger: accept multiple fields (CSV) or a pattern.
 
 - Consider a maxDepth (folder depth).
 
