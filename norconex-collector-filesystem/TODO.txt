@@ -8,3 +8,13 @@ The following are either things to be done, or ideas to consider:
 
 - Remove org.apache.commosn.vfs.provider.[smb|mime] package and replace with 
   appropriate Jar dependency when available in a Maven repo.
+  
+- Support "sshfs" filesystem.
+
+- Gather stats along the way that can be printed when requested, in addition
+  to always show up in the end of execution, like:
+  
+    num of committed
+    num of rejected,
+    etc.
+    and/or maybe add those in crawl store?

@@ -69,8 +69,16 @@ public class SpecificLocalFileFetcher implements IFileSpecificMetaFetcher {
             AclFileAttributeView aclFileAttributes = Files.getFileAttributeView(
                     file, AclFileAttributeView.class);
 
-            metadata.addString(ACL_PREFIX + "owner",
-                    aclFileAttributes.getOwner().getName());
+            if (aclFileAttributes == null) {
+                LOG.debug("No ACL file attributes on " + file);
+                return;
+            }
+
+            if (aclFileAttributes.getOwner() != null
+                    && aclFileAttributes.getOwner().getName() != null) {
+                metadata.addString(ACL_PREFIX + "owner",
+                        aclFileAttributes.getOwner().getName());
+            }
 
             for (AclEntry aclEntry : aclFileAttributes.getAcl()) {
                 String type = Objects.toString(aclEntry.type(), "[NOTYPE]");
