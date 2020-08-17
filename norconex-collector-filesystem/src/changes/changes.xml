@@ -7,6 +7,13 @@
   </properties>
   <body>
 
+    <release version="2.9.1-SNAPSHOT" date="2020-??-??" description="Bug fix release">
+      <action dev="essiembre" type="fix" issue="54">
+        Fixed exception when retrieving ACL on Windows local filesystem when
+        the drive letter is different than the crawler current directory. 
+      </action>
+    </release>
+
     <release version="2.9.0" date="2019-12-22" description="Feature release">
       <action dev="essiembre" type="add">
         Now extracts ACL from local files.
