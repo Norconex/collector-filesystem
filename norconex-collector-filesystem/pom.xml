@@ -134,7 +134,7 @@
     <dependency>
       <groupId>commons-net</groupId>
       <artifactId>commons-net</artifactId>
-      <version>3.5</version>
+      <version>3.9.0</version>
     </dependency>
 
     <!-- This jcifs dep is not distributed due to licensing issue (LGPL 2.1).
