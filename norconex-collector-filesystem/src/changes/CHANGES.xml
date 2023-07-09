@@ -7,6 +7,17 @@
   </properties>
   <body>
 
+    <release version="2.9.1" date="2021-10-18" description="Bug fix release">
+      <action dev="essiembre" type="fix" issue="54">
+        Fixed exception when retrieving ACL on Windows local filesystem when
+        the drive letter is different than the crawler current directory. 
+      </action>
+      <action dev="essiembre" type="fix">
+        Fixed invalid URI escape sequence error when dealing with local paths
+        having URI-invalid characters in them.
+      </action>
+    </release>
+
     <release version="2.9.0" date="2019-12-22" description="Feature release">
       <action dev="essiembre" type="add">
         Now extracts ACL from local files.

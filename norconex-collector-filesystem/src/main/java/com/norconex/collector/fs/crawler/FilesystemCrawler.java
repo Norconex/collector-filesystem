@@ -18,10 +18,14 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.text.NumberFormat;
 import java.util.Iterator;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.LineIterator;
@@ -31,6 +35,7 @@ import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemManager;
 import org.apache.commons.vfs2.impl.StandardFileSystemManager;
+import org.apache.commons.vfs2.provider.UriParser;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
@@ -210,12 +215,13 @@ public class FilesystemCrawler extends AbstractCrawler {
 
         ICrawlData crawlData = importerContext.getCrawlData();
 
+        String ref = fixEncoding(crawlData.getReference());
         FileObject fileObject = null;
         try {
             if (optionsProvider == null) {
-                fileObject = fileManager.resolveFile(crawlData.getReference());
+                fileObject = fileManager.resolveFile(ref);
             } else {
-                fileObject = fileManager.resolveFile(crawlData.getReference(),
+                fileObject = fileManager.resolveFile(ref,
                         optionsProvider.getFilesystemOptions(fileObject));
             }
         } catch (FileSystemException e) {
@@ -227,6 +233,47 @@ public class FilesystemCrawler extends AbstractCrawler {
         new FileImporterPipeline(
                 getCrawlerConfig().isKeepDownloads()).execute(fileContext);
         return fileContext.getImporterResponse();
+    }
+
+    // Trick-method to ensure reference can be converted to a valid URI if
+    // a local path. Else it can fail (e.g. windows path having % in them).
+    private String fixEncoding(String ref) {
+        // We consider the reference a local file path (absolute or relative)
+        // if it matches any of these conditions:
+        //     - no scheme
+        //     - scheme is "file"
+        //     - scheme is one letter (e.g., windows drive letter)
+        // If a local file, we properly encode all segments.
+        String scheme = UriParser.extractScheme(ref);
+        if (scheme == null
+                || scheme.length() <= 1 || "file".equalsIgnoreCase(scheme)) {
+            // encode segments
+            StringBuilder b = new StringBuilder();
+            Matcher m = Pattern.compile("([^\\/:]+|[\\/:]+)").matcher(ref);
+            while (m.find()) {
+                if (StringUtils.containsAny(m.group(), "\\/:")) {
+                    b.append(m.group());
+                } else {
+                    b.append(uriEncode(m.group()));
+                }
+            }
+            return b.toString();
+        }
+        return ref;
+    }
+    private String uriEncode(String value) {
+        try {
+            return URLEncoder.encode(value, "UTF-8")
+                    .replaceAll("\\+", "%20")
+                    .replaceAll("\\%21", "!")
+                    .replaceAll("\\%27", "'")
+                    .replaceAll("\\%28", "(")
+                    .replaceAll("\\%29", ")")
+                    .replaceAll("\\%7E", "~");
+        } catch (UnsupportedEncodingException e) {
+            //NOOP, return original value and hope for the best.
+        }
+        return value;
     }
 
     @Override

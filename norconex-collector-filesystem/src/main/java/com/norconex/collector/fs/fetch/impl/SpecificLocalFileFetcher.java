@@ -1,4 +1,4 @@
-/* Copyright 2019 Norconex Inc.
+/* Copyright 2019-2020 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,10 @@
  */
 package com.norconex.collector.fs.fetch.impl;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.attribute.AclEntry;
 import java.nio.file.attribute.AclEntryFlag;
 import java.nio.file.attribute.AclEntryPermission;
@@ -28,10 +28,11 @@ import java.util.TreeSet;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.provider.local.LocalFile;
+import org.apache.commons.vfs2.provider.local.LocalFileName;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
-import com.norconex.collector.fs.doc.FileMetadata;
+import com.norconex.collector.core.doc.CollectorMetadata;
 import com.norconex.commons.lang.map.Properties;
 
 public class SpecificLocalFileFetcher implements IFileSpecificMetaFetcher {
@@ -40,7 +41,7 @@ public class SpecificLocalFileFetcher implements IFileSpecificMetaFetcher {
             LogManager.getLogger(SpecificLocalFileFetcher.class);
 
     private static final String LOCAL_FILE_PREFIX =
-            FileMetadata.COLLECTOR_PREFIX + "localFile.";
+            CollectorMetadata.COLLECTOR_PREFIX + "localFile.";
     private static final String ACL_PREFIX = LOCAL_FILE_PREFIX + "acl.";
 
     @Override
@@ -51,8 +52,7 @@ public class SpecificLocalFileFetcher implements IFileSpecificMetaFetcher {
             return;
         }
 
-        Path file = Paths.get(fileObject.getName().getPath());
-        fetchAcl(file, metadata);
+        fetchAcl((LocalFile) fileObject, metadata);
 
         if (LOG.isTraceEnabled()) {
             LOG.trace("METADATA:");
@@ -64,8 +64,12 @@ public class SpecificLocalFileFetcher implements IFileSpecificMetaFetcher {
         }
     }
 
-    private void fetchAcl(Path file, Properties metadata) {
+    private void fetchAcl(LocalFile localFile, Properties metadata) {
         try {
+            LocalFileName localFileName = (LocalFileName) localFile.getName();
+            Path file = new File(localFileName.getRootFile()
+                    + localFileName.getPathDecoded()).toPath();
+
             AclFileAttributeView aclFileAttributes = Files.getFileAttributeView(
                     file, AclFileAttributeView.class);
 
@@ -93,7 +97,7 @@ public class SpecificLocalFileFetcher implements IFileSpecificMetaFetcher {
                 }
             }
         } catch (IOException e) {
-            LOG.error("Could not retreive SMB ACL data.", e);
+            LOG.error("Could not retreive ACL data.", e);
         }
     }
 }
