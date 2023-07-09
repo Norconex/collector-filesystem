@@ -18,9 +18,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
-import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.text.NumberFormat;
 import java.util.Iterator;
@@ -134,8 +132,8 @@ public class FilesystemCrawler extends AbstractCrawler {
             return 0;
         }
 
-        for (int i = 0; i < startPaths.length; i++) {
-            String startPath = startPaths[i];
+        for (String startPath2 : startPaths) {
+            String startPath = startPath2;
             // No protocol specified: we assume local file, and we get
             // the absolute version.
             if (!startPath.contains("://")) {
@@ -151,8 +149,7 @@ public class FilesystemCrawler extends AbstractCrawler {
             return 0;
         }
         int pathCount = 0;
-        for (int i = 0; i < pathsFiles.length; i++) {
-            String pathsFile = pathsFiles[i];
+        for (String pathsFile : pathsFiles) {
             LineIterator it = null;
             try (InputStream is = new FileInputStream(pathsFile)) {
                 it = IOUtils.lineIterator(is, StandardCharsets.UTF_8);
@@ -254,26 +251,26 @@ public class FilesystemCrawler extends AbstractCrawler {
                 if (StringUtils.containsAny(m.group(), "\\/:")) {
                     b.append(m.group());
                 } else {
-                    b.append(uriEncode(m.group()));
+                    b.append(uriEncodeSegment(m.group()));
                 }
             }
             return b.toString();
         }
         return ref;
     }
-    private String uriEncode(String value) {
-        try {
-            return URLEncoder.encode(value, "UTF-8")
-                    .replaceAll("\\+", "%20")
-                    .replaceAll("\\%21", "!")
-                    .replaceAll("\\%27", "'")
-                    .replaceAll("\\%28", "(")
-                    .replaceAll("\\%29", ")")
-                    .replaceAll("\\%7E", "~");
-        } catch (UnsupportedEncodingException e) {
-            //NOOP, return original value and hope for the best.
+    private String uriEncodeSegment(String value) {
+        // Encode control characters and a handful of specific characters,
+        // assuming all others are filename-valid on all major OSes.
+        StringBuilder b = new StringBuilder();
+        for (char ch : value.toCharArray()) {
+            if (ch >= 0 && ch <= 31 || "<>:;@#=&$,\"/\\|?*".indexOf(ch) > -1) {
+                b.append("%" + Integer.toHexString(ch));
+
+            } else {
+                b.append(ch);
+            }
         }
-        return value;
+        return b.toString();
     }
 
     @Override
