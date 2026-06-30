@@ -14,6 +14,7 @@
  */
 package com.norconex.collector.fs.vfs2.provider.cmis.atom;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
@@ -32,6 +33,7 @@ import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.http.HttpResponse;
@@ -39,17 +41,18 @@ import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
 
 public class CmisAtomSession {
 
-    private static final Logger LOG =
-            LoggerFactory.getLogger(CmisAtomSession.class);
+    private static final Logger LOG = LoggerFactory.getLogger(CmisAtomSession.class);
 
     private final CloseableHttpClient http;
     private String endpointURL;
@@ -67,6 +70,7 @@ public class CmisAtomSession {
     public String getEndpointURL() {
         return endpointURL;
     }
+
     void setEndpointURL(String endpointURL) {
         this.endpointURL = endpointURL;
     }
@@ -74,6 +78,7 @@ public class CmisAtomSession {
     public String getRepoId() {
         return repoId;
     }
+
     void setRepoId(String repoId) {
         this.repoId = repoId;
     }
@@ -81,6 +86,7 @@ public class CmisAtomSession {
     public String getRepoName() {
         return repoName;
     }
+
     void setRepoName(String repoName) {
         this.repoName = repoName;
     }
@@ -88,6 +94,7 @@ public class CmisAtomSession {
     public String getObjectByPathTemplate() {
         return objectByPathTemplate;
     }
+
     void setObjectByPathTemplate(String urlTemplate) {
         this.objectByPathTemplate = urlTemplate;
     }
@@ -95,6 +102,7 @@ public class CmisAtomSession {
     public String getQueryTemplate() {
         return queryTemplate;
     }
+
     void setQueryTemplate(String queryTemplate) {
         this.queryTemplate = queryTemplate;
     }
@@ -102,6 +110,7 @@ public class CmisAtomSession {
     public CloseableHttpClient getHttpClient() {
         return http;
     }
+
     public HttpResponse httpGet(String url) throws FileSystemException {
         try {
             return http.execute(new HttpGet(url));
@@ -110,15 +119,17 @@ public class CmisAtomSession {
                     "Could not get document from " + url, e);
         }
     }
+
     public Document getDocumentByPath(String path) throws FileSystemException {
         try {
             return getDocument(objectByPathTemplate.replace("{path}",
-                   URLEncoder.encode(path, StandardCharsets.UTF_8.toString())));
+                    URLEncoder.encode(path, StandardCharsets.UTF_8.toString())));
         } catch (UnsupportedEncodingException e) {
             throw new FileSystemException(
                     "Could not get document from path: " + path, e);
         }
     }
+
     public Document getDocument(String fullURL) throws FileSystemException {
         try (CloseableHttpResponse resp = http.execute(new HttpGet(fullURL))) {
             if (resp.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
@@ -127,27 +138,43 @@ public class CmisAtomSession {
                 LOG.debug("Could not get document. Response content: "
                         + consumedContent);
                 throw new IOException("Invalid HTTP response \""
-                        +  resp.getStatusLine() + "\" from " + fullURL);
+                        + resp.getStatusLine() + "\" from " + fullURL);
             }
-            DocumentBuilderFactory factory =
-                    DocumentBuilderFactory.newInstance();
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
             DocumentBuilder builder = factory.newDocumentBuilder();
+            builder.setErrorHandler(new QuietErrorHandler());
+
+            byte[] responseBody;
             try (InputStream is = resp.getEntity().getContent()) {
-                return builder.parse(is);
+                responseBody = IOUtils.toByteArray(is);
+            }
+            try (InputStream bodyStream = new ByteArrayInputStream(responseBody)) {
+                return builder.parse(bodyStream);
+            } catch (SAXException e) {
+                String preview = StringUtils.left(
+                        new String(responseBody, StandardCharsets.UTF_8), 200)
+                        .replaceAll("\\s+", " ").trim();
+                throw new IOException("Response body is not valid XML from "
+                        + fullURL + " (content-type="
+                        + (resp.getEntity().getContentType() == null
+                                ? "unknown"
+                                : resp.getEntity().getContentType().getValue())
+                        + ", preview='" + preview + "')", e);
             }
         } catch (ParserConfigurationException | UnsupportedOperationException
-                | SAXException | IOException e) {
+                | IOException e) {
             throw new FileSystemException(
                     "Could not get document from " + fullURL, e);
         }
     }
+
     public InputStream getStream(String fullURL) throws FileSystemException {
         try {
             CloseableHttpResponse resp = http.execute(new HttpGet(fullURL));
             if (resp.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
                 throw new IOException("Invalid HTTP response \""
-                        +  resp.getStatusLine() + "\" from " + fullURL);
+                        + resp.getStatusLine() + "\" from " + fullURL);
             }
             return resp.getEntity().getContent();
         } catch (UnsupportedOperationException | IOException e) {
@@ -161,14 +188,17 @@ public class CmisAtomSession {
         String val = getString(node, exp);
         return NumberUtils.toInt(val, defaultValue);
     }
+
     public String getString(Node node, String exp)
             throws FileSystemException {
         return evaluate(node, exp, XPathConstants.STRING);
     }
+
     public Node getNode(Node node, String exp)
             throws FileSystemException {
         return evaluate(node, exp, XPathConstants.NODE);
     }
+
     public NodeList getNodeList(Node node, String exp)
             throws FileSystemException {
         return evaluate(node, exp, XPathConstants.NODESET);
@@ -196,13 +226,31 @@ public class CmisAtomSession {
                     "Could not evaluate XPath expression: " + exp, e);
         }
     }
+
     private XPathExpression toExpression(String exp)
-                throws FileSystemException {
+            throws FileSystemException {
         try {
             return xpath.compile(exp);
         } catch (XPathExpressionException e) {
             throw new FileSystemException(
                     "Could not compile XPath expression: " + exp, e);
+        }
+    }
+
+    private static class QuietErrorHandler implements ErrorHandler {
+        @Override
+        public void warning(SAXParseException exception) throws SAXException {
+            throw exception;
+        }
+
+        @Override
+        public void error(SAXParseException exception) throws SAXException {
+            throw exception;
+        }
+
+        @Override
+        public void fatalError(SAXParseException exception) throws SAXException {
+            throw exception;
         }
     }
 }
