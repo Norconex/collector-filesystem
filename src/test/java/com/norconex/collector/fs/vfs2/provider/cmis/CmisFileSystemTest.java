@@ -16,14 +16,18 @@ package com.norconex.collector.fs.vfs2.provider.cmis;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintStream;
+import java.io.Writer;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.util.Collection;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.json.JSONObject;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -31,11 +35,13 @@ import org.junit.jupiter.api.io.TempDir;
 import com.norconex.collector.fs.FilesystemCollector;
 import com.norconex.collector.fs.FilesystemCollectorConfig;
 import com.norconex.collector.fs.crawler.FilesystemCrawlerConfig;
+import com.norconex.committer.core3.UpsertRequest;
 import com.norconex.committer.core3.fs.impl.JSONFileCommitter;
 
 public class CmisFileSystemTest {
 
     private static final String COMMITTER_SUBDIR = "committedFiles";
+    private static final String XML_FATAL_LINE = "[Fatal Error] :1:1: Content is not allowed in prolog.";
 
     @TempDir
     Path tempDir;
@@ -80,14 +86,14 @@ public class CmisFileSystemTest {
         File workdir = tempDir.resolve("cmisWorkdir").toFile();
         final FilesystemCollector collector = new FilesystemCollector(
                 createCollectorConfig(path, workdir));
-        collector.start();
+        runWithFilteredStderr(collector::start);
 
         File committerDir = new File(workdir, COMMITTER_SUBDIR);
 
         File[] files = committerDir.listFiles();
-        Assumptions.assumeTrue(
-                files != null && files.length > 0,
-                "CMIS test produced no committed output in this runtime.");
+        Assertions.assertTrue(files != null && files.length > 0,
+                "CMIS test produced no committed output in this runtime."
+                        + " Workdir files: " + listPaths(workdir));
         Assertions.assertEquals(
                 1, files.length, "There should be only 1 committed file.");
 
@@ -95,7 +101,7 @@ public class CmisFileSystemTest {
                 files[0], StandardCharsets.UTF_8);
         Assertions.assertEquals(
                 expectedQty,
-                StringUtils.countMatches(content, "doc-add"),
+                StringUtils.countMatches(content, "\"upsert\""),
                 "Invalid number of committed entries.");
     }
 
@@ -105,11 +111,12 @@ public class CmisFileSystemTest {
 
         String endpointURL = url(path);
 
-        JSONFileCommitter committer = new JSONFileCommitter();
+        JSONFileCommitter committer = new MetadataOnlyJsonCommitter();
         committer.setDirectory(new File(workdir, COMMITTER_SUBDIR).toPath());
 
         FilesystemCrawlerConfig crawlerCfg = new FilesystemCrawlerConfig();
         crawlerCfg.setId("test-cmis-crawler");
+        crawlerCfg.setDocumentChecksummer(null);
         crawlerCfg.setCommitters(committer);
         crawlerCfg.setStartPaths(new String[] { "cmis-atom:" + endpointURL });
 
@@ -123,5 +130,85 @@ public class CmisFileSystemTest {
 
     private String url(String path) {
         return "http://localhost:" + cmisServer.getLocalPort() + path;
+    }
+
+    private String listPaths(File baseDir) {
+        if (baseDir == null || !baseDir.exists()) {
+            return "<missing>";
+        }
+        Collection<File> files = FileUtils.listFiles(baseDir, null, true);
+        if (files.isEmpty()) {
+            return "<empty>";
+        }
+        StringBuilder sb = new StringBuilder();
+        for (File f : files) {
+            if (sb.length() > 0) {
+                sb.append(" | ");
+            }
+            sb.append(baseDir.toPath().relativize(f.toPath()));
+        }
+        return sb.toString();
+    }
+
+    @FunctionalInterface
+    private interface ThrowingRunnable {
+        void run() throws Exception;
+    }
+
+    private static void runWithFilteredStderr(ThrowingRunnable action)
+            throws IOException {
+        PrintStream originalErr = System.err;
+        java.io.ByteArrayOutputStream captured = new java.io.ByteArrayOutputStream();
+        try (PrintStream tempErr = new PrintStream(captured, true, StandardCharsets.UTF_8)) {
+            System.setErr(tempErr);
+            try {
+                action.run();
+            } catch (Exception e) {
+                throw new IOException("Could not start collector.", e);
+            }
+        } finally {
+            System.setErr(originalErr);
+        }
+
+        String errText = captured.toString(Charset.defaultCharset());
+        for (String line : errText.split("\\R")) {
+            if (!line.contains(XML_FATAL_LINE) && !line.isBlank()) {
+                originalErr.println(line);
+            }
+        }
+    }
+
+    private static class MetadataOnlyJsonCommitter extends JSONFileCommitter {
+        @Override
+        protected synchronized void writeUpsert(
+                Writer writer, UpsertRequest upsertRequest) throws IOException {
+
+            if (!first) {
+                writer.write(',');
+                newLine(writer);
+            }
+
+            JSONObject doc = new JSONObject();
+            doc.put("reference", upsertRequest.getReference());
+            doc.put("metadata", new JSONObject(upsertRequest.getMetadata()));
+
+            JSONObject upsertObj = new JSONObject();
+            upsertObj.put("upsert", doc);
+            if (getIndent() > -1) {
+                writer.write(upsertObj.toString(getIndent()));
+            } else {
+                writer.write(upsertObj.toString());
+            }
+
+            first = false;
+        }
+
+        private boolean first = true;
+
+        private void newLine(Writer writer) throws IOException {
+            if (getIndent() > -1) {
+                writer.write('\n');
+            }
+        }
     }
 }

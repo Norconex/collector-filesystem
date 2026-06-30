@@ -19,6 +19,7 @@ import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.net.URL;
 
+import javax.servlet.Servlet;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -79,49 +80,76 @@ public class CmisTestServer {
 
         webappContext.addEventListener(new CmisRepositoryContextListener());
 
-        ServletHolder servlet = null;
-
         // CMIS Web Service 1.0
-        servlet = new ServletHolder();
-        servlet.setClassName(CmisWebServicesServlet.class.getName());
-        servlet.setInitParameter("cmisVersion", "1.0");
-        webappContext.addServlet(servlet, "/services/*");
+        addServletIfCompatible(webappContext,
+                CmisWebServicesServlet.class,
+                "/services/*",
+                new String[][] {
+                        { "cmisVersion", "1.0" }
+                });
 
         // CMIS Web Service 1.1
-        servlet = new ServletHolder();
-        servlet.setClassName(CmisWebServicesServlet.class.getName());
-        servlet.setInitParameter("cmisVersion", "1.1");
-        webappContext.addServlet(servlet, "/services11/*");
+        addServletIfCompatible(webappContext,
+                CmisWebServicesServlet.class,
+                "/services11/*",
+                new String[][] {
+                        { "cmisVersion", "1.1" }
+                });
 
         // CMIS Atom 1.0
-        servlet = new ServletHolder();
-        servlet.setClassName(CmisAtomPubServlet.class.getName());
-        servlet.setInitParameter("cmisVersion", "1.0");
-        servlet.setInitParameter("callContextHandler", "org.apache.chemistry."
-                + "opencmis.server.shared.BasicAuthCallContextHandler");
-        webappContext.addServlet(servlet, "/atom/*");
+        addServletIfCompatible(webappContext,
+                CmisAtomPubServlet.class,
+                "/atom/*",
+                new String[][] {
+                        { "cmisVersion", "1.0" },
+                        { "callContextHandler",
+                                "org.apache.chemistry.opencmis.server.shared.BasicAuthCallContextHandler" }
+                });
 
         // CMIS Atom 1.1
-        servlet = new ServletHolder();
-        servlet.setClassName(CmisAtomPubServlet.class.getName());
-        servlet.setInitParameter("cmisVersion", "1.1");
-        servlet.setInitParameter("callContextHandler", "org.apache.chemistry."
-                + "opencmis.server.shared.BasicAuthCallContextHandler");
-        webappContext.addServlet(servlet, "/atom11/*");
+        addServletIfCompatible(webappContext,
+                CmisAtomPubServlet.class,
+                "/atom11/*",
+                new String[][] {
+                        { "cmisVersion", "1.1" },
+                        { "callContextHandler",
+                                "org.apache.chemistry.opencmis.server.shared.BasicAuthCallContextHandler" }
+                });
 
         // CMIS Browser
-        servlet = new ServletHolder();
-        servlet.setClassName(CmisBrowserBindingServlet.class.getName());
-        servlet.setInitParameter("cmisVersion", "1.1");
-        servlet.setInitParameter("callContextHandler", "org.apache.chemistry."
-                + "opencmis.server.impl.browser.token.TokenCallContextHandler");
-        webappContext.addServlet(servlet, "/browser/*");
+        addServletIfCompatible(webappContext,
+                CmisBrowserBindingServlet.class,
+                "/browser/*",
+                new String[][] {
+                        { "cmisVersion", "1.1" },
+                        { "callContextHandler",
+                                "org.apache.chemistry.opencmis.server.impl.browser.token.TokenCallContextHandler" }
+                });
 
         // CMIS Endpoints
-        servlet = new ServletHolder(new CmisEndpointsDocumentServlet());
-        webappContext.addServlet(servlet, "/cmis-endpoints.json");
+        ServletHolder endpointsServlet = new ServletHolder(new CmisEndpointsDocumentServlet());
+        webappContext.addServlet(endpointsServlet, "/cmis-endpoints.json");
 
         return webappContext;
+    }
+
+    private void addServletIfCompatible(
+            WebAppContext webappContext,
+            Class<?> servletClass,
+            String pathSpec,
+            String[][] initParams) {
+        if (!Servlet.class.isAssignableFrom(servletClass)) {
+            LOG.warn("Skipping incompatible servlet {} mapped to {}."
+                    + " Expected javax.servlet.Servlet implementation.",
+                    servletClass.getName(), pathSpec);
+            return;
+        }
+        ServletHolder servlet = new ServletHolder();
+        servlet.setClassName(servletClass.getName());
+        for (String[] pair : initParams) {
+            servlet.setInitParameter(pair[0], pair[1]);
+        }
+        webappContext.addServlet(servlet, pathSpec);
     }
 
     private ResourceHandler buildStaticResourcesHandler() {

@@ -35,9 +35,9 @@ import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileType;
 import org.apache.commons.vfs2.provider.AbstractFileName;
 import org.apache.commons.vfs2.provider.AbstractFileObject;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
 import org.joda.time.DateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 
@@ -46,18 +46,15 @@ import org.w3c.dom.NodeList;
  */
 public class CmisAtomFileObject extends AbstractFileObject<CmisAtomFileSystem> {
 
-    private static final Logger LOG =
-            LoggerFactory.getLogger(CmisAtomFileObject.class);
+    private static final Logger LOG = LoggerFactory.getLogger(CmisAtomFileObject.class);
 
     // no paging given Apache Commons VFS does not seem to support it.
     private static final int MAX_ITEMS = 1000000;
 
     private static final String PROP_OBJECT_TYPE_ID = "cmis:objectTypeId";
     private static final String PROP_BASE_TYPE_ID = "cmis:baseTypeId";
-    private static final String PROP_LAST_MODIFICATION_DATE =
-            "cmis:lastModificationDate";
-    private static final String PROP_CONTENT_STREAM_LENGTH =
-            "cmis:contentStreamLength";
+    private static final String PROP_LAST_MODIFICATION_DATE = "cmis:lastModificationDate";
+    private static final String PROP_CONTENT_STREAM_LENGTH = "cmis:contentStreamLength";
 
     private Document document;
 
@@ -155,8 +152,9 @@ public class CmisAtomFileObject extends AbstractFileObject<CmisAtomFileSystem> {
         List<String> children = new ArrayList<>();
 
         String childrenURL = session.getString(document,
-                "/entry/link[@rel='down' and "
-              + "@type='application/atom+xml;type=feed']/@href");
+                "/*[local-name()='entry']"
+                        + "/*[local-name()='link'][@rel='down' and "
+                        + "@type='application/atom+xml;type=feed']/@href");
 
         if (StringUtils.isBlank(childrenURL)) {
             return ArrayUtils.EMPTY_STRING_ARRAY;
@@ -169,12 +167,15 @@ public class CmisAtomFileObject extends AbstractFileObject<CmisAtomFileSystem> {
 
         Document childrenDoc = session.getDocument(childrenURL);
 
-        if (session.getInt(childrenDoc, "/feed/numItems", -1) > MAX_ITEMS) {
+        if (session.getInt(childrenDoc,
+                "/*[local-name()='feed']/*[local-name()='numItems']", -1) > MAX_ITEMS) {
             LOG.warn("TOO many items under " + getName().getPathDecoded()
                     + ". Will only process the first " + MAX_ITEMS);
         }
-        NodeList nl = session.getNodeList(
-                childrenDoc, "/feed/entry/pathSegment/text()");
+        NodeList nl = session.getNodeList(childrenDoc,
+                "/*[local-name()='feed']"
+                        + "/*[local-name()='entry']"
+                        + "/*[local-name()='pathSegment']/text()");
         for (int i = 0; i < nl.getLength(); i++) {
             String fileName = nl.item(i).getNodeValue();
             if (StringUtils.isNotBlank(fileName)) {
@@ -210,8 +211,8 @@ public class CmisAtomFileObject extends AbstractFileObject<CmisAtomFileSystem> {
      */
     @Override
     protected InputStream doGetInputStream() throws Exception {
-        String contentURL = getSession().getString(
-                document, "/entry/content/@src");
+        String contentURL = getSession().getString(document,
+                "/*[local-name()='entry']/*[local-name()='content']/@src");
         if (StringUtils.isBlank(contentURL)) {
             LOG.warn("Content URL could not be found for " + getName());
             return new NullInputStream(0);
@@ -226,10 +227,13 @@ public class CmisAtomFileObject extends AbstractFileObject<CmisAtomFileSystem> {
 
     private String getPropertyValue(String propertyDefId)
             throws FileSystemException {
-        return getSession().getString(document, "/entry/object/properties/"
-                + "*[starts-with(local-name(), 'property')]"
-                + "[@propertyDefinitionId='"
-                + propertyDefId + "']/value/text()");
+        return getSession().getString(document,
+                "/*[local-name()='entry']"
+                        + "/*[local-name()='object']"
+                        + "/*[local-name()='properties']"
+                        + "/*[starts-with(local-name(), 'property')]"
+                        + "[@propertyDefinitionId='" + propertyDefId + "']"
+                        + "/*[local-name()='value']/text()");
     }
 
 }

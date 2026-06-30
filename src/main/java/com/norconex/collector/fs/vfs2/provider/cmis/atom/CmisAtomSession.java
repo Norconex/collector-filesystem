@@ -20,6 +20,10 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 
 import javax.xml.XMLConstants;
 import javax.xml.namespace.QName;
@@ -121,13 +125,45 @@ public class CmisAtomSession {
     }
 
     public Document getDocumentByPath(String path) throws FileSystemException {
+        if (StringUtils.isBlank(objectByPathTemplate)) {
+            throw new FileSystemException(
+                    "CMIS objectByPath URI template is blank.");
+        }
+
+        Set<String> candidates = new LinkedHashSet<>();
         try {
-            return getDocument(objectByPathTemplate.replace("{path}",
-                    URLEncoder.encode(path, StandardCharsets.UTF_8.toString())));
+            candidates.add(URLEncoder.encode(
+                    path, StandardCharsets.UTF_8.toString()));
         } catch (UnsupportedEncodingException e) {
             throw new FileSystemException(
                     "Could not get document from path: " + path, e);
         }
+
+        candidates.add(path);
+        if (StringUtils.startsWith(path, "/")) {
+            candidates.add(StringUtils.removeStart(path, "/"));
+        }
+        if ("/".equals(path)) {
+            candidates.add("");
+        }
+
+        List<FileSystemException> errors = new ArrayList<>();
+        for (String candidate : candidates) {
+            try {
+                return getDocument(
+                        objectByPathTemplate.replace("{path}", candidate));
+            } catch (FileSystemException e) {
+                errors.add(e);
+            }
+        }
+
+        FileSystemException lastError = errors.isEmpty()
+                ? null
+                : errors.get(errors.size() - 1);
+        throw new FileSystemException(
+                "Could not get document from path: " + path
+                        + " using template: " + objectByPathTemplate,
+                lastError);
     }
 
     public Document getDocument(String fullURL) throws FileSystemException {
@@ -149,11 +185,23 @@ public class CmisAtomSession {
             try (InputStream is = resp.getEntity().getContent()) {
                 responseBody = IOUtils.toByteArray(is);
             }
+            String bodyText = new String(responseBody, StandardCharsets.UTF_8);
+            String trimmedBody = StringUtils.trimToEmpty(bodyText);
+            if (!StringUtils.startsWith(trimmedBody, "<")) {
+                String preview = StringUtils.left(
+                        trimmedBody.replaceAll("\\s+", " "), 200);
+                throw new IOException("Response body is not XML from "
+                        + fullURL + " (content-type="
+                        + (resp.getEntity().getContentType() == null
+                                ? "unknown"
+                                : resp.getEntity().getContentType().getValue())
+                        + ", preview='" + preview + "')");
+            }
             try (InputStream bodyStream = new ByteArrayInputStream(responseBody)) {
                 return builder.parse(bodyStream);
             } catch (SAXException e) {
                 String preview = StringUtils.left(
-                        new String(responseBody, StandardCharsets.UTF_8), 200)
+                        trimmedBody, 200)
                         .replaceAll("\\s+", " ").trim();
                 throw new IOException("Response body is not valid XML from "
                         + fullURL + " (content-type="

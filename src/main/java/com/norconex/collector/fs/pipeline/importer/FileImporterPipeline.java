@@ -25,8 +25,8 @@ import com.norconex.collector.core.checksum.IMetadataChecksummer;
 import com.norconex.collector.core.crawler.CrawlerEvent;
 import com.norconex.collector.core.doc.CrawlDocInfo;
 import com.norconex.collector.core.doc.CrawlState;
-import com.norconex.collector.core.pipeline.DocInfoPipelineContext;
 import com.norconex.collector.core.pipeline.ChecksumStageUtil;
+import com.norconex.collector.core.pipeline.DocInfoPipelineContext;
 import com.norconex.collector.core.pipeline.importer.DocumentFiltersStage;
 import com.norconex.collector.core.pipeline.importer.ImportModuleStage;
 import com.norconex.collector.core.pipeline.importer.ImporterPipelineContext;
@@ -83,6 +83,9 @@ public class FileImporterPipeline extends Pipeline<ImporterPipelineContext> {
                                 ctx.getCrawler(), crawlData);
                         new FileQueuePipeline().execute(newContext);
                     }
+                    // Folder references are used as containers to discover
+                    // children and are not imported/committed as documents.
+                    ctx.getDocInfo().setState(CrawlState.UNMODIFIED);
                     return false;
                 }
                 return true;

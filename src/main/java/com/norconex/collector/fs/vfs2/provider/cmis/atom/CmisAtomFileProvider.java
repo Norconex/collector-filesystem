@@ -144,25 +144,29 @@ public class CmisAtomFileProvider extends AbstractLayeredFileProvider {
                 session.setEndpointURL(atomURL);
                 LOG.info("CMIS Atom endpoint URL: " + atomURL);
 
-                String repoXPath = "/service/workspace/repositoryInfo";
+                String repoXPath = "/*[local-name()='service']"
+                                + "/*[local-name()='workspace']"
+                                + "/*[local-name()='repositoryInfo']";
                 String repoId = cmis.getRepositoryId(opts);
                 Document doc = session.getDocument(atomURL);
                 Node repoNode;
                 if (StringUtils.isNotBlank(repoId)) {
                         LOG.info("Using CMIS repository matching id: " + repoId);
                         repoNode = session.getNode(
-                                        doc, repoXPath + "[repositoryId=\"" + repoId + "\"]");
+                                        doc, repoXPath
+                                                        + "[*[local-name()='repositoryId']=\"" + repoId + "\"]");
                 } else {
                         LOG.info("Using first CMIS repository found.");
-                        repoNode = session.getNode(
-                                        doc, repoXPath + "[1]");
+                        repoNode = session.getNode(doc, "(" + repoXPath + ")[1]");
                 }
                 if (repoNode == null) {
                         throw new FileSystemException("No repository found.");
                 }
 
-                session.setRepoId(session.getString(repoNode, "repositoryId"));
-                session.setRepoName(session.getString(repoNode, "repositoryName"));
+                session.setRepoId(
+                                session.getString(repoNode, "*[local-name()='repositoryId']/text()"));
+                session.setRepoName(
+                                session.getString(repoNode, "*[local-name()='repositoryName']/text()"));
                 session.setObjectByPathTemplate(
                                 getTemplateURL(session, doc, "objectbypath"));
                 session.setQueryTemplate(getTemplateURL(session, doc, "query"));
@@ -173,8 +177,12 @@ public class CmisAtomFileProvider extends AbstractLayeredFileProvider {
                         throws FileSystemException {
                 // We always use some of the same defaults, so we can already replace
                 // parts of the URL
-                String tmplURL = session.getString(doc, "/service/workspace/uritemplate"
-                                + "[type='" + type + "']/template/text()");
+                String tmplURL = session.getString(doc,
+                                "/*[local-name()='service']"
+                                                + "/*[local-name()='workspace']"
+                                                + "/*[local-name()='uritemplate']"
+                                                + "[*[local-name()='type']='" + type + "']"
+                                                + "/*[local-name()='template']/text()");
                 Map<String, Object> vars = new HashMap<>();
                 vars.put("filter", "");
                 vars.put("includeAllowableActions", true);

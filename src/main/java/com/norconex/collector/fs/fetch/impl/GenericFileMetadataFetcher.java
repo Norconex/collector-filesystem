@@ -75,10 +75,12 @@ public class GenericFileMetadataFetcher implements IFileMetadataFetcher {
 
             FileContent content = fileObject.getContent();
             // --- Enhance Metadata ---
-            metadata.addLong(
-                    FileMetadata.COLLECTOR_SIZE, content.getSize());
-            metadata.addLong(FileMetadata.COLLECTOR_LASTMODIFIED,
-                    content.getLastModifiedTime());
+            metadata.addString(
+                    FileMetadata.COLLECTOR_SIZE,
+                    Long.toString(content.getSize()));
+            metadata.addString(
+                    FileMetadata.COLLECTOR_LASTMODIFIED,
+                    Long.toString(content.getLastModifiedTime()));
             FileContentInfo info = content.getContentInfo();
             if (info != null) {
                 metadata.addString(FileMetadata.COLLECTOR_CONTENT_ENCODING,
