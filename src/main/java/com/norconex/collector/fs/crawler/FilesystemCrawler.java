@@ -1,0 +1,301 @@
+/* Copyright 2013-2017 Norconex Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.norconex.collector.fs.crawler;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.nio.charset.StandardCharsets;
+import java.text.NumberFormat;
+import java.util.Iterator;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.LineIterator;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.FileSystemException;
+import org.apache.commons.vfs2.FileSystemManager;
+import org.apache.commons.vfs2.impl.StandardFileSystemManager;
+import org.apache.commons.vfs2.provider.UriParser;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.norconex.collector.core.Collector;
+import com.norconex.collector.core.CollectorException;
+import com.norconex.collector.core.crawler.Crawler;
+import com.norconex.collector.core.doc.CrawlDoc;
+import com.norconex.collector.core.doc.CrawlDocInfo;
+import com.norconex.collector.core.pipeline.DocInfoPipelineContext;
+import com.norconex.collector.core.pipeline.importer.ImporterPipelineContext;
+import com.norconex.collector.fs.option.IFilesystemOptionsProvider;
+import com.norconex.collector.fs.pipeline.committer.FileCommitterPipeline;
+import com.norconex.collector.fs.pipeline.committer.FileCommitterPipelineContext;
+import com.norconex.collector.fs.pipeline.importer.FileImporterPipeline;
+import com.norconex.collector.fs.pipeline.importer.FileImporterPipelineContext;
+import com.norconex.collector.fs.pipeline.queue.FileQueuePipeline;
+import com.norconex.importer.response.ImporterResponse;
+
+/**
+ * The Filesystem Crawler.
+ *
+ * @author Pascal Essiembre
+ */
+public class FilesystemCrawler extends Crawler {
+
+    private static final Logger LOG = LoggerFactory.getLogger(FilesystemCrawler.class);
+
+    private StandardFileSystemManager fileManager;
+    private IFilesystemOptionsProvider optionsProvider;
+
+    /**
+     * Constructor.
+     * 
+     * @param crawlerConfig HTTP crawler configuration
+     */
+    public FilesystemCrawler(
+            FilesystemCrawlerConfig crawlerConfig, Collector collector) {
+        super(crawlerConfig, collector);
+    }
+
+    @Override
+    public FilesystemCrawlerConfig getCrawlerConfig() {
+        return (FilesystemCrawlerConfig) super.getCrawlerConfig();
+    }
+
+    /**
+     * @return the fileManager
+     */
+    public FileSystemManager getFileManager() {
+        return fileManager;
+    }
+
+    @Override
+    protected void beforeCrawlerExecution(boolean resume) {
+        initializeFileSystemManager();
+        if (!resume) {
+            queueStartPaths();
+        }
+    }
+
+    @Override
+    protected void afterCrawlerExecution() {
+        if (fileManager != null) {
+            fileManager.close();
+        }
+    }
+
+    private void initializeFileSystemManager() {
+        try {
+            optionsProvider = getCrawlerConfig().getOptionsProvider();
+            fileManager = new StandardFileSystemManager();
+            fileManager.setClassLoader(getClass().getClassLoader());
+            // if (getCrawlerConfig().getWorkDir() != null) {
+            // fileManager.setTemporaryFileStore(new DefaultFileReplicator(
+            // new File(getCrawlerConfig().getWorkDir(), "fvs_cache")));
+            // }
+            fileManager.init();
+        } catch (FileSystemException e) {
+            throw new CollectorException("Could not initialize filesystem.", e);
+        }
+    }
+
+    private void queueStartPaths() {
+        int urlCount = 0;
+        urlCount += queueStartPathsRegular();
+        urlCount += queueStartPathsSeedFiles();
+        urlCount += queueStartPathsProviders();
+        LOG.info(NumberFormat.getNumberInstance().format(urlCount)
+                + " start paths identified.");
+    }
+
+    private int queueStartPathsRegular() {
+        // Queue regular start urls
+        String[] startPaths = getCrawlerConfig().getStartPaths();
+        if (startPaths == null) {
+            return 0;
+        }
+
+        for (String startPath2 : startPaths) {
+            String startPath = startPath2;
+            // No protocol specified: we assume local file, and we get
+            // the absolute version.
+            if (!startPath.contains("://")) {
+                startPath = new File(startPath).getAbsolutePath();
+            }
+            executeQueuePipeline(new CrawlDocInfo(startPath));
+        }
+        return startPaths.length;
+    }
+
+    private int queueStartPathsSeedFiles() {
+        String[] pathsFiles = getCrawlerConfig().getPathsFiles();
+        if (pathsFiles == null) {
+            return 0;
+        }
+        int pathCount = 0;
+        for (String pathsFile : pathsFiles) {
+            LineIterator it = null;
+            try (InputStream is = new FileInputStream(pathsFile)) {
+                it = IOUtils.lineIterator(is, StandardCharsets.UTF_8);
+                while (it.hasNext()) {
+                    String startPath = it.nextLine();
+                    executeQueuePipeline(
+                            new CrawlDocInfo(startPath));
+                    pathCount++;
+                }
+            } catch (IOException e) {
+                throw new CollectorException(
+                        "Could not process paths file: " + pathsFile, e);
+            } finally {
+                LineIterator.closeQuietly(it);
+            }
+        }
+        return pathCount;
+    }
+
+    private int queueStartPathsProviders() {
+        IStartPathsProvider[] providers = getCrawlerConfig().getStartPathsProviders();
+        if (providers == null) {
+            return 0;
+        }
+        int count = 0;
+        for (IStartPathsProvider provider : providers) {
+            if (provider == null) {
+                continue;
+            }
+            Iterator<String> it = provider.provideStartPaths();
+            while (it.hasNext()) {
+                executeQueuePipeline(
+                        new CrawlDocInfo(it.next()));
+                count++;
+            }
+        }
+        return count;
+    }
+
+    @Override
+    protected void executeQueuePipeline(CrawlDocInfo crawlData) {
+        DocInfoPipelineContext context = new DocInfoPipelineContext(this, crawlData);
+        new FileQueuePipeline().execute(context);
+    }
+
+    @Override
+    protected ImporterResponse executeImporterPipeline(
+            ImporterPipelineContext importerContext) {
+
+        CrawlDocInfo crawlData = importerContext.getDocInfo();
+
+        String ref = fixEncoding(crawlData.getReference());
+        FileObject fileObject = null;
+        try {
+            if (optionsProvider == null) {
+                fileObject = fileManager.resolveFile(ref);
+            } else {
+                fileObject = fileManager.resolveFile(ref,
+                        optionsProvider.getFilesystemOptions(fileObject));
+            }
+        } catch (FileSystemException e) {
+            resolveFileException(crawlData.getReference(), e);
+        }
+        FileImporterPipelineContext fileContext = new FileImporterPipelineContext(importerContext);
+        fileContext.setFileObject(fileObject);
+        new FileImporterPipeline(
+                getCrawlerConfig().isKeepDownloads()).execute(fileContext);
+        return fileContext.getImporterResponse();
+    }
+
+    // Trick-method to ensure reference can be converted to a valid URI if
+    // a local path. Else it can fail (e.g. windows path having % in them).
+    private String fixEncoding(String ref) {
+        // We consider the reference a local file path (absolute or relative)
+        // if it matches any of these conditions:
+        // - no scheme
+        // - scheme is "file"
+        // - scheme is one letter (e.g., windows drive letter)
+        // If a local file, we properly encode all segments.
+        String scheme = UriParser.extractScheme(ref);
+        if (scheme == null
+                || scheme.length() <= 1 || "file".equalsIgnoreCase(scheme)) {
+            // encode segments
+            StringBuilder b = new StringBuilder();
+            Matcher m = Pattern.compile("([^\\/:]+|[\\/:]+)").matcher(ref);
+            while (m.find()) {
+                if (StringUtils.containsAny(m.group(), "\\/:")) {
+                    b.append(m.group());
+                } else {
+                    b.append(uriEncodeSegment(m.group()));
+                }
+            }
+            return b.toString();
+        }
+        return ref;
+    }
+
+    private String uriEncodeSegment(String value) {
+        // Encode control characters and a handful of specific characters,
+        // assuming all others are filename-valid on all major OSes.
+        StringBuilder b = new StringBuilder();
+        for (char ch : value.toCharArray()) {
+            if (ch >= 0 && ch <= 31 || "<>:;@#=&$,\"/\\|?*".indexOf(ch) > -1) {
+                b.append("%" + Integer.toHexString(ch));
+
+            } else {
+                b.append(ch);
+            }
+        }
+        return b.toString();
+    }
+
+    @Override
+    protected CrawlDocInfo createChildDocInfo(String embeddedReference,
+            CrawlDocInfo parentCrawlData) {
+        return new CrawlDocInfo(embeddedReference);
+    }
+
+    @Override
+    protected void executeCommitterPipeline(Crawler crawler, CrawlDoc doc) {
+
+        FileCommitterPipelineContext context = new FileCommitterPipelineContext(
+                (FilesystemCrawler) crawler, doc);
+        new FileCommitterPipeline().execute(context);
+    }
+
+    @Override
+    protected void markReferenceVariationsAsProcessed(CrawlDocInfo crawlData) {
+        // Nothing to do (does not support variations).
+    }
+
+    private void resolveFileException(String ref, Exception e) {
+        Throwable t = ExceptionUtils.getRootCause(e);
+        if (t instanceof MalformedURLException) {
+            if (StringUtils.containsIgnoreCase(t.getMessage(), "smb")) {
+                LOG.error("SMB protocol requires you to have this library in "
+                        + "your classpath (e.g. \"lib\" folder): "
+                        + "http://central.maven.org/maven2/jcifs/jcifs/"
+                        + "1.3.17/jcifs-1.3.17.jar");
+            } else if (StringUtils.containsIgnoreCase(
+                    t.getMessage(), "unknown protocol")) {
+                LOG.error("The protocol used may be unsupported or requires "
+                        + "you to install missing dependencies.");
+            }
+        }
+        throw new CollectorException("Cannot resolve: " + ref, e);
+    }
+}
