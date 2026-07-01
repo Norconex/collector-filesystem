@@ -37,7 +37,7 @@ import com.norconex.commons.lang.xml.XML;
  * configuration by specifying <code>disabled="true"</code>. When disabled,
  * the checksum returned is always <code>null</code>.
  * </p>
- * <h3>XML configuration usage:</h3>
+ * <h2>XML configuration usage:</h2>
  * 
  * <pre>
  *  &lt;metadataChecksummer 
@@ -47,7 +47,7 @@ import com.norconex.commons.lang.xml.XML;
  *      targetField="(field to store checksum)" /&gt;
  * </pre>
  * 
- * <h4>Usage example:</h4>
+ * <h3>Usage example:</h3>
  * <p>
  * The following will store the generated metadata checksum in a field
  * called "checksum".

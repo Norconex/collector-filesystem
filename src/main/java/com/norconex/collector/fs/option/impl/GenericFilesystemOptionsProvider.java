@@ -64,7 +64,7 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  * the {@link FileObject} supplied. In many case, it is not necessary
  * to configure any file system options.
  * </p>
- * <h3>Password encryption:</h3>
+ * <h2>Password encryption:</h2>
  * <p>
  * It is usually recommended to provide credentials here instead of doing
  * so directly on the requested URL to prevent password from appearing
@@ -78,7 +78,8 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  * and <code>[auth|proxy]PasswordKeySource</code> must be specified to properly
  * locate the key. The supported sources are:
  * </p>
- * <table border="1" summary="">
+ * <table border="1">
+ * <caption>Password key source options</caption>
  * <tr>
  * <th><code>[...]PasswordKeySource</code></th>
  * <th><code>[...]PasswordKey</code></th>
@@ -108,7 +109,7 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  * http://commons.apache.org/proper/commons-vfs/filesystems.html</a>
  * </p>
  *
- * <h3>Available Options</h3>
+ * <h2>Available options</h2>
  * <p>
  * You will not find methods or XML configuration tags for all options
  * supported by various file systems. If you need to configure more
@@ -135,7 +136,7 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  * {@link DurationParser} (e.g., "5 minutes and 30 seconds" or "5m30s").
  * </p>
  *
- * <h3>XML configuration usage:</h3>
+ * <h2>XML configuration usage:</h2>
  * 
  * <pre>
  *  &lt;optionsProvider class="com.norconex.collector.fs.option.impl.GenericFilesystemOptionsProvider"&gt;
@@ -206,7 +207,7 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *  &lt;/optionsProvider&gt;
  * </pre>
  * 
- * <h4>Usage example:</h4>
+ * <h3>Usage example:</h3>
  * <p>
  * The following sets the FTP settings sometimes required to get
  * directory listings on remote servers.

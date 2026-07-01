@@ -39,9 +39,9 @@
   </licenses>
   <repositories>
     <repository>
-      <id>sonatype.oss.snapshots</id>
-      <name>Sonatype OSS Snapshot Repository</name>
-      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+      <id>central-snapshots</id>
+      <name>Maven Central Snapshot Repository</name>
+      <url>https://central.sonatype.com/repository/maven-snapshots/</url>
       <releases>
         <enabled>false</enabled>
       </releases>
@@ -324,17 +324,15 @@
           <overview>${basedir}/src/main/javadoc/overview.html</overview>
           <show>protected</show>
           <nodeprecated>false</nodeprecated>
-          <source>1.7</source>
+          <source>${maven.compiler.source}</source>
           <detectLinks>false</detectLinks>
           <links>
             <link>https://www.norconex.com/product/commons-lang/apidocs/</link>
             <link>https://www.norconex.com/jef/api/latest/apidocs/</link>
             <link>https://www.norconex.com/collectors/importer/latest/apidocs/</link>
-            <link>https://www.norconex.com/collectors/committer-core/latest/apidocs/</link>
             <link>https://www.norconex.com/collectors/collector-core/latest/apidocs/</link>
             <link>https://commons.apache.org/proper/commons-lang/javadocs/api-3.4/</link>
             <link>https://commons.apache.org/proper/commons-collections/apidocs/</link>
-            <link>https://commons.apache.org/proper/commons-vfs/apidocs/</link>
             <link>https://commons.apache.org/proper/commons-configuration/javadocs/v1.10/apidocs/</link>
             <link>http://www.joda.org/joda-time/apidocs/</link>
           </links>
@@ -430,17 +428,6 @@
         </executions>
       </plugin>
       <plugin>
-        <groupId>org.sonatype.plugins</groupId>
-        <artifactId>nexus-staging-maven-plugin</artifactId>
-        <version>1.6.13</version>
-        <extensions>true</extensions>
-        <configuration>
-          <serverId>ossrh</serverId>
-          <nexusUrl>https://oss.sonatype.org/</nexusUrl>
-          <autoReleaseAfterClose>false</autoReleaseAfterClose>
-        </configuration>
-      </plugin>
-      <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-dependency-plugin</artifactId>
         <version>3.0.0</version>
@@ -468,14 +455,6 @@
       <id>norconex-site-deployment</id>
       <url>${site.baseurl}/collectors/collector-filesystem/latest</url>
     </site>
-    <snapshotRepository>
-      <id>ossrh</id>
-      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-    </snapshotRepository>
-    <repository>
-      <id>ossrh</id>
-      <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-    </repository>
   </distributionManagement>
   <reporting>
     <plugins>
@@ -526,17 +505,15 @@
             ]]></bottom>
           <show>protected</show>
           <nodeprecated>false</nodeprecated>
-          <source>1.7</source>
+          <source>${maven.compiler.source}</source>
           <detectLinks>false</detectLinks>
           <links>
             <link>https://www.norconex.com/product/commons-lang/apidocs/</link>
             <link>https://www.norconex.com/jef/api/latest/apidocs/</link>
             <link>https://www.norconex.com/collectors/importer/latest/apidocs/</link>
-            <link>https://www.norconex.com/collectors/committer-core/latest/apidocs/</link>
             <link>https://www.norconex.com/collectors/collector-core/latest/apidocs/</link>
             <link>https://commons.apache.org/proper/commons-lang/javadocs/api-3.4/</link>
             <link>https://commons.apache.org/proper/commons-collections/apidocs/</link>
-            <link>https://commons.apache.org/proper/commons-vfs/apidocs/</link>
             <link>https://commons.apache.org/proper/commons-configuration/javadocs/v1.10/apidocs/</link>
             <link>http://www.joda.org/joda-time/apidocs/</link>
           </links>
