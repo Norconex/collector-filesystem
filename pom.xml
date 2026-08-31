@@ -1,4 +1,4 @@
-﻿<!-- 
+<!-- 
    Copyright 2013-2021 Norconex Inc.
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,12 +31,6 @@
     <jetty.version>9.4.34.v20201102</jetty.version>
   </properties>
   <inceptionYear>2014</inceptionYear>
-  <licenses>
-    <license>
-      <name>The Apache Software License, Version 2.0</name>
-      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
-    </license>
-  </licenses>
   <repositories>
     <repository>
       <id>central-snapshots</id>
@@ -317,58 +311,30 @@
         </executions>
       </plugin>
       <plugin>
+        <!-- Everything else (version, real <links>, executions) comes from
+             the parent. This module vendors a patched copy of some
+             org.apache.commons.vfs2 provider classes under
+             src/main/java/org/apache/commons: that is genuinely specific
+             to this module, so it stays here rather than moving to the
+             parent. The rest of this plugin's former configuration
+             (javadoc-plugin 2.10.2, and a set of www.norconex.com/... <links>
+             that no longer resolve) was legacy that predated this module
+             being brought under the shared parent, and was breaking the
+             build outright: those dead links made javadoc:jar throw
+             FileNotFoundException fetching each one's package-list. -->
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
-        <version>2.10.2</version>
         <configuration>
-          <additionalJOptions>
-            <additionalJOption>--allow-script-in-comments</additionalJOption>
-          </additionalJOptions>
-          <overview>${basedir}/src/main/javadoc/overview.html</overview>
-          <show>protected</show>
-          <nodeprecated>false</nodeprecated>
-          <source>${maven.compiler.source}</source>
-          <detectLinks>false</detectLinks>
-          <links>
-            <link>https://www.norconex.com/product/commons-lang/apidocs/</link>
-            <link>https://www.norconex.com/jef/api/latest/apidocs/</link>
-            <link>https://www.norconex.com/collectors/importer/latest/apidocs/</link>
-            <link>https://www.norconex.com/collectors/collector-core/latest/apidocs/</link>
-            <link>https://commons.apache.org/proper/commons-lang/javadocs/api-3.4/</link>
-            <link>https://commons.apache.org/proper/commons-collections/apidocs/</link>
-            <link>https://commons.apache.org/proper/commons-configuration/javadocs/v1.10/apidocs/</link>
-            <link>http://www.joda.org/joda-time/apidocs/</link>
-          </links>
           <excludePackageNames>org.apache.commons.*</excludePackageNames>
         </configuration>
-        <executions>
-          <execution>
-            <id>make-javadoc</id>
-            <phase>prepare-package</phase>
-            <goals>
-              <goal>javadoc</goal>
-            </goals>
-          </execution>
-          <execution>
-            <id>attach-javadocs</id>
-            <goals>
-              <goal>jar</goal>
-            </goals>
-          </execution>
-        </executions>
       </plugin>
+      <!-- Bare activation: the parent only declares this plugin's config in
+           pluginManagement, so each module must activate it explicitly (unlike
+           gpg-plugin and central-publishing-maven-plugin, which the parent
+           activates for every child automatically). -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-source-plugin</artifactId>
-        <version>2.4</version>
-        <executions>
-          <execution>
-            <id>attach-sources</id>
-            <goals>
-              <goal>jar-no-fork</goal>
-            </goals>
-          </execution>
-        </executions>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -389,20 +355,6 @@
           <execution>
             <goals>
               <goal>test-jar</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-gpg-plugin</artifactId>
-        <version>1.6</version>
-        <executions>
-          <execution>
-            <id>sign-artifacts</id>
-            <phase>verify</phase>
-            <goals>
-              <goal>sign</goal>
             </goals>
           </execution>
         </executions>
@@ -459,86 +411,7 @@
       <url>${site.baseurl}/collectors/collector-filesystem/latest</url>
     </site>
   </distributionManagement>
-  <reporting>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-project-info-reports-plugin</artifactId>
-        <version>2.7</version>
-        <configuration>
-          <dependencyDetailsEnabled>false</dependencyDetailsEnabled>
-          <dependencyLocationsEnabled>false</dependencyLocationsEnabled>
-        </configuration>
-        <reportSets>
-          <reportSet>
-            <reports></reports>
-          </reportSet>
-        </reportSets>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-javadoc-plugin</artifactId>
-        <version>2.9.1</version>
-        <configuration>
-          <additionalJOptions>
-            <additionalJOption>--allow-script-in-comments</additionalJOption>
-          </additionalJOptions>
-          <overview>${basedir}/src/main/javadoc/overview.html</overview>
-          <header><![CDATA[
-            <style>div.aboutLanguage .siteLink {font-size: 2em;}</style>
-            <span class="siteLink">
-              <a href="https://www.norconex.com/collectors/collector-filesystem">Norconex Filesystem Collector</a>
-            </span>
-            ]]></header>
-          <bottom><![CDATA[
-            <script type="text/javascript">
-              var _gaq = _gaq || [];
-              _gaq.push(['_setAccount', 'UA-23162620-1']);
-              _gaq.push(['_setDomainName', 'norconex.com']);
-              _gaq.push(['_trackPageview']);
-              (function() {
-                var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-                ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-                var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-              })();
-            </script>
-            <a style="font-size: 1.4em;" href="https://github.com/norconex/collector-filesystem/issues">Submit an Issue</a>
-            &nbsp;&nbsp;|&nbsp;&nbsp; 
-            <a style="font-size: 1.4em;" href="https://www.norconex.com">www.norconex.com</a>
-            ]]></bottom>
-          <show>protected</show>
-          <nodeprecated>false</nodeprecated>
-          <source>${maven.compiler.source}</source>
-          <detectLinks>false</detectLinks>
-          <links>
-            <link>https://www.norconex.com/product/commons-lang/apidocs/</link>
-            <link>https://www.norconex.com/jef/api/latest/apidocs/</link>
-            <link>https://www.norconex.com/collectors/importer/latest/apidocs/</link>
-            <link>https://www.norconex.com/collectors/collector-core/latest/apidocs/</link>
-            <link>https://commons.apache.org/proper/commons-lang/javadocs/api-3.4/</link>
-            <link>https://commons.apache.org/proper/commons-collections/apidocs/</link>
-            <link>https://commons.apache.org/proper/commons-configuration/javadocs/v1.10/apidocs/</link>
-            <link>http://www.joda.org/joda-time/apidocs/</link>
-          </links>
-          <excludePackageNames>org.apache.commons.*</excludePackageNames>
-        </configuration>
-        <reportSets>
-          <reportSet>
-            <id>default</id>
-            <configuration></configuration>
-            <reports>
-              <report>javadoc</report>
-            </reports>
-          </reportSet>
-        </reportSets>
-      </plugin>
-    </plugins>
-  </reporting>
-  <organization>
-    <name>Norconex Inc.</name>
-    <url>https://www.norconex.com</url>
-  </organization>
-  <url>https://www.norconex.com/collectors/collector-filesystem</url>
+  <url>https://opensource.norconex.com/crawlers/filesystem</url>
   <description>Norconex Filesystem Collector walks through directories and files and extracts their content for integration into any target repository.  It aims to be very flexible, easy to extend, and portable</description>
   <issueManagement>
     <system>GitHub</system>
@@ -549,19 +422,5 @@
     <connection>scm:git:git@github.com:Norconex/collector-filesystem.git</connection>
     <developerConnection>scm:git:git@github.com:Norconex/collector-filesystem.git</developerConnection>
   </scm>
-  <developers>
-    <developer>
-      <id>essiembre</id>
-      <name>Pascal Essiembre</name>
-      <email>pascal.essiembre@norconex.com</email>
-      <organization>Norconex Inc.</organization>
-      <organizationUrl>https://www.norconex.com</organizationUrl>
-      <roles>
-        <role>project leader</role>
-        <role>developer</role>
-      </roles>
-      <timezone>-4</timezone>
-    </developer>
-  </developers>
   <contributors></contributors>
 </project>
