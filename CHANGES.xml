@@ -7,7 +7,7 @@
   </properties>
   <body>
 
-    <release version="3.2.0-SNAPSHOT" date="2026-07-01" description="Minor release.">
+    <release version="3.2.0" date="2026-08-31" description="Minor release.">
       <action dev="essiembre" type="fix" issue="65">
         File names with extended UTF-8 characters are now read properly.
         Non ASCII UTF-8 characters are no longer escaped when read. Now only
@@ -17,6 +17,12 @@
       <action dev="essiembre" type="update">
         Aligned release numbering, coordinates, and publishing with the
         synchronized Norconex v3 stack.
+      </action>
+      <action dev="essiembre" type="fix">
+        Fixed the release build itself: the javadoc plugin was still on a
+        pre-2016 configuration pointing at dead documentation links, which
+        made javadoc generation fail outright and blocked this module from
+        releasing. Brought in line with the rest of the v3 stack.
       </action>
     </release>
 
